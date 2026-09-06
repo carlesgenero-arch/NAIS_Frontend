@@ -1,1 +1,62 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================
+   1. VARIABLES GLOBALES (ESTILO PRINCIPAL)
+   ========================================== */
+   @import url('https://fonts.googleapis.com/css2?family=Poppins+Condensed:wght@400;700&display=swap');
+
+
+
+   
+:root {
+  /* Colores de la marca */
+  --color-negro: #18181A;
+  --color-crudo: #ECE3D8;
+
+  /* Familias Tipográficas */
+ --font-family: 'Poppins Condensed', sans-serif;
+  
+
+/* Colores de las frutas (Nº 1 al Nº 6) */
+  --color-fruta-1: #4A89DC; /* Azul */
+  --color-fruta-2: #F07E3D; /* Naranja */
+  --color-fruta-3: #EC7B98; /* Rosa / Fresa */
+  --color-fruta-4: #DE4C42; /* Rojo */
+  --color-fruta-5: #A3C948; /* Verde lima / Manzana */
+  --color-fruta-6: #F6D03E; /* Amarillo / Limón */
+}
+
+/* Aplicar color de fondo y texto por defecto al body */
+body {
+  background-color: var(--color-crudo);
+  color: var(--color-negro);
+  margin: 0;
+}
+
+/* ==========================================
+   2. REGLAS DE TIPOGRAFÍA Y DISEÑO
+   ========================================== */
+
+/* Elementos de Logotipo / Display */
+.logo, .brand-display {
+  font-family: var(--font-display);
+  font-weight: 700; /* Bold */
+  font-stretch: condensed;
+  letter-spacing: -0.025em; /* Equivalente web aprox. a -25 pts */
+  text-align: center;
+}
+
+/* Titulares (Exclusivo en minúsculas y +30 pts de tracking) */
+h1, h2, h3, h4, h5, h6, .titular {
+  font-family: var(--font-body);
+  font-weight: bold;
+  text-transform: lowercase; /* Forzar exclusivamente minúsculas */
+  letter-spacing: 0.03em;    /* Equivalente a +30 pts */
+}
+
+/* Cuerpo de texto y microtexto (Máximo 9px, EXCLUSIVAMENTE en mayúsculas) */
+p, span, small, .microtexto {
+  font-family: var(--font-body);
+  font-weight: bold;
+  font-size: 9px;            /* Límite estricto de tamaño */
+  text-transform: uppercase; /* Forzar exclusivamente mayúsculas */
+  letter-spacing: 0.03em;    /* Equivalente a +30 pts */
+}
