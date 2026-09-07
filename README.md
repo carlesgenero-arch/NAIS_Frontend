@@ -1,59 +1,117 @@
-# NaisFrontend
+# Nais Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.3.
+Soft Drinks Store – Web Application (SPA)
+A single‑page web application built with Angular to display products, manage a shopping cart, and process secure payments through Stripe Checkout. The project follows a modular and scalable architecture, prepared to integrate with a backend using Node.js/Express or Stripe services depending on the final deployment requirements.
 
-## Development server
+# Tech Stack
+Frontend: Angular 21, TypeScript, HTML5, CSS3
 
-To start a local development server, run:
+UI/UX: Reusable components, responsive design, web typography
 
-```bash
+External Services: Stripe (Checkout, payment sessions)
+
+Architecture: SPA with centralized routing, decoupled services, and typed models
+
+Backend (planned): Node.js + Express (REST API) or Stripe service integration
+
+Deployment: Vercel
+
+# Project Architecture
+
+src/
+ └── app/
+      ├── core/
+      │    └── shared/base/
+      │         ├── header/
+      │         ├── navbar/
+      │         └── page/
+      ├── features/components/
+      │    ├── cart/
+      │    ├── product-grid/
+      │    ├── product-store/
+      │    ├── newsletter/
+      │    └── offer/
+      ├── models/
+      │    └── product.interface.ts
+      ├── services/
+      │    ├── cart.service.ts
+      │    └── product.service.ts
+      ├── app.routes.ts
+      ├── app.config.ts
+      ├── app.css
+      └── app.html
+
+✔ Core / Shared
+Global layout: header, navbar, base page structure.
+
+✔ Features
+Functional components: product grid, product store, cart, newsletter, offers.
+
+✔ Services
+Business logic: product management, cart operations, Stripe integration.
+
+✔ Models
+Typed interfaces to ensure data consistency across the application.
+
+
+# Main Features
+
+Product catalog with grid layout
+
+Shopping cart (add, remove, update items)
+
+Smooth navigation without page reloads (SPA)
+
+Secure checkout using Stripe
+
+Modular architecture ready for backend expansion
+
+Responsive UI with reusable components
+
+
+# Installation and setup
+
+# Clone the repository
+git clone https://github.com/carlesgenero-arch/NAIS_Frontend
+
+# Install dependencies
+npm install
+
+# Run development server
 ng serve
-```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-## Code scaffolding
+# Backend (planned architecture)
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Option A — Node.js + Express + MySQL
 
-```bash
-ng generate component component-name
-```
+    REST API
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+    Product management
 
-```bash
-ng generate --help
-```
+    Order creation
 
-## Building
+    Stripe webhooks
 
-To build the project run:
+Option B — Stripe as main service
 
-```bash
-ng build
-```
+    Checkout sessions
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+    Order management via Stripe Dashboard
 
-## Running unit tests
+    Webhooks for synchronization
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+    Both approaches are supported by the current frontend structure.
 
-```bash
-ng test
-```
+# Project Status
 
-## Running end-to-end tests
+The project is active and under development, with the frontend functional and Stripe integration implemented.
+Backend architecture is being defined to choose the most suitable approach for deployment.
 
-For end-to-end (e2e) testing, run:
 
-```bash
-ng e2e
-```
+# Author
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Carles Generó
+Full Stack Developer 
+GitHub: https://github.com/carlesgenero-arch
+LinkedIn: https://www.linkedin.com/in/carles-genero/
