@@ -1,0 +1,40 @@
+:host {
+  display: block;
+}
+
+.site-header {
+  box-sizing: border-box;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 1rem clamp(1rem, 4vw, 3rem) 2rem;
+  color: var(--color-negro);
+}
+
+.utilities {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.languages {
+  display: flex;
+  align-items: center;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.25rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.75rem;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}

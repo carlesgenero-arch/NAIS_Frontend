@@ -1,23 +1,35 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { App } from './app';
 
-describe('App', () => {
+describe('App header', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
+      providers: [provideRouter([])],
     }).compileComponents();
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render title', async () => {
+  it('renders a single header with an accessible link to home', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, nais_frontend');
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelectorAll('header').length).toBe(1);
+    expect(element.querySelector('nav')?.getAttribute('aria-label')).toBe('Navegació principal');
+    expect(element.querySelector('nav a')?.getAttribute('href')).toBe('/');
+    expect(element.querySelector('nav a img')?.getAttribute('src')).toBe('images/brand/nais-logo.svg');
+    expect(element.querySelector('.brand-mark')?.getAttribute('alt')).toBe('');
+  });
+
+  it('keeps unavailable actions disabled without linking to unfinished pages', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    const buttons = Array.from(element.querySelectorAll<HTMLButtonElement>('header button'));
+    expect(buttons.length).toBe(4);
+    expect(buttons.every(button => button.disabled)).toBe(true);
+    expect(element.querySelector('.shop')?.getAttribute('aria-label')).toContain('pròximament');
+    expect(element.querySelector('.cart')?.getAttribute('aria-label')).toContain('pròximament');
+    expect(element.querySelectorAll('header a').length).toBe(1);
   });
 });
