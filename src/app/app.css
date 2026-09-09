@@ -1,1 +1,8 @@
 
+:host {
+  display: block;
+  box-sizing: border-box;
+  width: calc(100% - var(--page-gutter) - var(--page-gutter));
+  max-width: var(--page-max-width);
+  margin-inline: auto;
+}

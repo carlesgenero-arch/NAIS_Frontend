@@ -1,22 +1,60 @@
+/* Customisation */
+/* Edit the inherited layout properties in header.css. */
 :host {
+  --shop-border-width: 4px; /* Outline of the oval button. */
+  --shop-base-depth: 7px; /* Solid lower edge of the button. */
   display: block;
+  min-width: 0;
 }
 
+/* Header layout */
 .navigation {
+  box-sizing: border-box;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 1.5rem 0.75rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--header-column-gap);
+  min-height: var(--header-height);
+  padding: var(--header-block-padding) var(--header-inline-padding);
+  /*border: var(--navbar-border-width) solid var(--color-negro);*/
+  border-radius: var(--navbar-border-radius);
+  background: var(--surface-card);
 }
 
+/* Shop button */
+.shop {
+  box-sizing: border-box;
+  justify-self: start;
+  align-self: start;
+  margin-inline-start: var(--shop-button-left-inset);
+  margin-block: var(--header-column-gap);
+  width: min(var(--shop-button-width), calc(100% - var(--shop-button-left-inset)));
+  min-height: max(var(--control-min-size), var(--shop-button-height));
+  padding: var(--pill-padding-block) var(--pill-padding-inline);
+  border: var(--shop-border-width) solid var(--color-negro);
+  border-radius: 50%;
+  background: var(--color-fruta-3);
+  color: var(--color-negro);
+  font-size: var(--shop-button-font-size);
+  font-weight: 400;
+  line-height: 1.25;
+  transform: rotate(-12deg);
+  box-shadow: 0 var(--shop-base-depth) 0 var(--color-negro), var(--shadow-soft);
+}
+
+.shop:disabled {
+  cursor: not-allowed;
+}
+
+/* Main logo */
 .brand {
-  grid-column: 2;
-  grid-row: 1;
   display: block;
   width: 100%;
-  max-width: 18rem;
+  max-width: var(--main-logo-width);
+  min-width: 0;
   justify-self: center;
-  border-radius: 0.25rem;
+  align-self: center;
+  border-radius: var(--radius-sm);
 }
 
 .brand img {
@@ -25,50 +63,32 @@
   height: auto;
 }
 
-.brand:focus-visible {
+.brand:focus-visible,
+.shop:focus-visible {
   outline: 3px solid var(--color-negro);
   outline-offset: 6px;
 }
 
-.brand-mark {
-  grid-column: 3;
-  grid-row: 1;
-  justify-self: end;
-  width: 100%;
-  max-width: 4.5rem;
-  height: auto;
-}
+/* Header actions */
+/* The cart and secondary logo are grouped in Header, outside this navigation. */
 
-.shop {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  justify-self: center;
-  min-height: 44px;
-  max-width: 100%;
-  padding: 0.65rem 1.3rem;
-  border: 4px solid var(--color-negro);
-  border-radius: 50%;
-  background: var(--color-fruta-3);
-  color: var(--color-negro);
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.25;
-  transform: rotate(-12deg);
-}
-
-.shop:disabled {
-  cursor: not-allowed;
-}
-
-@media (min-width: 40rem) {
+/* Responsive adjustments */
+/* Equal side columns keep the main logo centered independently of Shop. */
+@media (min-width: 64rem) {
   .navigation {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1fr);
-    column-gap: 2rem;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, var(--main-logo-width))
+      minmax(0, 1fr);
   }
 
   .shop {
     grid-column: 1;
     grid-row: 1;
-    justify-self: start;
+  }
+
+  .brand {
+    grid-column: 2;
+    grid-row: 1;
   }
 }

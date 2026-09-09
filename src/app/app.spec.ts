@@ -18,7 +18,10 @@ describe('App header', () => {
     expect(element.querySelector('nav')?.getAttribute('aria-label')).toBe('Navegació principal');
     expect(element.querySelector('nav a')?.getAttribute('href')).toBe('/');
     expect(element.querySelector('nav a img')?.getAttribute('src')).toBe('images/brand/nais-logo.svg');
-    expect(element.querySelector('.brand-mark')?.getAttribute('alt')).toBe('');
+    expect(element.querySelector('.header-actions .brand-mark')?.getAttribute('alt')).toBe('');
+    expect(element.querySelector('.header-actions .brand-mark')?.getAttribute('src')).toBe('images/brand/nais-mark.svg');
+    expect(element.querySelector('.header-actions .cart')).not.toBeNull();
+    expect(element.querySelector('nav .brand-mark')).toBeNull();
   });
 
   it('keeps unavailable actions disabled without linking to unfinished pages', async () => {
