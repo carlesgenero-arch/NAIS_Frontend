@@ -1,8 +1,36 @@
 
+/* InfoCard customisation */
 :host {
+  --info-section-background: var(--surface-padding);
+  --info-section-padding: var(--surface-padding);
+  --info-section-gap: var(--space-group);
+  --info-card-background: var(--surface-card);
+  --info-card-border-width: 1px;
+  --info-card-border-radius: var(--radius-card);
+  --info-card-padding: var(--surface-padding);
+  /* Scale headings gently while keeping mobile copy readable. */
+  --info-card-text-size: clamp(1.25rem, 1.5vw, 1.75rem);
   display: block;
   box-sizing: border-box;
   width: calc(100% - var(--page-gutter) - var(--page-gutter));
   max-width: var(--page-max-width);
   margin-inline: auto;
+}
+
+.info-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--info-section-gap);
+  padding: var(--info-section-padding);
+  margin-bottom: var(--space-section);
+  border: var(--info-card-border-width) solid var(--color-negro);
+  border-radius: var(--radius-panel);
+  background: var(--info-section-background);
+}
+
+/* Match the Hero's desktop breakpoint. */
+@media (min-width: 64rem) {
+  .info-section {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

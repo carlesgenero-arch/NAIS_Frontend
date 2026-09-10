@@ -54,7 +54,7 @@
   min-width: 0;
   justify-self: center;
   align-self: center;
-  border-radius: var(--radius-sm);
+  /*border-radius: var(--radius-sm);*/
 }
 
 .brand img {
