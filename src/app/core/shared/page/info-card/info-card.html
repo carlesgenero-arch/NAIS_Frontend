@@ -1,1 +1,4 @@
-<p>info-card works!</p>
+<article class="info-card">
+  <img [src]="content().imageSrc" [alt]="content().imageAlt" loading="lazy" />
+  <h2>{{ content().text }}</h2>
+</article>

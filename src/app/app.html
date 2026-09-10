@@ -1,5 +1,10 @@
 <app-header />
 <main>
   <app-hero />
+  <section class="info-section" aria-label="Product characteristics" lang="ca">
+    @for (card of infoCards; track card.imageSrc) {
+      <app-info-card [content]="card" />
+    }
+  </section>
   <router-outlet />
 </main>
