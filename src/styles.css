@@ -50,6 +50,25 @@
   --color-negro: #18181A;
   --color-crudo: #ECE3D8;
 
+  /* Superficies y ritmo compartidos; colores de marca conservados. */
+  --radius-sm: 0.25rem;
+  --radius-card: 1rem;
+  --radius-panel: 1.5rem;
+  --radius-pill: 999px;
+  --shadow-soft: 0 2px 8px color-mix(in srgb, var(--color-negro) 6%, transparent);
+  --shadow-raised: 0 4px 12px color-mix(in srgb, var(--color-negro) 10%, transparent);
+  --page-max-width: 112rem;
+  --page-gutter: clamp(1rem, 2vw, 2.5rem);
+  --space-group: 1rem;
+  --space-section: clamp(2rem, 4vw, 4rem);
+  --surface-padding: clamp(1rem, 2vw, 2rem);
+  --surface-page: #FFFFFF;
+  --surface-card: #FFFFFF;
+  --surface-border: color-mix(in srgb, var(--color-negro) 12%, transparent);
+  --control-min-size: 44px;
+  --pill-padding-block: 0.65rem;
+  --pill-padding-inline: 1.3rem;
+
   /* Familias Tipográficas */
   --font-family: 'Poppins', sans-serif;
   --font-body: var(--font-family);
@@ -58,6 +77,7 @@
 
 /* Colores de las frutas (Nº 1 al Nº 6) */
   --color-fruta-1: #4A89DC; /* Azul */
+  --color-fruta-1-light: #78A9E8;
   --color-fruta-2: #F07E3D; /* Naranja */
   --color-fruta-3: #EC7B98; /* Rosa / Fresa */
   --color-fruta-4: #DE4C42; /* Rojo */
@@ -68,7 +88,7 @@
 /* Aplicar color de fondo y texto por defecto al body */
 body {
   font-family: var(--font-family);
-  background-color: var(--color-crudo);
+  background-color: var(--surface-page);
   color: var(--color-negro);
   margin: 0;
 }
