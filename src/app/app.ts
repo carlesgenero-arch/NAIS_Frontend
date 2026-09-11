@@ -14,7 +14,7 @@ import { ProductService } from './services/product.service';
   styleUrl: './app.css'
 })
 export class App {
-  protected readonly featuredProduct = inject(ProductService).products[0];
+  protected readonly products = inject(ProductService).products;
   protected readonly infoCards: readonly InfoCardContent[] = [
     {
       text: 'Sense sucres afegits ni edulcorants',

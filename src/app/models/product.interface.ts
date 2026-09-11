@@ -1,4 +1,4 @@
-export type ProductVariant = 'neutral' | 'citrus';
+export type ProductVariant = 'neutral' | 'citrus' | 'botanical' | 'ginger';
 
 export interface Product {
     id: string;
