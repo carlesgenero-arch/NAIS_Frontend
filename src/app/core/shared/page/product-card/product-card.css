@@ -1,0 +1,77 @@
+/* Product card customisation */
+:host {
+  --product-card-padding: var(--surface-padding);
+  --product-card-gap: var(--space-group);
+  --product-card-title-size: clamp(1.5rem, 3.2vw, 3.5rem);
+  --product-card-text-size: clamp(1rem, 1.4vw, 1.25rem);
+  --product-card-image-height: clamp(18rem, 30vw, 32rem);
+  display: block;
+  min-width: 0;
+  margin-bottom: var(--space-section);
+}
+
+.product-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--product-card-gap);
+  padding: var(--product-card-padding);
+  border: 1px solid var(--color-negro);
+  border-radius: var(--radius-panel);
+  background: var(--surface-card);
+  color: var(--color-negro);
+  box-shadow: var(--shadow-soft);
+}
+
+.product-card[data-variant='citrus'] {
+  background: var(--surface-product-citrus);
+}
+
+.product-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--product-card-gap);
+  min-width: 0;
+  text-align: center;
+}
+
+.product-content h2,
+.product-content p {
+  margin: 0;
+  max-width: 32rem;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+.product-content h2 {
+  font-family: var(--font-display);
+  font-size: var(--product-card-title-size);
+  line-height: 1.2;
+}
+
+.product-content p {
+  font-family: var(--font-body);
+  font-size: var(--product-card-text-size);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.product-content .button--buy {
+  align-self: center;
+}
+
+.product-image {
+  display: block;
+  width: 100%;
+  max-height: var(--product-card-image-height);
+  height: auto;
+  object-fit: contain;
+}
+
+/* Keep the reference's editorial columns where both text and can have room. */
+@media (min-width: 64rem) {
+  .product-card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

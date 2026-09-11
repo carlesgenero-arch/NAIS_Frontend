@@ -1,1 +1,11 @@
-<p>product-card works!</p>
+<article class="product-card" [attr.data-variant]="product().variant" [attr.aria-label]="product().name" lang="ca">
+  <div class="product-content">
+    <h2>{{ product().name }}</h2>
+    <p class="product-description">{{ product().description }}</p>
+    @if (product().ingredients) {
+      <p class="product-ingredients">{{ product().ingredients }}</p>
+    }
+    <a class="button--buy" [href]="purchaseUrl()">COMPRAR</a>
+  </div>
+  <img class="product-image" [src]="product().imageUrl" [alt]="imageAlt()" loading="lazy" />
+</article>

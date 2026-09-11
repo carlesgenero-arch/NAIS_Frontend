@@ -7,5 +7,8 @@
     }
   </section>
   <app-brand-message-card />
+  @if (featuredProduct) {
+    <app-product-card [product]="featuredProduct" />
+  }
   <router-outlet />
 </main>
