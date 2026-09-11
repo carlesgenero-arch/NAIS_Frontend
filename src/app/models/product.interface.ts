@@ -1,9 +1,15 @@
+export type ProductVariant = 'neutral' | 'citrus' | 'botanical' | 'ginger';
+
 export interface Product {
     id: string;
   name: string;
-  price: number; 
+  price?: number;
   description: string;
   imageUrl: string;
+  imageAlt?: string;
+  ingredients?: string;
+  variant?: ProductVariant;
+  purchaseUrl?: string;
   colorHex?: string; 
 }
 

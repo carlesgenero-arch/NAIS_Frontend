@@ -64,6 +64,11 @@
   --surface-padding: clamp(1rem, 2vw, 2rem);
   --surface-page: #FFFFFF;
   --surface-card: #FFFFFF;
+  /* Pale yellow sampled from the Orange Spritz product-card reference. */
+  --surface-product-citrus: #FCEFB4;
+  /* Product backgrounds sampled from the Passion Hugo and Ginger Mango reference. */
+  --surface-product-botanical: #E5F3A6;
+  --surface-product-ginger: #F3CDDF;
   --surface-border: color-mix(in srgb, var(--color-negro) 12%, transparent);
   --control-min-size: 44px;
   --pill-padding-block: 0.65rem;
