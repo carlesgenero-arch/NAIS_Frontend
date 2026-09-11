@@ -12,18 +12,7 @@
   --hero-image-overlap: 0rem; /* Optional inward shift, capped by the safe inner padding. */
   display: block;
   min-width: 0;
-  /* CTA button customisation */
   margin-bottom: var(--space-section);
-  --cta-background: var(--color-fruta-1);
-  --cta-text-color: var(--color-negro);
-  --cta-border-color: var(--color-negro);
-  --cta-border-width: 2px;
-  --cta-radius: 0.6rem;
-  --cta-shadow-offset-x: 0.25rem;
-  --cta-shadow-offset-y: 0.3rem;
-  --cta-horizontal-padding: 1rem;
-  --cta-vertical-padding: 0.5rem;
-  --cta-font-size: 1rem;
 }
 
 /* Editorial layout */
@@ -65,64 +54,6 @@
   font-weight: 400;
   line-height: 1.5;
   text-transform: none;
-}
-
-.cta-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.5rem;
-  padding: var(--cta-vertical-padding) var(--cta-horizontal-padding);
-  border: var(--cta-border-width) solid var(--cta-border-color);
-  border-radius: var(--cta-radius);
-  background-color: var(--cta-background);
-  box-shadow:
-    var(--cta-shadow-offset-x)
-    var(--cta-shadow-offset-y)
-    0
-    var(--cta-border-color);
-  color: var(--cta-text-color);
-  font-family: var(--font-family);
-  font-size: var(--cta-font-size);
-  font-weight: 700;
-  line-height: 1;
-  text-decoration: none;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    background-color 160ms ease;
-}
-
-/* Hover state */
-.cta-button:hover {
-  transform: translate(
-    calc(var(--cta-shadow-offset-x) * 0.35),
-    calc(var(--cta-shadow-offset-y) * 0.35)
-  );
-
-  box-shadow:
-    calc(var(--cta-shadow-offset-x) * 0.65)
-    calc(var(--cta-shadow-offset-y) * 0.65)
-    0
-    var(--cta-border-color);
-}
-
-/* Keyboard focus */
-.cta-button:focus-visible {
-  outline: 3px solid var(--color-fruta-1);
-  outline-offset: 4px;
-}
-
-/* Pressed state */
-.cta-button:active {
-  transform: translate(
-    var(--cta-shadow-offset-x),
-    var(--cta-shadow-offset-y)
-  );
-
-  box-shadow: 0 0 0 var(--cta-border-color);
 }
 
 /* Product photography */
@@ -175,10 +106,6 @@
     object-fit: cover;
   }
 
-  .cta-button {
-    width: auto;
-    min-width: 8rem;
-  }
 }
 
 @media (min-width: 64rem) {
@@ -213,8 +140,4 @@
     );
   }
 
-  .cta-button {
-    width: auto;
-    min-width: 8rem;
-  }
 }

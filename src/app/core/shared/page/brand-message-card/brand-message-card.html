@@ -1,0 +1,9 @@
+<section class="brand-message" [attr.aria-label]="heading()" lang="ca">
+  <img class="brand-message-image" [src]="imageSrc()" [alt]="imageAlt()"
+    width="4000" height="3000" loading="lazy" />
+  <div class="brand-message-content">
+    <h2>{{ heading() }}</h2>
+    <p>{{ message() }}</p>
+    <a class="button--buy" [href]="ctaHref()">COMPRAR</a>
+  </div>
+</section>

@@ -1,0 +1,88 @@
+/* Brand message customisation */
+:host {
+  --brand-message-padding: var(--surface-padding);
+  --brand-message-gap: var(--space-group);
+  --brand-message-radius: var(--radius-panel);
+  --brand-message-heading-size: clamp(1.5rem, 3.2vw, 3.5rem);
+  --brand-message-text-size: clamp(1rem, 1.4vw, 1.25rem);
+  /* Keep white copy readable even over the brightest parts of the photograph. */
+  --brand-message-overlay: color-mix(in srgb, var(--color-negro) 60%, transparent);
+  display: block;
+  min-width: 0;
+  margin-bottom: var(--space-section);
+}
+
+.brand-message {
+  position: relative;
+  display: grid;
+  isolation: isolate;
+  box-sizing: border-box;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--color-negro);
+  border-radius: var(--brand-message-radius);
+  background: var(--color-negro);
+  color: var(--surface-card);
+  overflow: hidden;
+}
+
+.brand-message-image,
+.brand-message::before {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.brand-message-image {
+  z-index: -2;
+  object-fit: cover;
+  /* Keep the seated subject in view when content makes the mobile panel taller. */
+  object-position: 60% center;
+}
+
+.brand-message::before {
+  content: '';
+  z-index: -1;
+  background: var(--brand-message-overlay);
+  pointer-events: none;
+}
+
+.brand-message-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--brand-message-gap);
+  min-width: 0;
+  padding: var(--brand-message-padding);
+  text-align: center;
+}
+
+.brand-message h2,
+.brand-message p {
+  margin: 0;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+.brand-message h2 {
+  max-width: 28ch;
+  font-family: var(--font-display);
+  font-size: var(--brand-message-heading-size);
+  line-height: 1.15;
+}
+
+.brand-message p {
+  max-width: 44ch;
+  font-family: var(--font-body);
+  font-size: var(--brand-message-text-size);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* Use a wider editorial frame once the copy has room to fit comfortably. */
+@media (min-width: 64rem) {
+  .brand-message {
+    aspect-ratio: 16 / 9;
+  }
+}

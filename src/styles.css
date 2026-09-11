@@ -69,6 +69,22 @@
   --pill-padding-block: 0.65rem;
   --pill-padding-inline: 1.3rem;
 
+  /* Shared purchase button: Hero dimensions and Brand Message colour. */
+  --button-background: var(--color-fruta-1);
+  --button-text-color: var(--color-negro);
+  --button-border-color: var(--color-negro);
+  --button-border-width: 2px;
+  --button-radius: 0.6rem;
+  --button-shadow-offset-x: 0.25rem;
+  --button-shadow-offset-y: 0.3rem;
+  --button-padding-inline: var(--space-group);
+  --button-padding-block: 0.5rem;
+  --button-font-size: 1rem;
+  --button-min-width: 8rem;
+  --button-min-height: 2.5rem;
+  --button-focus-color: var(--color-fruta-1);
+  --button-transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+
   /* Familias Tipográficas */
   --font-family: 'Poppins', sans-serif;
   --font-body: var(--font-family);
@@ -124,4 +140,52 @@ p, span, small, .microtexto {
 /* Los controles no heredan la tipografía del body por defecto. */
 button, input, select, textarea {
   font-family: inherit;
+}
+
+/* Use .button--buy for every Comprar link or button. Keep placement local. */
+.button--buy {
+  appearance: none;
+  box-sizing: content-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Keep the same dimensions on mobile and desktop; allow longer labels to wrap. */
+  min-width: var(--button-min-width);
+  min-height: var(--button-min-height);
+  padding: var(--button-padding-block) var(--button-padding-inline);
+  border: var(--button-border-width) solid var(--button-border-color);
+  border-radius: var(--button-radius);
+  background-color: var(--button-background);
+  box-shadow: var(--button-shadow-offset-x) var(--button-shadow-offset-y) 0 var(--button-border-color);
+  color: var(--button-text-color);
+  font-family: var(--font-family);
+  font-size: var(--button-font-size);
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--button-transition);
+}
+
+.button--buy:hover {
+  transform: translate(
+    calc(var(--button-shadow-offset-x) * 0.35),
+    calc(var(--button-shadow-offset-y) * 0.35)
+  );
+  box-shadow:
+    calc(var(--button-shadow-offset-x) * 0.65)
+    calc(var(--button-shadow-offset-y) * 0.65)
+    0 var(--button-border-color);
+}
+
+.button--buy:focus-visible {
+  outline: 3px solid var(--button-focus-color);
+  outline-offset: 4px;
+}
+
+.button--buy:active {
+  transform: translate(var(--button-shadow-offset-x), var(--button-shadow-offset-y));
+  box-shadow: 0 0 0 var(--button-border-color);
 }

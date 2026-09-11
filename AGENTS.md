@@ -20,6 +20,7 @@ Do not implement later phases unless the task explicitly requests them.
 ## Stack and Commands
 
 * Angular 21 with standalone components.
+* Angular 21 components are standalone by default. Do not add `standalone: true` to new component decorators unless the project configuration explicitly requires it.
 * TypeScript 5.9 in strict mode.
 * Native HTML and CSS.
 * Package manager: npm.
