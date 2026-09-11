@@ -3,10 +3,11 @@ import { RouterOutlet } from '@angular/router';
 import { Header } from './core/shared/base/header/header';
 import { Hero } from './core/shared/page/hero/hero';
 import { InfoCard, type InfoCardContent } from './core/shared/page/info-card/info-card';
+import { BrandMessageCard } from './core/shared/page/brand-message-card/brand-message-card';
 
 @Component({
   selector: 'app-root',
-  imports: [Header, Hero, InfoCard, RouterOutlet],
+  imports: [Header, Hero, InfoCard, BrandMessageCard, RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
