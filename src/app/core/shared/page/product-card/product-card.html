@@ -2,10 +2,16 @@
   <div class="product-content">
     <h2>{{ product().name }}</h2>
     <p class="product-description">{{ product().description }}</p>
+    <h3>INGREDIENTS</h3>
     @if (product().ingredients) {
-      <p class="product-ingredients">{{ product().ingredients }}</p>
+      <h1 class="product-ingredients">{{ product().ingredients }}</h1>
     }
     <a class="button--buy" [href]="purchaseUrl()">COMPRAR</a>
   </div>
-  <img class="product-image" [src]="product().imageUrl" [alt]="imageAlt()" loading="lazy" />
+  <figure class="product-image-switcher" [attr.tabindex]="product().fruitImage ? 0 : null" [attr.aria-label]="product().name">
+    <img class="product-image product-image--can" [src]="product().imageUrl" [alt]="imageAlt()" loading="lazy" />
+    @if (product().fruitImage; as fruitImage) {
+      <img class="product-image product-image--fruit" [src]="fruitImage.url" [alt]="fruitImage.alt" loading="lazy" />
+    }
+  </figure>
 </article>

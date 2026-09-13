@@ -18,18 +18,15 @@ export class App {
   protected readonly infoCards: readonly InfoCardContent[] = [
     {
       text: 'Sense sucres afegits ni edulcorants',
-      imageSrc: 'images/info-card/mango.png',
-      imageAlt: 'Mango fruit on a pink background',
+      colour: 'pink',
     },
     {
       text: 'lleugerament carbonatada',
-      imageSrc: 'images/info-card/orange.png',
-      imageAlt: 'Orange fruit on a blue background',
+      colour: 'blue',
     },
     {
       text: 'sense filtrar',
-      imageSrc: 'images/info-card/lemon.jpg',
-      imageAlt: 'Lemon fruit on a green background',
+      colour: 'green',
     },
   ];
   protected readonly title = signal('nais_frontend');

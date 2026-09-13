@@ -35,4 +35,23 @@ describe('App header', () => {
     expect(element.querySelector('.cart')?.getAttribute('aria-label')).toContain('pròximament');
     expect(element.querySelectorAll('header a').length).toBe(1);
   });
+
+  it('places the introduction once after the image-only Hero, above three benefits', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    const section = element.querySelector('.info-section');
+    expect(section?.previousElementSibling?.tagName).toBe('APP-HERO');
+    expect(element.querySelectorAll('#info-heading').length).toBe(1);
+    expect(section?.querySelector('h1')?.textContent).toBe('Real fruit sodas');
+    expect(section?.querySelector('p')?.textContent).toBe('a base de sucs naturals, fruita triturada i botànics');
+    expect(section?.getAttribute('aria-labelledby')).toBe('info-heading');
+    expect(section?.querySelector('a.button--buy')?.textContent).toBe('Comprar');
+    expect(section?.querySelector('a.button--buy')?.getAttribute('href')).toBe('/shop');
+    expect(Array.from(section!.querySelectorAll('app-info-card h2'), heading => heading.textContent)).toEqual([
+      'Sense sucres afegits ni edulcorants', 'lleugerament carbonatada', 'sense filtrar',
+    ]);
+    expect(section?.querySelector('img')).toBeNull();
+    expect(element.querySelector('app-hero h1, app-hero p, app-hero a')).toBeNull();
+  });
 });

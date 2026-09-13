@@ -1,143 +1,26 @@
 /* Hero customisation */
 :host {
-  --hero-min-height: 22rem; /* Minimum panel height; content can grow. */
-  --hero-content-ratio: 0.7fr; /* Desktop text column relative to the 1fr image column. */
-  --hero-padding: var(--surface-padding); /* Padding inside each editorial area. */
-  --hero-gap: var(--space-group); /* Space between text elements and image layers. */
-  --hero-border-width: 1px; /* Outer border and editorial divider. */
-  --hero-border-radius: var(--radius-panel); /* Outer rounded corners. */
-  --hero-heading-size: clamp(2.5rem, 4vw, 4.5rem); /* Main heading size. */
-  --hero-text-size: clamp(1rem, 1.4vw, 1.25rem); /* Supporting text size. */
-  --hero-image-max-width: 38rem; /* Limit image size without cropping. */
-  --hero-image-overlap: 0rem; /* Optional inward shift, capped by the safe inner padding. */
+  --hero-border-width: 1px;
+  --hero-border-radius: var(--radius-panel);
   display: block;
   min-width: 0;
   margin-bottom: var(--space-section);
 }
 
-/* Editorial layout */
 .hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  min-height: var(--hero-min-height);
   border: var(--hero-border-width) solid var(--color-negro);
   border-radius: var(--hero-border-radius);
   background: var(--surface-card);
-  color: var(--color-negro);
   overflow: hidden;
 }
 
-.hero-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: var(--hero-gap);
-  min-width: 0;
-  padding: var(--hero-padding);
-}
-
-.hero h1 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--hero-heading-size);
-  font-weight: 700;
-  line-height: 1.05;
-  text-transform: none;
-  overflow-wrap: anywhere;
-}
-
-.hero p {
-  margin: 0;
-  max-width: 30ch;
-  font-family: var(--font-body);
-  font-size: var(--hero-text-size);
-  font-weight: 400;
-  line-height: 1.5;
-  text-transform: none;
-}
-
-/* Product photography */
 .hero-visual {
-  display: grid;
-  align-items: center;
-  justify-items: center;
-  min-width: 0;
-  min-height: 18rem;
   margin: 0;
-  padding: 0;
-  background: var(--surface-card);
-  overflow:hidden;
 }
 
 .hero-visual img {
   display: block;
-  box-sizing: border-box;
   width: 100%;
-  max-width: none;
   height: auto;
   object-fit: cover;
-}
-
-
-/* Responsive adjustments */
-@media (max-width: 63.99rem) {
-  .hero-content {
-    align-items: center;
-    text-align: center;
-  }
-
-  .hero h1,
-  .hero p {
-    width: min(100%, 32rem);
-    margin-inline: auto;
-    text-align: center;
-  }
-
-  .hero-visual {
-    min-height: 18rem;
-    border-top: var(--hero-border-width) solid var(--color-negro);
-    border-inline-start: 0;
-  }
-
-  .hero-visual img {
-    width: 100%;
-    max-width: none;
-    height: auto;
-    object-fit: cover;
-  }
-
-}
-
-@media (min-width: 64rem) {
-  .hero {
-    grid-template-columns:
-      minmax(0, var(--hero-content-ratio))
-      minmax(0, 1fr);
-  }
-
-  .hero-content {
-    align-items: center;
-    text-align: center;
-  }
-
-  .hero h1,
-  .hero p {
-    width: min(100%, 32rem);
-    margin-inline: auto;
-    text-align: center;
-  }
-
-  .hero-visual {
-    min-height: 100%;
-    border-top: 0;
-    border-inline-start: var(--hero-border-width) solid var(--color-negro);
-  }
-
-  .hero-visual img {
-    position: relative;
-    inset-inline-start: calc(
-      -1 * clamp(0rem, var(--hero-image-overlap), var(--hero-padding))
-    );
-  }
-
 }

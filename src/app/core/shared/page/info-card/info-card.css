@@ -1,40 +1,41 @@
+/* InfoCard customisation uses the section's shared sizing properties. */
 :host {
   display: flex;
+  justify-content: center;
   min-width: 0;
 }
 
 .info-card {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-width: 0;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: min(100%, 20rem);
+  aspect-ratio: 1;
   margin: 0;
-  /*border: var(--info-card-border-width, 1px) solid var(--color-negro);*/
-  border-radius: var(--info-card-border-radius, var(--radius-card));
-  background: var(--info-card-background, var(--info-card-background));
-  overflow: hidden;
+  border-radius: 50%;
+  background: var(--info-card-background, var(--surface-card));
 }
 
-.info-card img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 50%;
-  object-fit: contain;
+.info-card[data-colour='pink'] {
+  background: var(--color-fruta-3);
+}
+
+.info-card[data-colour='blue'] {
+  background: var(--color-fruta-1);
+}
+
+.info-card[data-colour='green'] {
+  background: var(--color-fruta-5);
 }
 
 .info-card h2 {
-  display: grid;
-  flex: 1;
-  place-items: center;
+  max-width: 70%;
   margin: 0;
-  padding: var(--info-card-padding, var(--surface-padding));
   color: var(--color-negro);
   font-family: var(--font-body);
   font-size: var(--info-card-text-size, 1.5rem);
-  line-height: 1.4;
+  line-height: 1.2;
   text-align: center;
   text-transform: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
-

@@ -4,9 +4,9 @@
   --header-inline-padding: var(--surface-padding); /* Inner horizontal padding. */
   --header-block-padding: var(--surface-padding); /* Inner vertical padding. */
   --header-column-gap: var(--space-group); /* Space between layout columns. */
-  --shop-button-width: 12rem; /* Shop button preferred width. */
-  --shop-button-height: 5rem; /* Shop button minimum height. */
-  --shop-button-font-size: 1.75rem; /* Shop button text size. */
+  --shop-button-width: 17rem; /* Shop button preferred width. */
+  --shop-button-height: 8rem; /* Shop button minimum height. */
+  --shop-button-font-size: 2.5rem; /* Shop button text size. */
   --shop-button-left-inset: clamp(0.5rem, 2vw, 2rem); /* Move Shop inward from the left. */
   --main-logo-width: 36rem; /* Main logo maximum width. */
   --header-action-size: 22px; /* Shared cart and secondary logo dimensions. */

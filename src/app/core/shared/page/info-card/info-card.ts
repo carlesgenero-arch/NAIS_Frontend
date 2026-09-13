@@ -2,13 +2,11 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 export interface InfoCardContent {
   readonly text: string;
-  readonly imageSrc: string;
-  readonly imageAlt: string;
+  readonly colour: 'pink' | 'blue' | 'green';
 }
 
 @Component({
   selector: 'app-info-card',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [],
   templateUrl: './info-card.html',
