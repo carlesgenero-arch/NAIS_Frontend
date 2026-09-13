@@ -24,7 +24,7 @@
 /* Shop button */
 .shop {
   box-sizing: border-box;
-  justify-self: start;
+  justify-self: center;
   align-self: start;
   margin-inline-start: var(--shop-button-left-inset);
   margin-block: var(--header-column-gap);

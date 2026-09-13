@@ -9,6 +9,9 @@ describe('ProductCard', () => {
     const products = TestBed.inject(ProductService).products;
     expect(products.map(product => product.name)).toEqual(['ORANGE SPRITZ', 'PASSION HUGO', 'GINGER MANGO']);
     expect(new Set(products.map(product => product.imageUrl)).size).toBe(3);
+    expect(products.map(product => product.fruitImage?.url)).toEqual([
+      'images/info-card/orange.png', 'images/info-card/lemon.jpg', 'images/info-card/mango.png',
+    ]);
     expect(products.map(product => product.variant)).toEqual(['citrus', 'botanical', 'ginger']);
     const fixture = TestBed.createComponent(ProductCard);
     const element = fixture.nativeElement as HTMLElement;
@@ -20,6 +23,12 @@ describe('ProductCard', () => {
       expect(element.querySelector('.product-ingredients')?.textContent).toBe(product.ingredients);
       expect(element.querySelector('img')?.getAttribute('src')).toBe(product.imageUrl);
       expect(element.querySelector('img')?.getAttribute('alt')).toBe(product.imageAlt);
+      const preview = element.querySelector<HTMLElement>('.product-image-switcher');
+      expect(preview?.tabIndex).toBe(0);
+      expect(element.querySelector('.product-image--fruit')?.getAttribute('src')).toBe(product.fruitImage?.url);
+      expect(element.querySelector('.product-image--fruit')?.getAttribute('alt')).toBe(product.fruitImage?.alt);
+      preview?.focus();
+      expect(document.activeElement).toBe(preview);
       expect(element.querySelector('article')?.getAttribute('data-variant')).toBe(product.variant);
       expect(element.querySelectorAll('a.button--buy').length).toBe(1);
     }
@@ -51,6 +60,8 @@ describe('ProductCard', () => {
     expect(element.querySelector('img')?.getAttribute('alt')).toBe('Test flavour can');
     expect(element.querySelector('article')?.getAttribute('data-variant')).toBe('neutral');
     expect(element.querySelector('.product-ingredients')).toBeNull();
+    expect(element.querySelector('.product-image--fruit')).toBeNull();
+    expect(element.querySelector('.product-image-switcher')?.hasAttribute('tabindex')).toBe(false);
     expect(element.querySelector('a.button--buy')?.getAttribute('href')).toBe('/test-product');
   });
 });

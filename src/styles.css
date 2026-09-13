@@ -59,9 +59,9 @@
   --shadow-raised: 0 4px 12px color-mix(in srgb, var(--color-negro) 10%, transparent);
   --page-max-width: 112rem;
   --page-gutter: clamp(1rem, 2vw, 2.5rem);
-  --space-group: 1rem;
-  --space-section: clamp(2rem, 4vw, 4rem);
-  --surface-padding: clamp(1rem, 2vw, 2rem);
+  --space-group: 3rem;
+  --space-section: clamp(0.5rem, 4vw, 4rem);
+  --surface-padding: clamp(3rem, 4vw, 4rem);
   --surface-page: #FFFFFF;
   --surface-card: #FFFFFF;
   /* Pale yellow sampled from the Orange Spritz product-card reference. */
@@ -75,7 +75,7 @@
   --pill-padding-inline: 1.3rem;
 
   /* Shared purchase button: Hero dimensions and Brand Message colour. */
-  --button-background: var(--color-fruta-1);
+  --button-background: var(--color-fruta-6);
   --button-text-color: var(--color-negro);
   --button-border-color: var(--color-negro);
   --button-border-width: 2px;
@@ -138,7 +138,7 @@ h1, h2, h3, h4, h5, h6, .titular {
 p, span, small, .microtexto {
   font-family: var(--font-body);
   font-weight: bold;
-  font-size: 9px;            /* Límite estricto de tamaño */
+  font-size: 15px;            /* Límite estricto de tamaño */
   text-transform: uppercase; /* Forzar exclusivamente mayúsculas */
   letter-spacing: 0.03em;    /* Equivalente a +30 pts */
 }

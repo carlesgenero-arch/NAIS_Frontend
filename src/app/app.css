@@ -1,15 +1,15 @@
 
 /* InfoCard customisation */
 :host {
-  --info-section-background: var(--surface-padding);
+  --info-section-background: var(--surface-card);
   --info-section-padding: var(--surface-padding);
   --info-section-gap: var(--space-group);
   --info-card-background: var(--surface-card);
   --info-card-border-width: 1px;
   --info-card-border-radius: var(--radius-card);
-  --info-card-padding: var(--surface-padding);
+  --info-card-padding: var(--page-gutter);
   /* Scale headings gently while keeping mobile copy readable. */
-  --info-card-text-size: clamp(1.25rem, 1.5vw, 1.75rem);
+  --info-card-text-size: clamp(1rem, 2vw, 1.75rem);
   display: block;
   box-sizing: border-box;
   width: calc(100% - var(--page-gutter) - var(--page-gutter));
@@ -28,9 +28,48 @@
   background: var(--info-section-background);
 }
 
-/* Match the Hero's desktop breakpoint. */
+.info-introduction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--info-section-gap);
+  min-width: 0;
+  text-align: center;
+}
+
+.info-introduction h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 4vw, 4.5rem);
+  line-height: 1.05;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+.info-introduction p {
+  margin: 0;
+  max-width: 30ch;
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+  font-weight: 400;
+  line-height: 1.5;
+  text-transform: none;
+}
+
+.info-introduction .button--buy {
+  text-transform: none;
+}
+
+.info-benefits {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--info-section-gap);
+}
+
+/* Keep the three benefits together where each circle has room for its text. */
 @media (min-width: 64rem) {
-  .info-section {
+  .info-benefits {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

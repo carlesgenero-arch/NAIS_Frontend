@@ -7,6 +7,7 @@ export interface Product {
   description: string;
   imageUrl: string;
   imageAlt?: string;
+  fruitImage?: { url: string; alt: string };
   ingredients?: string;
   variant?: ProductVariant;
   purchaseUrl?: string;

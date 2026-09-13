@@ -1,12 +1,18 @@
 <app-header />
 <main>
   <app-hero />
-  <section class="info-section" aria-label="Product characteristics" lang="ca">
-    @for (card of infoCards; track card.imageSrc) {
-      <app-info-card [content]="card" />
-    }
+  <section class="info-section" aria-labelledby="info-heading" lang="ca">
+    <div class="info-introduction">
+      <h1 id="info-heading">Real fruit sodas</h1>
+      <p>a base de sucs naturals, fruita triturada i botànics</p>
+    </div>
+    <div class="info-benefits">
+      @for (card of infoCards; track card.colour) {
+        <app-info-card [content]="card" />
+      }
+    </div>
   </section>
-  <app-brand-message-card />
+  <!--<app-brand-message-card />-->
   @for (product of products; track product.id) {
     <app-product-card [product]="product" [class.product-card--reversed]="$index === 1" />
   }
