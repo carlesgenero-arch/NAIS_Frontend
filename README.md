@@ -27,10 +27,12 @@ src/
       │         └── page/
       ├── features/components/
       │    ├── cart/
-      │    ├── product-grid/
-      │    ├── product-store/
       │    ├── newsletter/
       │    └── offer/
+      ├── features/shop/
+      │    ├── shop-page/
+      │    ├── product-grid/
+      │    └── product-shop-card/
       ├── models/
       │    └── product.interface.ts
       ├── services/
@@ -45,7 +47,7 @@ src/
 Global layout: header, navbar, base page structure.
 
 ✔ Features
-Functional components: product grid, product store, cart, newsletter, offers.
+Shop catalogue: reusable product grid and shop cards. Other features: cart, newsletter, offers.
 
 ✔ Services
 Business logic: product management, cart operations, Stripe integration.

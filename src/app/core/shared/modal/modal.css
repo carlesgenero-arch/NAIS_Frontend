@@ -1,0 +1,35 @@
+:host {
+  display: contents;
+}
+
+dialog {
+  box-sizing: border-box;
+  width: min(36rem, calc(100% - var(--page-gutter) * 2));
+  max-height: calc(100dvh - var(--page-gutter) * 2);
+  margin: auto;
+  padding: var(--page-gutter);
+  overflow: auto;
+  border: var(--button-border-width) solid var(--color-negro);
+  border-radius: var(--radius-panel);
+  background: var(--surface-card);
+  color: var(--color-negro);
+  box-shadow: var(--shadow-raised);
+}
+
+dialog::backdrop {
+  background: color-mix(in srgb, var(--color-negro) 45%, transparent);
+}
+
+h2 {
+  margin: 0 0 var(--page-gutter);
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  line-height: 1.2;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+button {
+  display: flex;
+  margin: var(--page-gutter) auto 0;
+}

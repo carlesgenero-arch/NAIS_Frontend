@@ -1,0 +1,24 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.shop-page {
+  margin-block: var(--space-section);
+}
+
+.shop-page h1 {
+  margin: 0 0 var(--space-group);
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  text-transform: none;
+}
+
+.cart-status {
+  font-size: var(--button-font-size);
+  font-weight: 400;
+  text-transform: none;
+}
+
+.cart-status:empty {
+  margin: 0;
+}

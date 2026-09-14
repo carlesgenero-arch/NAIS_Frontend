@@ -59,7 +59,7 @@
   --shadow-raised: 0 4px 12px color-mix(in srgb, var(--color-negro) 10%, transparent);
   --page-max-width: 112rem;
   --page-gutter: clamp(1rem, 2vw, 2.5rem);
-  --space-group: 3rem;
+  --space-group: 2rem;
   --space-section: clamp(0.5rem, 4vw, 4rem);
   --surface-padding: clamp(3rem, 4vw, 4rem);
   --surface-page: #FFFFFF;
@@ -75,7 +75,7 @@
   --pill-padding-inline: 1.3rem;
 
   /* Shared purchase button: Hero dimensions and Brand Message colour. */
-  --button-background: var(--color-fruta-6);
+  --button-background: #F6D03E;
   --button-text-color: var(--color-negro);
   --button-border-color: var(--color-negro);
   --button-border-width: 2px;
@@ -137,7 +137,6 @@ h1, h2, h3, h4, h5, h6, .titular {
 /* Cuerpo de texto y microtexto (Máximo 9px, EXCLUSIVAMENTE en mayúsculas) */
 p, span, small, .microtexto {
   font-family: var(--font-body);
-  font-weight: bold;
   font-size: 15px;            /* Límite estricto de tamaño */
   text-transform: uppercase; /* Forzar exclusivamente mayúsculas */
   letter-spacing: 0.03em;    /* Equivalente a +30 pts */
@@ -148,7 +147,9 @@ button, input, select, textarea {
 }
 
 /* Use .button--buy for every Comprar link or button. Keep placement local. */
-.button--buy {
+.button--buy,
+.button--add,
+.button--nutrition {
   appearance: none;
   box-sizing: content-box;
   display: inline-flex;
@@ -174,7 +175,9 @@ button, input, select, textarea {
   transition: var(--button-transition);
 }
 
-.button--buy:hover {
+.button--buy:hover,
+.button--add:hover,
+.button--nutrition:hover {
   transform: translate(
     calc(var(--button-shadow-offset-x) * 0.35),
     calc(var(--button-shadow-offset-y) * 0.35)
@@ -185,12 +188,38 @@ button, input, select, textarea {
     0 var(--button-border-color);
 }
 
-.button--buy:focus-visible {
+.button--buy:focus-visible,
+.button--add:focus-visible,
+.button--nutrition:focus-visible {
   outline: 3px solid var(--button-focus-color);
   outline-offset: 4px;
 }
 
-.button--buy:active {
+.button--buy:active,
+.button--add:active,
+.button--nutrition:active {
   transform: translate(var(--button-shadow-offset-x), var(--button-shadow-offset-y));
   box-shadow: 0 0 0 var(--button-border-color);
+}
+
+/* Secondary nutrition and dialog controls reuse the shared foundation. */
+.button--nutrition {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--control-min-size);
+  padding-inline: var(--pill-padding-inline);
+  background: var(--surface-card);
+  line-height: 1.3;
+}
+
+/* Circular catalogue action; purchase-button dimensions remain unchanged. */
+.button--add {
+  box-sizing: border-box;
+  width: var(--button-min-width);
+  height: var(--button-min-width);
+  min-width: var(--control-min-size);
+  min-height: var(--control-min-size);
+  padding: var(--button-padding-block);
+  border-radius: 50%;
 }

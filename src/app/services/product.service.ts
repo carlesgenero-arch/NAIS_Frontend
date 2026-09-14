@@ -1,6 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Product } from '../models/product.interface';
 
+const sharedNutrition: NonNullable<Product['nutrition']> = [
+  { label: 'Valor energètic', value: '76 kJ / 18 kcal' },
+  { label: 'Greixos', value: '0,1 g' },
+  { label: 'dels quals saturats', value: '0 g' },
+  { label: 'Hidrats de carboni', value: '5,2 g' },
+  { label: 'dels quals sucres', value: '4,8 g' },
+  { label: 'Proteïnes', value: '0,1 g' },
+  { label: 'Sal', value: '0 g' },
+];
+
 @Injectable({
   providedIn: 'root',
 })
@@ -9,8 +19,11 @@ export class ProductService {
     {
       id: 'orange-spritz',
       name: 'ORANGE SPRITZ',
-      description: 'AFRUITADA AMB CON UN TOC AMARG MEMORABLE. CARÀCTER NATURAL A CADA GLOP',
-      ingredients: 'Taronja, Llimona, Gerds, Arrel de genciana',
+      nutrition: sharedNutrition,
+      format: 'pack 16 llaunes x 250ml',
+      price: 36,
+      description: 'Cítrica amb un toc amarg i àcid. Caràcter i puresa a cada glop',
+      ingredients: 'TARONJA, LLIMONA, GERDS, ARREL DE GENCIANA',
       imageUrl: 'images/products/nais_can_blue.png',
       imageAlt: 'NAIS Orange Spritz can with blue fruit artwork',
       fruitImage: { url: 'images/info-card/orange.png', alt: 'Orange fruit on a blue background' },
@@ -20,8 +33,11 @@ export class ProductService {
     {
       id: 'passion-hugo',
       name: 'PASSION HUGO',
-      description: 'ÀCIDA, SILVESTRE I APASSIONADA. PURA NATURALESA SERVIDA BEN FREDA',
-      ingredients: 'Llimona, Menta, Flor de saüc, Poma, Fruita de la passió',
+      nutrition: sharedNutrition,
+      format: 'pack 16 llaunes x 250ml',
+      price: 36,
+      description: 'Àcida, silvestre i apassionada. Explosió floral',
+      ingredients: 'LLIMONA, MENTA, FLOR DE SAÜC, POMA, FRUITA DE LA PASSIÓ',
       imageUrl: 'images/products/nais_can_green.png',
       imageAlt: 'NAIS Passion Hugo can with green fruit artwork',
       fruitImage: { url: 'images/info-card/lemon.jpg', alt: 'Lemon fruit on a green background' },
@@ -31,8 +47,11 @@ export class ProductService {
     {
       id: 'ginger-mango',
       name: 'GINGER MANGO',
-      description: 'AFRUITADA AMB CON UN TOC AMARG MEMORABLE. CARÀCTER NATURAL A CADA GLOP',
-      ingredients: 'Llimona, Poma, Gingebre, Mango',
+      nutrition: sharedNutrition,
+      format: 'pack 16 llaunes x 250ml',
+      price: 36,
+      description: 'Afruitada, tropical i lleugerament especiada. Vibrant i recomfortant',
+      ingredients: 'LLIMONA, POMA, GINGEBRE, MANGO',
       imageUrl: 'images/products/nais_can_pink.png',
       imageAlt: 'NAIS can with pink fruit artwork and a Ginger Crush label',
       fruitImage: { url: 'images/info-card/mango.png', alt: 'Mango fruit on a pink background' },

@@ -40,11 +40,30 @@
   line-height: 1.25;
   transform: rotate(-12deg);
   box-shadow: 0 var(--shop-base-depth) 0 var(--color-negro), var(--shadow-soft);
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.shop:hover:not(:disabled) {
+  transform: rotate(-12deg) translate(1px, 1px);
+  box-shadow:
+    0 4px 0 var(--color-negro),
+    var(--shadow-soft);
+}
+
+.shop:active:not(:disabled) {
+  transform: rotate(-12deg) translate(0.35rem, 0.3rem);
+  box-shadow: 0 0 0 var(--color-negro);
 }
 
 .shop:disabled {
   cursor: not-allowed;
+  opacity: 0.65;
 }
+
 
 /* Main logo */
 .brand {
@@ -90,5 +109,15 @@
   .brand {
     grid-column: 2;
     grid-row: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shop {
+    transition: none;
+  }
+
+  .shop:hover:not(:disabled),
+  .shop:active:not(:disabled) {
+    transform: rotate(-12deg);
   }
 }
