@@ -1,0 +1,5 @@
+<div class="product-catalogue">
+  @for (product of products; track product.id) {
+    <app-product-shop-card [product]="product" (addRequested)="addRequested.emit($event)" />
+  }
+</div>

@@ -9,7 +9,7 @@
   --shop-button-font-size: 2.5rem; /* Shop button text size. */
   --shop-button-left-inset: clamp(0.5rem, 2vw, 2rem); /* Move Shop inward from the left. */
   --main-logo-width: 36rem; /* Main logo maximum width. */
-  --header-action-size: 22px; /* Shared cart and secondary logo dimensions. */
+  --header-action-size: 30px; /* Shared cart and secondary logo dimensions. */
   --header-actions-gap: 0.5rem; /* Gap between the two action slots. */
   --navbar-border-width: 1px; /* Continuous Navbar outline thickness. */
   --navbar-border-radius: var(--radius-panel); /* Rounded Navbar corners. */
@@ -48,11 +48,10 @@ button {
   background: transparent;
   color: inherit;
   font-size: 0.75rem;
+  cursor: pointer;
 }
 
-button:disabled {
-  cursor: not-allowed;
-}
+
 
 button:focus-visible {
   outline: 3px solid var(--color-negro);
@@ -74,6 +73,7 @@ button:focus-visible {
   height: var(--header-action-size);
   object-fit: contain;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 /* Responsive adjustments */

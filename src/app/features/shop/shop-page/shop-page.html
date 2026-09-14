@@ -1,0 +1,5 @@
+<section class="shop-page" aria-labelledby="shop-heading" lang="ca">
+  <h1 id="shop-heading">PRODUCTES</h1>
+  <p class="cart-status" role="status">{{ cartMessage() }}</p>
+  <app-product-grid (addRequested)="requestAdd($event)" />
+</section>

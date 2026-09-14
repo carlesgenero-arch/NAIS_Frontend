@@ -4,6 +4,8 @@ export interface Product {
     id: string;
   name: string;
   price?: number;
+  format?: string;
+  nutrition?: readonly { readonly label: string; readonly value: string }[];
   description: string;
   imageUrl: string;
   imageAlt?: string;

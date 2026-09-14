@@ -1,0 +1,5 @@
+<dialog #dialog [attr.aria-label]="title()" lang="ca" (close)="restoreFocus()">
+  <h2>{{ title() }}</h2>
+  <ng-content />
+  <button class="button--nutrition" type="button" autofocus (click)="close()">TANCAR</button>
+</dialog>

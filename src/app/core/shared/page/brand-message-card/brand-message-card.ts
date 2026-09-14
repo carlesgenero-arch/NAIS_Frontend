@@ -7,9 +7,9 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
   styleUrl: './brand-message-card.css',
 })
 export class BrandMessageCard {
-  readonly heading = input<string>('No som una beguda de benestar ni parlem de superaliments');
-  readonly message = input<string>('Existim perquè la beguda en sí és bona. Prova el pack variat');
-  readonly imageSrc = input<string>('images/brand-message/WhatsApp Image 2026-08-17 at 17.41.18 (1).jpeg');
+  readonly heading = input<string>('No som una beguda de benestar. Existim perquè la beguda en sí és bona');
+  readonly message = input<string>('PROVA EL PACK VARIAT');
+  readonly imageSrc = input<string>('images/brand-message/jakob-owens-qoFQxxuk3QY-unsplash.jpg');
   readonly imageAlt = input<string>('Pack variat');
   readonly ctaHref = input<string>('/shop');
 

@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 export interface InfoCardContent {
   readonly text: string;
   readonly colour: 'pink' | 'blue' | 'green';
+  readonly image: { readonly src: string; readonly alt: string };
 }
 
 @Component({

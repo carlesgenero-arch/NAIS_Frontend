@@ -4,6 +4,26 @@ import { ProductService } from '../../../../services/product.service';
 import { ProductCard } from './product-card';
 
 describe('ProductCard', () => {
+  it('emits the current product from its optional catalogue action', async () => {
+    await TestBed.configureTestingModule({ imports: [ProductCard] }).compileComponents();
+    const fixture = TestBed.createComponent(ProductCard);
+    const products = TestBed.inject(ProductService).products;
+    fixture.componentRef.setInput('product', products[0]);
+    fixture.componentRef.setInput('presentation', 'catalogue');
+    const received: Product[] = [];
+    fixture.componentInstance.addRequested.subscribe(product => received.push(product));
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('a.button--buy')).toBeNull();
+    const button = element.querySelector<HTMLButtonElement>('button.button--add')!;
+    expect(button.type).toBe('button');
+    button.click();
+    fixture.componentRef.setInput('product', products[1]);
+    await fixture.whenStable();
+    button.click();
+    expect(received).toEqual([products[0], products[1]]);
+  });
+
   it('renders all catalogue products through the same input without retaining previous content', async () => {
     await TestBed.configureTestingModule({ imports: [ProductCard] }).compileComponents();
     const products = TestBed.inject(ProductService).products;
