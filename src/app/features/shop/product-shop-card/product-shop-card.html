@@ -1,0 +1,56 @@
+<article
+  class="product-shop-card"
+  [attr.data-variant]="product().variant"
+  [attr.aria-label]="product().name"
+  lang="ca"
+>
+  <figure class="product-visual" tabindex="0" [attr.aria-label]="product().name">
+    <img [src]="product().imageUrl" [alt]="imageAlt()" loading="lazy" />
+  </figure>
+
+  <div class="product-details">
+    <h2>{{ product().name }}</h2>
+
+    <p class="product-format">{{ product().format }}</p>
+
+    <p class="product-price">{{ priceLabel() }}</p>
+
+    <div class="product-actions">
+      @if (product().nutrition; as nutrition) {
+        <button
+          class="button--nutrition"
+          type="button"
+          aria-haspopup="dialog"
+          [attr.aria-label]="nutritionLabel()"
+          (click)="nutritionModal.open()"
+        >
+          VALORS NUTRICIONALS
+        </button>
+
+        <app-modal #nutritionModal [title]="product().name">
+          <table class="nutrition-table">
+            <caption>Informació nutricional per 100 ml</caption>
+
+            <tbody>
+              @for (entry of nutrition; track entry.label) {
+                <tr>
+                  <th scope="row">{{ entry.label }}</th>
+                  <td>{{ entry.value }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </app-modal>
+      }
+
+      <button
+        class="button--add"
+        type="button"
+        [attr.aria-label]="addLabel()"
+        (click)="addRequested.emit(product())"
+      >
+        AFEGIR
+      </button>
+    </div>
+  </div>
+</article>

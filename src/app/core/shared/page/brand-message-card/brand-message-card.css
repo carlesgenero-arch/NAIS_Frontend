@@ -3,8 +3,8 @@
   --brand-message-padding: var(--surface-padding);
   --brand-message-gap: var(--space-group);
   --brand-message-radius: var(--radius-panel);
-  --brand-message-heading-size: clamp(1.5rem, 3.2vw, 3.5rem);
-  --brand-message-text-size: clamp(2rem, 1.4vw, 1.25rem);
+  --brand-message-heading-size: clamp(2.25rem, 5vw, 4.5rem);
+  --brand-message-text-size: clamp(1.25rem, 2vw, 1.75rem);
   /* Keep white copy readable even over the brightest parts of the photograph. */
   --brand-message-overlay: color-mix(in srgb, var(--color-negro) 30%, transparent);
   display: block;
@@ -60,14 +60,14 @@
   text-align: center;
 }
 
-.brand-message h2,
+.brand-message h1,
 .brand-message p {
   margin: 0;
   text-transform: none;
   overflow-wrap: anywhere;
 }
 
-.brand-message h2 {
+.brand-message h1 {
   max-width: 28ch;
   font-family: var(--font-display);
   font-size: var(--brand-message-heading-size);

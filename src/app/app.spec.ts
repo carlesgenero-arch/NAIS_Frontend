@@ -1,57 +1,51 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { App } from './app';
+import { routes } from './app.routes';
 
-describe('App header', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [App],
-      providers: [provideRouter([])],
-    }).compileComponents();
-  });
-
-  it('renders a single header with an accessible link to home', async () => {
+ describe('App routes', () => {
+  it('lazy-loads Home and Shop behind the same shared header and footer', async () => {
+    await TestBed.configureTestingModule({ imports: [App], providers: [provideRouter(routes)] }).compileComponents();
     const fixture = TestBed.createComponent(App);
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/');
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelectorAll('header').length).toBe(1);
-    expect(element.querySelector('nav')?.getAttribute('aria-label')).toBe('Navegació principal');
-    expect(element.querySelector('nav a')?.getAttribute('href')).toBe('/');
-    expect(element.querySelector('nav a img')?.getAttribute('src')).toBe('images/brand/nais-logo.svg');
-    expect(element.querySelector('.header-actions .brand-mark')?.getAttribute('alt')).toBe('');
-    expect(element.querySelector('.header-actions .brand-mark')?.getAttribute('src')).toBe('images/brand/nais-mark.svg');
-    expect(element.querySelector('.header-actions .cart')).not.toBeNull();
-    expect(element.querySelector('nav .brand-mark')).toBeNull();
-  });
+    const navbar = element.querySelector('app-navbar');
+    const footer = element.querySelector('app-footer');
+    expect(element.querySelectorAll('footer').length).toBe(1);
+    expect(footer?.querySelector('a[href="https://www.instagram.com/naisdrinks/"]')).not.toBeNull();
+    expect(footer?.querySelector('a[href="mailto:hola@naisdrinks.com"]')).not.toBeNull();
+    expect(element.querySelector('main app-footer')).toBeNull();
+    const shopButton = element.querySelector<HTMLButtonElement>('nav .shop')!;
+    expect(shopButton.hidden).toBe(false);
+    expect(element.querySelectorAll('app-navbar').length).toBe(1);
+    expect(element.querySelector('app-hero')).not.toBeNull();
+    expect(element.querySelectorAll('app-info-card').length).toBe(3);
+    expect(element.querySelectorAll('a.button--buy').length).toBe(3);
+    expect(routes.find(route => route.path === 'shop')?.loadComponent).toBeDefined();
+    expect(routes.find(route => route.path === 'shop')?.component).toBeUndefined();
 
-  it('keeps unavailable actions disabled without linking to unfinished pages', async () => {
-    const fixture = TestBed.createComponent(App);
+    await router.navigateByUrl('/shop');
     await fixture.whenStable();
-    const element = fixture.nativeElement as HTMLElement;
-    const buttons = Array.from(element.querySelectorAll<HTMLButtonElement>('header button'));
-    expect(buttons.length).toBe(4);
-    expect(buttons.every(button => button.disabled)).toBe(true);
-    expect(element.querySelector('.shop')?.getAttribute('aria-label')).toContain('pròximament');
-    expect(element.querySelector('.cart')?.getAttribute('aria-label')).toContain('pròximament');
-    expect(element.querySelectorAll('header a').length).toBe(1);
-  });
+    expect(element.querySelector('app-navbar')).toBe(navbar);
+    expect(element.querySelector('app-footer')).toBe(footer);
+    expect(element.querySelectorAll('footer').length).toBe(1);
+    expect(shopButton.hidden).toBe(true);
+    expect(element.querySelector('app-hero')).toBeNull();
+    expect(element.querySelectorAll('app-product-grid').length).toBe(1);
+    expect(element.querySelectorAll('app-product-shop-card').length).toBe(3);
+    expect(element.querySelectorAll('button.button--add').length).toBe(3);
+    expect(element.querySelector('a.button--buy')).toBeNull();
 
-  it('places the introduction once after the image-only Hero, above three benefits', async () => {
-    const fixture = TestBed.createComponent(App);
+    await router.navigateByUrl('/shop?view=all#products');
     await fixture.whenStable();
-    const element = fixture.nativeElement as HTMLElement;
-    const section = element.querySelector('.info-section');
-    expect(section?.previousElementSibling?.tagName).toBe('APP-HERO');
-    expect(element.querySelectorAll('#info-heading').length).toBe(1);
-    expect(section?.querySelector('h1')?.textContent).toBe('Real fruit sodas');
-    expect(section?.querySelector('p')?.textContent).toBe('a base de sucs naturals, fruita triturada i botànics');
-    expect(section?.getAttribute('aria-labelledby')).toBe('info-heading');
-    expect(section?.querySelector('a.button--buy')?.textContent).toBe('Comprar');
-    expect(section?.querySelector('a.button--buy')?.getAttribute('href')).toBe('/shop');
-    expect(Array.from(section!.querySelectorAll('app-info-card h2'), heading => heading.textContent)).toEqual([
-      'Sense sucres afegits ni edulcorants', 'lleugerament carbonatada', 'sense filtrar',
-    ]);
-    expect(section?.querySelector('img')).toBeNull();
-    expect(element.querySelector('app-hero h1, app-hero p, app-hero a')).toBeNull();
+    expect(shopButton.hidden).toBe(true);
+
+    await router.navigateByUrl('/');
+    await fixture.whenStable();
+    expect(shopButton.hidden).toBe(false);
+    expect(element.querySelector('app-hero')).not.toBeNull();
+    expect(element.querySelector('.button--add')).toBeNull();
   });
 });
