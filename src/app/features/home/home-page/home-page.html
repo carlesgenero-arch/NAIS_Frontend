@@ -2,8 +2,8 @@
   <section class="info-section" aria-labelledby="info-heading" lang="ca">
     <div class="info-introduction">
       <h1>Què és Nais?</h1>
-      <h2 id="info-heading">REAL FRUIT SODAS</h2>
-      <p>A base de sucs naturals, fruita triturada i botànics</p>
+      <h2 id="info-heading">REAL FRUIT MOCKTAILS</h2>
+      <p>Beguda sense alcohol a base de sucs naturals i botànics</p>
     </div>
     <div class="info-benefits">
       @for (card of infoCards; track card.colour) {
@@ -13,7 +13,7 @@
   </section>
   <app-brand-message-card/>
   @for (product of products; track product.id) {
-    <app-product-card [product]="product" [class.product-card--reversed]="$index === 1" />
+    <app-product-card [product]="product" />
   }
 
 

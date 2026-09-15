@@ -1,4 +1,4 @@
-export type ProductVariant = 'neutral' | 'citrus' | 'botanical' | 'ginger';
+export type ProductVariant = 'neutral' | 'citrus' | 'botanical' | 'ginger' | 'tropical';
 
 export interface Product {
     id: string;
@@ -7,7 +7,7 @@ export interface Product {
   format?: string;
   nutrition?: readonly { readonly label: string; readonly value: string }[];
   description: string;
-  imageUrl: string;
+  imageUrl?: string;
   imageAlt?: string;
   fruitImage?: { url: string; alt: string };
   ingredients?: string;

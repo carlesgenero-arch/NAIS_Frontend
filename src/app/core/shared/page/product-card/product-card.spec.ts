@@ -27,12 +27,12 @@ describe('ProductCard', () => {
   it('renders all catalogue products through the same input without retaining previous content', async () => {
     await TestBed.configureTestingModule({ imports: [ProductCard] }).compileComponents();
     const products = TestBed.inject(ProductService).products;
-    expect(products.map(product => product.name)).toEqual(['ORANGE SPRITZ', 'PASSION HUGO', 'GINGER MANGO']);
-    expect(new Set(products.map(product => product.imageUrl)).size).toBe(3);
+    expect(products.map(product => product.name)).toEqual(['ORANGE SPRITZ', 'PASSION HUGO', 'GINGER CRUSH', 'Tropical Hops']);
+    expect(new Set(products.filter(product => product.imageUrl).map(product => product.imageUrl)).size).toBe(3);
     expect(products.map(product => product.fruitImage?.url)).toEqual([
-      'images/info-card/orange.png', 'images/info-card/lemon.jpg', 'images/info-card/mango.png',
+      'images/info-card/orange.png', 'images/info-card/lemon.jpg', 'images/info-card/mango.png', undefined,
     ]);
-    expect(products.map(product => product.variant)).toEqual(['citrus', 'botanical', 'ginger']);
+    expect(products.map(product => product.variant)).toEqual(['citrus', 'botanical', 'ginger', 'tropical']);
     const fixture = TestBed.createComponent(ProductCard);
     const element = fixture.nativeElement as HTMLElement;
     for (const product of products) {
@@ -44,11 +44,14 @@ describe('ProductCard', () => {
       expect(element.querySelector('img')?.getAttribute('src')).toBe(product.imageUrl);
       expect(element.querySelector('img')?.getAttribute('alt')).toBe(product.imageAlt);
       const preview = element.querySelector<HTMLElement>('.product-image-switcher');
-      expect(preview?.tabIndex).toBe(0);
+      expect(preview?.hasAttribute('tabindex')).toBe(!!product.fruitImage);
       expect(element.querySelector('.product-image--fruit')?.getAttribute('src')).toBe(product.fruitImage?.url);
       expect(element.querySelector('.product-image--fruit')?.getAttribute('alt')).toBe(product.fruitImage?.alt);
-      preview?.focus();
-      expect(document.activeElement).toBe(preview);
+      if (product.fruitImage) {
+        preview?.focus();
+        expect(document.activeElement).toBe(preview);
+      }
+      expect(element.querySelectorAll('img').length).toBe((product.imageUrl ? 1 : 0) + (product.fruitImage ? 1 : 0));
       expect(element.querySelector('article')?.getAttribute('data-variant')).toBe(product.variant);
       expect(element.querySelectorAll('a.button--buy').length).toBe(1);
     }
@@ -62,8 +65,8 @@ describe('ProductCard', () => {
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('h2')?.textContent).toBe('ORANGE SPRITZ');
-    expect(element.querySelector('.product-description')?.textContent).toBe('AFRUITADA AMB CON UN TOC AMARG MEMORABLE. CARÀCTER NATURAL A CADA GLOP');
-    expect(element.querySelector('.product-ingredients')?.textContent).toBe('Taronja, Llimona, Gerds, Arrel de genciana');
+    expect(element.querySelector('.product-description')?.textContent).toBe(firstProduct.description);
+    expect(element.querySelector('.product-ingredients')?.textContent).toBe(firstProduct.ingredients);
     expect(element.querySelector('article')?.getAttribute('data-variant')).toBe('citrus');
     expect(element.querySelector('img')?.getAttribute('src')).toBe(firstProduct.imageUrl);
     expect(element.querySelector('img')?.getAttribute('alt')).toBe(firstProduct.imageAlt);

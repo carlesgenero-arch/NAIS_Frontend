@@ -23,7 +23,7 @@
   margin-inline: auto;
   border-radius: 50%;
   object-fit: cover;
-  animation: info-card-float 4s ease-in-out infinite;
+  animation: info-card-float 1.5s ease-in-out infinite;
   transition:
     transform 220ms ease,
     box-shadow 220ms ease;
@@ -42,15 +42,15 @@
 }
 
 .info-card[data-colour='pink'] .info-card__image {
-  animation-delay: 0ms;
+  animation-delay: 10ms;
 }
 
 .info-card[data-colour='blue'] .info-card__image {
-  animation-delay: 180ms;
+  animation-delay: 280ms;
 }
 
 .info-card[data-colour='green'] .info-card__image {
-  animation-delay: 360ms;
+  animation-delay: 560ms;
 }
 
 .info-card h2 {
