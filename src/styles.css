@@ -69,6 +69,8 @@
   /* Product backgrounds sampled from the Passion Hugo and Ginger Mango reference. */
   --surface-product-botanical: #E5F3A6;
   --surface-product-ginger: #F3CDDF;
+  /* Purple surface shared by the Tropical Hops cards. */
+  --surface-product-tropical: #EAD9F7;
   --surface-border: color-mix(in srgb, var(--color-negro) 12%, transparent);
   --control-min-size: 44px;
   --pill-padding-block: 0.65rem;

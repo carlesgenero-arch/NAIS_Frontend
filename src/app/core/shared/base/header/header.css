@@ -8,7 +8,7 @@
   --shop-button-height: 8rem; /* Shop button minimum height. */
   --shop-button-font-size: 2.5rem; /* Shop button text size. */
   --shop-button-left-inset: clamp(0.5rem, 2vw, 2rem); /* Move Shop inward from the left. */
-  --main-logo-width: 36rem; /* Main logo maximum width. */
+  --main-logo-width: 80rem; /* Main logo maximum width. */
   --header-action-size: 30px; /* Shared cart and secondary logo dimensions. */
   --header-actions-gap: 0.5rem; /* Gap between the two action slots. */
   --navbar-border-width: 1px; /* Continuous Navbar outline thickness. */

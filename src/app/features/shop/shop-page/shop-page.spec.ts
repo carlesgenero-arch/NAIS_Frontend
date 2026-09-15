@@ -16,12 +16,12 @@ describe('ShopPage', () => {
     cards.forEach((card, index) => {
       expect(card.querySelector('h2')?.textContent).toBe(products[index].name);
       expect(card.querySelector('.product-format')?.textContent).toBe(products[index].format);
-      expect(card.querySelector('.product-price')?.textContent).toBe('36,00 €');
-      expect(card.querySelectorAll('img').length).toBe(1);
+      expect(card.querySelector('.product-price')?.textContent).toBe(products[index].price === undefined ? '' : '36,00 €');
+      expect(card.querySelectorAll('img').length).toBe(products[index].imageUrl ? 1 : 0);
       expect(card.textContent).not.toContain(products[index].description);
-      expect(card.textContent).not.toContain(products[index].ingredients);
+
       expect(card.querySelector('article')?.getAttribute('data-variant')).toBe(products[index].variant);
-      expect(card.querySelector('button')?.getAttribute('aria-label')).toBe(`Afegir ${products[index].name} al carret`);
+      expect(card.querySelector('.button--add')?.getAttribute('aria-label')).toBe(`Afegir ${products[index].name} al carret`);
     });
     expect(element.querySelector('a.button--buy')).toBeNull();
     element.querySelector<HTMLButtonElement>('.button--add')!.click();

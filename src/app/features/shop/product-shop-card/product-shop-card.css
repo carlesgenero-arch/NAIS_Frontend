@@ -30,6 +30,10 @@
   background: var(--surface-product-ginger);
 }
 
+.product-shop-card[data-variant='tropical'] {
+  background: var(--surface-product-tropical);
+}
+
 .product-visual {
   display: grid;
   place-items: center;

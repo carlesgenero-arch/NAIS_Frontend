@@ -1,18 +1,20 @@
 /* 1. Shared component tokens */
 :host {
-  --product-card-padding: var(--surface-padding);
   --product-card-gap: var(--space-group);
   --product-card-content-gap: 0.5rem;
   --product-card-title-size: clamp(1.5rem, 3.6vw, 4rem);
   --product-card-catalogue-title-size: clamp(1.25rem, 2vw, 1.75rem);
   --product-card-text-size: clamp(1rem, 1.4vw, 1.25rem);
   --product-card-image-height: clamp(20rem, 32vw, 32rem);
-  --product-card-image-active-scale: 1.03;
+  --product-card-image-active-scale: 1.0;
   --product-card-image-transition: opacity 220ms ease, transform 220ms ease;
   --product-card-background: var(--surface-card);
   --product-card-content-padding: var(--page-gutter);
   --product-card-divider: 1px solid var(--color-negro);
-
+  --surface-product-citrus-panel: #f07e3d;
+  --surface-product-botanical-panel: #a8cf3f;
+  --surface-product-ginger-panel: #df789d;
+  --surface-product-tropical-panel: #B77AE5;
   display: block;
   min-width: 0;
 }
@@ -31,14 +33,22 @@
 
 .product-card[data-variant='citrus'] {
   --product-card-background: var(--surface-product-citrus);
+  --product-card-panel-background: var(--surface-product-citrus-panel);
 }
 
 .product-card[data-variant='botanical'] {
   --product-card-background: var(--surface-product-botanical);
+   --product-card-panel-background: var(--surface-product-botanical-panel);
 }
 
 .product-card[data-variant='ginger'] {
   --product-card-background: var(--surface-product-ginger);
+  --product-card-panel-background: var(--surface-product-ginger-panel);
+}
+
+.product-card[data-variant='tropical'] {
+  --product-card-background: var(--surface-product-tropical);
+  --product-card-panel-background: var(--surface-product-tropical-panel);
 }
 
 .product-content {
@@ -123,18 +133,17 @@
 }
 
 .product-card:not(.product-card--catalogue) {
-  align-items: center;
-  gap: var(--product-card-gap);
-  padding: var(--page-gutter);
+  align-items: stretch;
+  overflow: hidden;
+  min-height: clamp(24rem, 42vw, 36rem);
 }
 
 .product-card:not(.product-card--catalogue) .product-content {
   align-items: flex-start;
-  justify-self: center;
-  width: min(100%, 26rem);
+  justify-content: center;
   padding: var(--product-card-content-padding);
   border-block-end: var(--product-card-divider);
-  background: color-mix(in srgb, var(--product-card-background) 82%, var(--color-negro));
+  background: var(--product-card-panel-background);
   text-align: left;
 }
 
@@ -152,7 +161,18 @@
 }
 
 .product-card:not(.product-card--catalogue) .product-image-switcher {
-  height: var(--product-card-image-height);
+  min-height: var(--product-card-image-height);
+  border-radius: 0;
+}
+
+.product-card:not(.product-card--catalogue) .product-image--can {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+
+.product-card:not(.product-card--catalogue) .product-image-switcher:focus-visible {
+  outline-offset: -6px;
 }
 
 /* 4. Catalogue presentation */
@@ -193,7 +213,6 @@
 @media (min-width: 64rem) {
   .product-card:not(.product-card--catalogue) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    padding: var(--product-card-padding);
   }
 
   .product-card:not(.product-card--catalogue) .product-content {
@@ -208,19 +227,6 @@
     grid-row: 1;
   }
 
-  :host(.product-card--reversed) .product-card:not(.product-card--catalogue) {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-  }
-
-  :host(.product-card--reversed) .product-card:not(.product-card--catalogue) .product-content {
-    grid-column: 2;
-    border-inline-end: 0;
-    border-inline-start: var(--product-card-divider);
-  }
-
-  :host(.product-card--reversed) .product-card:not(.product-card--catalogue) .product-image-switcher {
-    grid-column: 1;
-  }
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -242,5 +248,11 @@
 
   .product-image-switcher[tabindex]:is(:hover, :focus-visible) .product-image--can {
     transform: none;
+  }
+}
+
+ @media (max-width: 63.99rem) {
+  .product-card:not(.product-card--catalogue) {
+    min-height: clamp(30rem, 120vw, 38rem);
   }
 }

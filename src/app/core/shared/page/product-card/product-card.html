@@ -16,7 +16,9 @@
     }
   </div>
   <figure class="product-image-switcher" [attr.tabindex]="product().fruitImage ? 0 : null" [attr.aria-label]="product().name">
-    <img class="product-image product-image--can" [src]="product().imageUrl" [alt]="imageAlt()" loading="lazy" />
+    @if (product().imageUrl; as imageUrl) {
+      <img class="product-image product-image--can" [src]="imageUrl" [alt]="imageAlt()" loading="lazy" />
+    }
     @if (product().fruitImage; as fruitImage) {
       <img class="product-image product-image--fruit" [src]="fruitImage.url" [alt]="fruitImage.alt" loading="lazy" />
     }

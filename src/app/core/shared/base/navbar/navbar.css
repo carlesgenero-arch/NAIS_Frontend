@@ -9,6 +9,7 @@
 
 /* Header layout */
 .navigation {
+  position: relative;
   box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -23,12 +24,15 @@
 
 /* Shop button */
 .shop {
+  position:absolute;
+  right: 3.5rem;
+  bottom: -2.5rem;
   box-sizing: border-box;
   justify-self: center;
-  align-self: start;
+  align-self:flex-end;
   margin-inline-start: var(--shop-button-left-inset);
   margin-block: var(--header-column-gap);
-  width: min(var(--shop-button-width), calc(100% - var(--shop-button-left-inset)));
+  width: min(var(--shop-button-width), 12rem);
   min-height: max(var(--control-min-size), var(--shop-button-height));
   padding: var(--pill-padding-block) var(--pill-padding-inline);
   border: var(--shop-border-width) solid var(--color-negro);

@@ -4,8 +4,10 @@
   [attr.aria-label]="product().name"
   lang="ca"
 >
-  <figure class="product-visual" tabindex="0" [attr.aria-label]="product().name">
-    <img [src]="product().imageUrl" [alt]="imageAlt()" loading="lazy" />
+  <figure class="product-visual" [attr.tabindex]="product().imageUrl ? 0 : null" [attr.aria-label]="product().name">
+    @if (product().imageUrl; as imageUrl) {
+      <img [src]="imageUrl" [alt]="imageAlt()" loading="lazy" />
+    }
   </figure>
 
   <div class="product-details">

@@ -1,16 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Product } from '../models/product.interface';
 
-const sharedNutrition: NonNullable<Product['nutrition']> = [
-  { label: 'Valor energètic', value: '76 kJ / 18 kcal' },
-  { label: 'Greixos', value: '0,1 g' },
-  { label: 'dels quals saturats', value: '0 g' },
-  { label: 'Hidrats de carboni', value: '5,2 g' },
-  { label: 'dels quals sucres', value: '4,8 g' },
-  { label: 'Proteïnes', value: '0,1 g' },
-  { label: 'Sal', value: '0 g' },
-];
-
 @Injectable({
   providedIn: 'root',
 })
@@ -19,11 +9,19 @@ export class ProductService {
     {
       id: 'orange-spritz',
       name: 'ORANGE SPRITZ',
-      nutrition: sharedNutrition,
+      nutrition: [
+        { label: 'Valor energètic', value: '98 kJ / 23 kcal' },
+        { label: 'Greixos', value: '0,0 g' },
+        { label: 'dels quals saturats', value: '0,0 g' },
+        { label: 'Hidrats de carboni', value: '5,2 g' },
+        { label: 'dels quals sucres', value: '4,8 g' },
+        { label: 'Proteïnes', value: '0,1 g' },
+        { label: 'Sal', value: '<0,01 g' },
+      ],
       format: 'pack 16 llaunes x 250ml',
       price: 36,
       description: 'Cítrica amb un toc amarg i àcid. Caràcter i puresa a cada glop',
-      ingredients: 'TARONJA, LLIMONA, GERDS, ARREL DE GENCIANA',
+      ingredients: 'TARONJA, LLIMONA, GERDS, GENCIANA',
       imageUrl: 'images/products/nais_can_blue.png',
       imageAlt: 'NAIS Orange Spritz can with blue fruit artwork',
       fruitImage: { url: 'images/info-card/orange.png', alt: 'Orange fruit on a blue background' },
@@ -33,7 +31,15 @@ export class ProductService {
     {
       id: 'passion-hugo',
       name: 'PASSION HUGO',
-      nutrition: sharedNutrition,
+      nutrition: [
+        { label: 'Valor energètic', value: '99 kJ / 23 kcal' },
+        { label: 'Greixos', value: '0,0 g' },
+        { label: 'dels quals saturats', value: '0,0 g' },
+        { label: 'Hidrats de carboni', value: '5,1 g' },
+        { label: 'dels quals sucres', value: '4,9 g' },
+        { label: 'Proteïnes', value: '0,1 g' },
+        { label: 'Sal', value: '<0,01 g' },
+      ],
       format: 'pack 16 llaunes x 250ml',
       price: 36,
       description: 'Àcida, silvestre i apassionada. Explosió floral',
@@ -45,9 +51,17 @@ export class ProductService {
       purchaseUrl: '/shop',
     },
     {
-      id: 'ginger-mango',
-      name: 'GINGER MANGO',
-      nutrition: sharedNutrition,
+      id: 'ginger-crush',
+      name: 'GINGER CRUSH',
+      nutrition: [
+        { label: 'Valor energètic', value: '102 kJ / 24 kcal' },
+        { label: 'Greixos', value: '0,0 g' },
+        { label: 'dels quals saturats', value: '0,0 g' },
+        { label: 'Hidrats de carboni', value: '5,3 g' },
+        { label: 'dels quals sucres', value: '5,1 g' },
+        { label: 'Proteïnes', value: '0,1 g' },
+        { label: 'Sal', value: '<0,01 g' },
+      ],
       format: 'pack 16 llaunes x 250ml',
       price: 36,
       description: 'Afruitada, tropical i lleugerament especiada. Vibrant i recomfortant',
@@ -56,6 +70,25 @@ export class ProductService {
       imageAlt: 'NAIS can with pink fruit artwork and a Ginger Crush label',
       fruitImage: { url: 'images/info-card/mango.png', alt: 'Mango fruit on a pink background' },
       variant: 'ginger',
+      purchaseUrl: '/shop',
+    },
+    {
+      id: 'tropical-hops',
+      name: 'TROPICAL HOPS',
+      nutrition: [
+        { label: 'Valor energètic', value: '103 kJ / 24 kcal' },
+        { label: 'Greixos', value: '0,2 g' },
+        { label: 'dels quals saturats', value: '0,0 g' },
+        { label: 'Hidrats de carboni', value: '5,3 g' },
+        { label: 'dels quals sucres', value: '4,9 g' },
+        { label: 'Proteïnes', value: '0,2 g' },
+        { label: 'Sal', value: '<0,01 g' },
+      ],
+      format: 'pack 16 llaunes x 250 ml',
+      price: 36,
+      description: 'Tot el caràcter de la fruita i la personalitat del llúpol. Bomba de sabor',
+      ingredients: 'PINYA, RAÏM, MANGO, MANDARINA, CIVADA SENSE GLUTEN, LLIMONA, LLÚPOL CITRA',
+      variant: 'tropical',
       purchaseUrl: '/shop',
     },
   ];
