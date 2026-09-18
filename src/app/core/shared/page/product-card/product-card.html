@@ -12,7 +12,7 @@
     @if (presentation() === 'catalogue') {
       <button class="button--add" type="button" [attr.aria-label]="addLabel()" (click)="addRequested.emit(product())">AFEGIR</button>
     } @else {
-      <a class="button--buy" [href]="purchaseUrl()">COMPRAR</a>
+      <a class="button--buy" [routerLink]="['/products', product().slug]">COMPRAR</a>
     }
   </div>
   <figure class="product-image-switcher" [attr.tabindex]="product().fruitImage ? 0 : null" [attr.aria-label]="product().name">

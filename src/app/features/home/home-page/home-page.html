@@ -12,9 +12,10 @@
     </div>
   </section>
   <app-brand-message-card/>
+  @for (product of featuredProducts; track product.id) {
+    <app-product-feature-card [product]="product" />
+  }
   @for (product of products; track product.id) {
     <app-product-card [product]="product" />
   }
-
-
-
+  <app-media-carousel [images]="carouselImages" label="Moments NAIS Drinks" />

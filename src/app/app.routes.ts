@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { productResolver } from './features/shop/product.resolver';
 
 export const routes: Routes = [
   {
@@ -7,7 +8,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/home/home-page/home-page').then(module => module.HomePage),
   },
   {
-    path: 'shop',
+    path: 'products',
+    pathMatch: 'full',
     loadComponent: () => import('./features/shop/shop-page/shop-page').then(module => module.ShopPage),
   },
+  {
+    path: 'products/:slug',
+    resolve: { product: productResolver },
+    loadComponent: () => import('./features/shop/shop-page/shop-page').then(module => module.ShopPage),
+  },
+  { path: 'shop', pathMatch: 'full', redirectTo: 'products' },
 ];

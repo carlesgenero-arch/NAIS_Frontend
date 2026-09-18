@@ -22,9 +22,18 @@ import { routes } from './app.routes';
     expect(element.querySelectorAll('app-navbar').length).toBe(1);
     expect(element.querySelector('app-hero')).not.toBeNull();
     expect(element.querySelectorAll('app-info-card').length).toBe(3);
-    expect(element.querySelectorAll('a.button--buy').length).toBe(4);
-    expect(routes.find(route => route.path === 'shop')?.loadComponent).toBeDefined();
-    expect(routes.find(route => route.path === 'shop')?.component).toBeUndefined();
+    expect(element.querySelectorAll('a.button--buy').length).toBe(5);
+    expect(routes.find(route => route.path === 'products')?.loadComponent).toBeDefined();
+    expect(routes.find(route => route.path === 'products')?.component).toBeUndefined();
+
+    const purchaseLinks = Array.from(element.querySelectorAll<HTMLAnchorElement>('a.button--buy'));
+    expect(purchaseLinks.map(link => link.getAttribute('href'))).toEqual([
+      '/products/tropical-hops-harvest', '/products/orange-spritz', '/products/passion-hugo', '/products/ginger-crush', '/products/tropical-hops',
+    ]);
+    purchaseLinks[2].click();
+    await fixture.whenStable();
+    expect(router.url).toBe('/products/passion-hugo');
+    expect(element.querySelector('app-product-selected-detail h1')?.textContent).toBe('PASSION HUGO');
 
     await router.navigateByUrl('/shop');
     await fixture.whenStable();
@@ -34,8 +43,8 @@ import { routes } from './app.routes';
     expect(shopButton.hidden).toBe(true);
     expect(element.querySelector('app-hero')).toBeNull();
     expect(element.querySelectorAll('app-product-grid').length).toBe(1);
-    expect(element.querySelectorAll('app-product-shop-card').length).toBe(4);
-    expect(element.querySelectorAll('button.button--add').length).toBe(4);
+    expect(element.querySelectorAll('app-product-shop-card').length).toBe(6);
+    expect(element.querySelectorAll('app-product-grid button.button--add').length).toBe(6);
     expect(element.querySelector('a.button--buy')).toBeNull();
 
     await router.navigateByUrl('/shop?view=all#products');

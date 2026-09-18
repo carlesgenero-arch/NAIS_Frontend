@@ -84,3 +84,11 @@
   }
 }
 
+
+app-product-feature-card {
+  margin-bottom: var(--space-section);
+}
+
+app-media-carousel {
+  margin-block: var(--space-section);
+}

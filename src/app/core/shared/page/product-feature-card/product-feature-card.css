@@ -1,0 +1,107 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.product-feature {
+  display: grid;
+  overflow: hidden;
+  border: var(--button-border-width) solid var(--color-negro);
+  border-radius: var(--radius-panel);
+  background: var(--color-crudo);
+  color: var(--color-negro);
+  box-shadow: var(--shadow-raised);
+}
+
+.product-feature__visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: var(--space-group);
+  isolation: isolate;
+  background: var(--surface-product-assorted);
+}
+
+.product-feature__background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-feature__image {
+  display: block;
+  width: min(100%, 22rem);
+  height: clamp(16rem, 40vw, 30rem);
+  object-fit: contain;
+  filter: brightness(1.2);
+}
+
+.product-feature__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--space-group);
+  min-width: 0;
+  padding: var(--space-group) var(--page-gutter);
+  background-color: #54A4D2;
+}
+
+.product-feature__badge {
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: var(--pill-padding-block) var(--pill-padding-inline);
+  border: var(--button-border-width) solid var(--color-negro);
+  border-radius: var(--radius-pill);
+  background: var(--button-background);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.product-feature h2,
+.product-feature p {
+  margin: 0;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+.product-feature h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.1;
+}
+
+.product-feature p {
+  max-width: 42ch;
+  font-family: var(--font-body);
+  line-height: 1.6;
+}
+
+.product-feature__cta {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--control-min-size);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 48rem) {
+  .product-feature {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .product-feature__content {
+    padding: var(--surface-padding);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-feature__cta {
+    transition: none;
+  }
+}

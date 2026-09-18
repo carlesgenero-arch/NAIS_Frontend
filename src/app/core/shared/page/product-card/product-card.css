@@ -11,10 +11,6 @@
   --product-card-background: var(--surface-card);
   --product-card-content-padding: var(--page-gutter);
   --product-card-divider: 1px solid var(--color-negro);
-  --surface-product-citrus-panel: #f07e3d;
-  --surface-product-botanical-panel: #a8cf3f;
-  --surface-product-ginger-panel: #df789d;
-  --surface-product-tropical-panel: #B77AE5;
   display: block;
   min-width: 0;
 }
@@ -98,6 +94,7 @@
   display: block;
   min-height: 0;
   transition: var(--product-card-image-transition);
+  filter: brightness(1.10);
 }
 
 .product-image--can {

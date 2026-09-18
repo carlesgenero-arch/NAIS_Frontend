@@ -1,3 +1,4 @@
+import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { Product } from '../../../../models/product.interface';
 import { ProductService } from '../../../../services/product.service';
@@ -5,9 +6,9 @@ import { ProductCard } from './product-card';
 
 describe('ProductCard', () => {
   it('emits the current product from its optional catalogue action', async () => {
-    await TestBed.configureTestingModule({ imports: [ProductCard] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [ProductCard], providers: [provideRouter([])] }).compileComponents();
     const fixture = TestBed.createComponent(ProductCard);
-    const products = TestBed.inject(ProductService).products;
+    const products = TestBed.inject(ProductService).products.filter(product => !product.isSeasonal);
     fixture.componentRef.setInput('product', products[0]);
     fixture.componentRef.setInput('presentation', 'catalogue');
     const received: Product[] = [];
@@ -25,14 +26,14 @@ describe('ProductCard', () => {
   });
 
   it('renders all catalogue products through the same input without retaining previous content', async () => {
-    await TestBed.configureTestingModule({ imports: [ProductCard] }).compileComponents();
-    const products = TestBed.inject(ProductService).products;
-    expect(products.map(product => product.name)).toEqual(['ORANGE SPRITZ', 'PASSION HUGO', 'GINGER CRUSH', 'Tropical Hops']);
-    expect(new Set(products.filter(product => product.imageUrl).map(product => product.imageUrl)).size).toBe(3);
+    await TestBed.configureTestingModule({ imports: [ProductCard], providers: [provideRouter([])] }).compileComponents();
+    const products = TestBed.inject(ProductService).products.filter(product => !product.isSeasonal);
+    expect(products.map(product => product.name)).toEqual(['ORANGE SPRITZ', 'PASSION HUGO', 'GINGER CRUSH', 'TROPICAL HOPS', 'PACK VARIAT']);
+    expect(new Set(products.filter(product => product.imageUrl).map(product => product.imageUrl)).size).toBe(5);
     expect(products.map(product => product.fruitImage?.url)).toEqual([
-      'images/info-card/orange.png', 'images/info-card/lemon.jpg', 'images/info-card/mango.png', undefined,
+      'images/info-card/orange.png', 'images/info-card/lemon.jpg', 'images/info-card/mango.png', 'images/info-card/s_hop (2).jpg', undefined,
     ]);
-    expect(products.map(product => product.variant)).toEqual(['citrus', 'botanical', 'ginger', 'tropical']);
+    expect(products.map(product => product.variant)).toEqual(['citrus', 'botanical', 'ginger', 'tropical', 'assorted']);
     const fixture = TestBed.createComponent(ProductCard);
     const element = fixture.nativeElement as HTMLElement;
     for (const product of products) {
@@ -58,7 +59,7 @@ describe('ProductCard', () => {
   });
 
   it('renders the service product and updates when a different product is supplied', async () => {
-    await TestBed.configureTestingModule({ imports: [ProductCard] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [ProductCard], providers: [provideRouter([])] }).compileComponents();
     const fixture = TestBed.createComponent(ProductCard);
     const firstProduct = TestBed.inject(ProductService).products[0];
     fixture.componentRef.setInput('product', firstProduct);
@@ -70,10 +71,10 @@ describe('ProductCard', () => {
     expect(element.querySelector('article')?.getAttribute('data-variant')).toBe('citrus');
     expect(element.querySelector('img')?.getAttribute('src')).toBe(firstProduct.imageUrl);
     expect(element.querySelector('img')?.getAttribute('alt')).toBe(firstProduct.imageAlt);
-    expect(element.querySelector('a.button--buy')?.getAttribute('href')).toBe('/shop');
+    expect(element.querySelector('a.button--buy')?.getAttribute('href')).toBe('/products/orange-spritz');
 
     const nextProduct: Product = {
-      id: 'test-product', name: 'Test flavour', description: 'Test description',
+      id: 'test-product', slug: 'test-product', name: 'Test flavour', description: 'Test description',
       imageUrl: 'images/test.png', variant: 'neutral', purchaseUrl: '/test-product',
     };
     fixture.componentRef.setInput('product', nextProduct);
@@ -85,6 +86,6 @@ describe('ProductCard', () => {
     expect(element.querySelector('.product-ingredients')).toBeNull();
     expect(element.querySelector('.product-image--fruit')).toBeNull();
     expect(element.querySelector('.product-image-switcher')?.hasAttribute('tabindex')).toBe(false);
-    expect(element.querySelector('a.button--buy')?.getAttribute('href')).toBe('/test-product');
+    expect(element.querySelector('a.button--buy')?.getAttribute('href')).toBe('/products/test-product');
   });
 });
