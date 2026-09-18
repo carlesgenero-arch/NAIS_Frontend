@@ -1,0 +1,52 @@
+<section class="selected-detail" [class.selected-detail--featured]="!!product().featureBackgroundImageUrl" [attr.data-variant]="product().variant" [attr.aria-label]="product().name" lang="ca">
+  <div class="selected-detail__visual" [class.selected-detail__visual--paired]="product().imageUrl && product().fruitImage && !product().featureBackgroundImageUrl">
+    @if (product().imageUrl; as imageUrl) {
+      <img class="selected-detail__can" [src]="imageUrl" [alt]="imageAlt()" />
+    }
+    @if (product().featureBackgroundImageUrl; as backgroundUrl) {
+      <img class="selected-detail__background" [src]="backgroundUrl" alt="" />
+    } @else if (product().fruitImage; as fruitImage) {
+      <img class="selected-detail__fruit" [src]="fruitImage.url" [alt]="fruitImage.alt" />
+    }
+  </div>
+  <div class="selected-detail__content">
+    <h1 tabindex="-1">{{ product().name }}</h1>
+    @if (product().detailsPending) {
+      <p class="selected-detail__format">{{ product().format }}</p>
+      <p class="selected-detail__description">{{ product().description }}</p>
+    } @else {
+      <p class="selected-detail__label">Ingredients</p>
+      <p class="selected-detail__ingredients">{{ product().ingredients || 'Informació dels ingredients no disponible' }}</p>
+    }
+    <div class= "selected-detail_buttons">
+      @if (product().nutrition; as nutrition) {
+        <button
+          class="button--nutrition"
+          type="button"
+          aria-haspopup="dialog"
+          [attr.aria-label]="nutritionLabel()"
+          (click)="nutritionModal.open()"
+        >
+          VALORS NUTRICIONALS
+        </button>
+
+        <app-modal #nutritionModal [title]="product().name">
+          <table class="nutrition-table">
+            <caption>Informació nutricional per 100 ml</caption>
+
+            <tbody>
+              @for (entry of nutrition; track entry.label) {
+                <tr>
+                  <th scope="row">{{ entry.label }}</th>
+                  <td>{{ entry.value }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </app-modal>
+      }
+
+      <button class="button--add" type="button" [attr.aria-label]="addLabel()" (click)="addRequested.emit(product())">AFEGIR</button>
+    </div>
+  </div>
+</section>

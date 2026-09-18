@@ -1,55 +1,47 @@
 <article
   class="product-shop-card"
+  [class.product-shop-card--featured]="!!product().featureBackgroundImageUrl"
   [attr.data-variant]="product().variant"
   [attr.aria-label]="product().name"
   lang="ca"
 >
-  <figure class="product-visual" [attr.tabindex]="product().imageUrl ? 0 : null" [attr.aria-label]="product().name">
-    @if (product().imageUrl; as imageUrl) {
+  <a class="product-visual" [routerLink]="['/products', product().slug]" [attr.aria-label]="product().name">
+    @if (product().cardImageUrl ?? product().imageUrl; as imageUrl) {
       <img [src]="imageUrl" [alt]="imageAlt()" loading="lazy" />
     }
-  </figure>
+  </a>
 
   <div class="product-details">
-    <h2>{{ product().name }}</h2>
+    <h2>
+      <a class="product-select" [routerLink]="['/products', product().slug]" [attr.aria-label]="'Veure ' + product().name">{{ product().name }}</a>
+    </h2>
 
     <p class="product-format">{{ product().format }}</p>
 
     <p class="product-price">{{ priceLabel() }}</p>
 
     <div class="product-actions">
-      @if (product().nutrition; as nutrition) {
+      <div class="product-quantity" role="group" [attr.aria-label]="'Quantitat de ' + product().name">
         <button
-          class="button--nutrition"
+          class="button--quantity"
           type="button"
-          aria-haspopup="dialog"
-          [attr.aria-label]="nutritionLabel()"
-          (click)="nutritionModal.open()"
-        >
-          VALORS NUTRICIONALS
-        </button>
-
-        <app-modal #nutritionModal [title]="product().name">
-          <table class="nutrition-table">
-            <caption>Informació nutricional per 100 ml</caption>
-
-            <tbody>
-              @for (entry of nutrition; track entry.label) {
-                <tr>
-                  <th scope="row">{{ entry.label }}</th>
-                  <td>{{ entry.value }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </app-modal>
-      }
-
+          [attr.aria-label]="'Reduir la quantitat de ' + product().name"
+          [disabled]="quantity() === 1"
+          (click)="decreaseQuantity()"
+        >−</button>
+        <output class="product-quantity__value" aria-live="polite" aria-atomic="true" aria-label="Quantitat">{{ quantity() }}</output>
+        <button
+          class="button--quantity"
+          type="button"
+          [attr.aria-label]="'Augmentar la quantitat de ' + product().name"
+          (click)="increaseQuantity()"
+        >+</button>
+      </div>
       <button
         class="button--add"
         type="button"
         [attr.aria-label]="addLabel()"
-        (click)="addRequested.emit(product())"
+        (click)="addRequested.emit({ product: product(), quantity: quantity() })"
       >
         AFEGIR
       </button>

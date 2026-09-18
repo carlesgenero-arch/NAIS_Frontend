@@ -1,0 +1,38 @@
+@if (images().length > 0) {
+  <section class="media-carousel" aria-roledescription="carrusel" lang="ca" (keydown)="onKeydown($event)">
+    
+    <!-- Fletxa esquerra -->
+    <button 
+      class="media-carousel__arrow media-carousel__arrow--left"
+      type="button"
+      aria-label="Imatge anterior"
+      (click)="move(-1)">
+      <span aria-hidden="true">❮</span>
+    </button>
+
+    <!-- Track de targetes -->
+    <div class="media-carousel__track">
+      @for (image of images(); track $index) {
+        <div class="media-carousel__card" role="group">
+          @if (image.href; as href) {
+            <a class="media-carousel__link" [href]="href">
+              <img class="media-carousel__image" [src]="image.src" [alt]="image.alt" loading="lazy" />
+            </a>
+          } @else {
+            <img class="media-carousel__image" [src]="image.src" [alt]="image.alt" loading="lazy" />
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Fletxa dreta -->
+    <button 
+      class="media-carousel__arrow media-carousel__arrow--right"
+      type="button"
+      aria-label="Imatge següent"
+      (click)="move(1)">
+      <span aria-hidden="true">❯</span>
+    </button>
+
+  </section>
+}

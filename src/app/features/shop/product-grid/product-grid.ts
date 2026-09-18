@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, output } from '@angular/core';
 import { ProductShopCard } from '../product-shop-card/product-shop-card';
-import { Product } from '../../../models/product.interface';
+import { AddProductRequest } from '../../../models/product.interface';
 import { ProductService } from '../../../services/product.service';
 
 @Component({
@@ -12,5 +12,5 @@ import { ProductService } from '../../../services/product.service';
 })
 export class ProductGrid {
   protected readonly products = inject(ProductService).products;
-  readonly addRequested = output<Product>();
+  readonly addRequested = output<AddProductRequest>();
 }

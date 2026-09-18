@@ -64,6 +64,9 @@
   --surface-padding: clamp(3rem, 4vw, 4rem);
   --surface-page: #FFFFFF;
   --surface-card: #FFFFFF;
+  --surface-product-assorted: #bcd6f0;
+  /* Blue sampled from the Harvest hop photograph, shared by Shop surfaces. */
+  --surface-product-harvest: #54A4D2;
   /* Pale yellow sampled from the Orange Spritz product-card reference. */
   --surface-product-citrus: #FCEFB4;
   /* Product backgrounds sampled from the Passion Hugo and Ginger Mango reference. */
@@ -71,6 +74,11 @@
   --surface-product-ginger: #F3CDDF;
   /* Purple surface shared by the Tropical Hops cards. */
   --surface-product-tropical: #EAD9F7;
+  /* Shared panel colours for editorial cards and selected-product details. */
+  --surface-product-citrus-panel: #f07e3d;
+  --surface-product-botanical-panel: #a8cf3f;
+  --surface-product-ginger-panel: #df789d;
+  --surface-product-tropical-panel: #B77AE5;
   --surface-border: color-mix(in srgb, var(--color-negro) 12%, transparent);
   --control-min-size: 44px;
   --pill-padding-block: 0.65rem;
@@ -151,7 +159,8 @@ button, input, select, textarea {
 /* Use .button--buy for every Comprar link or button. Keep placement local. */
 .button--buy,
 .button--add,
-.button--nutrition {
+.button--nutrition,
+.button--quantity {
   appearance: none;
   box-sizing: content-box;
   display: inline-flex;
@@ -179,7 +188,8 @@ button, input, select, textarea {
 
 .button--buy:hover,
 .button--add:hover,
-.button--nutrition:hover {
+.button--nutrition:hover,
+.button--quantity:hover {
   transform: translate(
     calc(var(--button-shadow-offset-x) * 0.35),
     calc(var(--button-shadow-offset-y) * 0.35)
@@ -192,14 +202,16 @@ button, input, select, textarea {
 
 .button--buy:focus-visible,
 .button--add:focus-visible,
-.button--nutrition:focus-visible {
+.button--nutrition:focus-visible,
+.button--quantity:focus-visible {
   outline: 3px solid var(--button-focus-color);
   outline-offset: 4px;
 }
 
 .button--buy:active,
 .button--add:active,
-.button--nutrition:active {
+.button--nutrition:active,
+.button--quantity:active {
   transform: translate(var(--button-shadow-offset-x), var(--button-shadow-offset-y));
   box-shadow: 0 0 0 var(--button-border-color);
 }
