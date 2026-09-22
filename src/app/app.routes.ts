@@ -5,6 +5,12 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    loadComponent: () => import('./features/prelaunch/prelaunch-landing/prelaunch-landing').then(module => module.PrelaunchLanding),
+  },
+  {
+    // Keep the original homepage available while the temporary landing is active.
+    path: 'home',
+    pathMatch: 'full',
     loadComponent: () => import('./features/home/home-page/home-page').then(module => module.HomePage),
   },
   {

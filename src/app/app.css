@@ -5,3 +5,8 @@
   max-width: var(--page-max-width);
   margin-inline: auto;
 }
+
+:host.prelaunch {
+  width: 100%;
+  max-width: none;
+}

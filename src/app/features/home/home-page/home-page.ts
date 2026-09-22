@@ -7,10 +7,11 @@ import { ProductFeatureCard } from '../../../core/shared/page/product-feature-ca
 import { MediaCarousel } from '../../../core/shared/page/media-carousel/media-carousel';
 import { homeCarouselImages } from './home-carousel-images';
 import { ProductService } from '../../../services/product.service';
+import { AnimatedBanner } from '../../../core/shared/page/animated-banner/animated-banner';
 
 @Component({
   selector: 'app-home-page',
-  imports: [Hero, InfoCard, ProductCard, ProductFeatureCard, BrandMessageCard, MediaCarousel],
+  imports: [Hero, InfoCard, ProductCard, ProductFeatureCard, BrandMessageCard, MediaCarousel, AnimatedBanner],
   templateUrl: './home-page.html',
   styleUrl: './home-page.css'
 })

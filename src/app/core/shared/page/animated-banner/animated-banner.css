@@ -1,0 +1,45 @@
+.tira-animada {
+  width: 100%;
+  overflow: hidden;
+  background:#ff4eb8;
+  padding-block: 1rem;
+  margin-block: 1.5rem;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tira-animada__inner {
+  display: flex;
+  width: max-content;
+  white-space: nowrap;
+  align-items: center;
+  gap: 1.5rem;
+  animation: marquee 18s linear infinite;
+  will-change: transform;
+}
+
+.tira-animada__inner span {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2vw, 2rem);
+  font-weight: 700;
+  color: var(--color-negro);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tira-animada__inner {
+    animation: none;
+  }
+}

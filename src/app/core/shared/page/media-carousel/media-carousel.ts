@@ -43,7 +43,7 @@ export class MediaCarousel {
       const track = document.querySelector('.media-carousel__track');
       const cards = track?.querySelectorAll('.media-carousel__card');
       const card = cards?.[this.activeIndex()];
-      card?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+      //card?.scrollIntoView({ behavior: 'smooth', inline: 'start' });//
     });
   }
 

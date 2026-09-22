@@ -101,7 +101,7 @@ describe('Product routes', () => {
   });
 
   it('uses the normal Harvest card, preserves its quantity, and opens its matching detail', async () => {
-    const harness = await RouterTestingHarness.create('/');
+    const harness = await RouterTestingHarness.create('/home');
     const router = TestBed.inject(Router);
     const harvest = TestBed.inject(ProductService).products.find(product => product.isSeasonal)!;
     const featureLink = harness.routeNativeElement!.querySelector<HTMLAnchorElement>('app-product-feature-card a')!;

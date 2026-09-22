@@ -3,58 +3,71 @@ import { provideRouter, Router } from '@angular/router';
 import { App } from './app';
 import { routes } from './app.routes';
 
- describe('App routes', () => {
-  it('lazy-loads Home and Shop behind the same shared header and footer', async () => {
-    await TestBed.configureTestingModule({ imports: [App], providers: [provideRouter(routes)] }).compileComponents();
+describe('App routes', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [App], providers: [provideRouter(routes)],
+    }).compileComponents();
+  });
+
+  it('shows only the prelaunch page at the root, including query strings and fragments', async () => {
     const fixture = TestBed.createComponent(App);
     const router = TestBed.inject(Router);
+    const element = fixture.nativeElement as HTMLElement;
+    for (const url of ['/', '/?source=launch#coming-soon']) {
+      await router.navigateByUrl(url);
+      await fixture.whenStable();
+      expect(element.classList.contains('prelaunch')).toBe(true);
+      expect(element.querySelectorAll('main').length).toBe(1);
+      expect(element.querySelector('app-prelaunch-landing h1')?.textContent).toContain('nais');
+      expect(element.querySelector('app-prelaunch-landing img')?.getAttribute('alt')).toBe('NAIS Drinks');
+      expect(element.querySelector('app-header, app-footer, app-navbar, app-product-grid')).toBeNull();
+      expect(element.querySelector('a, button, input')).toBeNull();
+    }
+    expect(routes.find(route => route.path === '')?.loadComponent).toBeDefined();
+  });
+
+  it('preserves catalogue, product details and the shop redirect, then restores the landing', async () => {
+    const fixture = TestBed.createComponent(App);
+    const router = TestBed.inject(Router);
+    const element = fixture.nativeElement as HTMLElement;
     await router.navigateByUrl('/');
     await fixture.whenStable();
-    const element = fixture.nativeElement as HTMLElement;
-    const navbar = element.querySelector('app-navbar');
-    const footer = element.querySelector('app-footer');
-    expect(element.querySelectorAll('footer').length).toBe(1);
-    expect(footer?.querySelector('a[href="https://www.instagram.com/naisdrinks/"]')).not.toBeNull();
-    expect(footer?.querySelector('a[href="mailto:hola@naisdrinks.com"]')).not.toBeNull();
-    expect(element.querySelector('main app-footer')).toBeNull();
-    const shopButton = element.querySelector<HTMLButtonElement>('nav .shop')!;
-    expect(shopButton.hidden).toBe(false);
-    expect(element.querySelectorAll('app-navbar').length).toBe(1);
+    await router.navigateByUrl('/home');
+    await fixture.whenStable();
+    expect(element.querySelector('app-home-page')).not.toBeNull();
     expect(element.querySelector('app-hero')).not.toBeNull();
     expect(element.querySelectorAll('app-info-card').length).toBe(3);
     expect(element.querySelectorAll('a.button--buy').length).toBe(5);
-    expect(routes.find(route => route.path === 'products')?.loadComponent).toBeDefined();
-    expect(routes.find(route => route.path === 'products')?.component).toBeUndefined();
-
-    const purchaseLinks = Array.from(element.querySelectorAll<HTMLAnchorElement>('a.button--buy'));
-    expect(purchaseLinks.map(link => link.getAttribute('href'))).toEqual([
-      '/products/tropical-hops-harvest', '/products/orange-spritz', '/products/passion-hugo', '/products/ginger-crush', '/products/tropical-hops',
-    ]);
-    purchaseLinks[2].click();
+    expect(element.querySelector('app-prelaunch-landing')).toBeNull();
+    expect(element.querySelector('app-header')).not.toBeNull();
+    expect(element.querySelector('app-footer')).not.toBeNull();
+    await router.navigateByUrl('/products');
     await fixture.whenStable();
-    expect(router.url).toBe('/products/passion-hugo');
-    expect(element.querySelector('app-product-selected-detail h1')?.textContent).toBe('PASSION HUGO');
-
-    await router.navigateByUrl('/shop');
-    await fixture.whenStable();
-    expect(element.querySelector('app-navbar')).toBe(navbar);
-    expect(element.querySelector('app-footer')).toBe(footer);
-    expect(element.querySelectorAll('footer').length).toBe(1);
-    expect(shopButton.hidden).toBe(true);
-    expect(element.querySelector('app-hero')).toBeNull();
-    expect(element.querySelectorAll('app-product-grid').length).toBe(1);
+    const header = element.querySelector('app-header');
+    const footer = element.querySelector('app-footer');
+    expect(header).not.toBeNull();
+    expect(footer).not.toBeNull();
+    expect(element.classList.contains('prelaunch')).toBe(false);
+    expect(element.querySelector('app-prelaunch-landing')).toBeNull();
     expect(element.querySelectorAll('app-product-shop-card').length).toBe(6);
-    expect(element.querySelectorAll('app-product-grid button.button--add').length).toBe(6);
-    expect(element.querySelector('a.button--buy')).toBeNull();
+
+    await router.navigateByUrl('/products/passion-hugo');
+    await fixture.whenStable();
+    expect(element.querySelector('app-product-selected-detail h1')?.textContent).toBe('PASSION HUGO');
+    expect(element.querySelector('app-header')).toBe(header);
+    expect(element.querySelector('app-footer')).toBe(footer);
 
     await router.navigateByUrl('/shop?view=all#products');
     await fixture.whenStable();
-    expect(shopButton.hidden).toBe(true);
+    expect(router.url).toBe('/products?view=all#products');
+    expect(element.querySelector('app-product-grid')).not.toBeNull();
+    expect(element.querySelector('app-header')).toBe(header);
+    expect(element.querySelector('app-footer')).toBe(footer);
 
     await router.navigateByUrl('/');
     await fixture.whenStable();
-    expect(shopButton.hidden).toBe(false);
-    expect(element.querySelector('app-hero')).not.toBeNull();
-    expect(element.querySelector('.button--add')).toBeNull();
+    expect(element.querySelector('app-prelaunch-landing')).not.toBeNull();
+    expect(element.querySelector('app-header, app-footer, button, a')).toBeNull();
   });
 });
