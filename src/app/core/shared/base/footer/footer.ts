@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { Newsletter } from '../../../../features/components/newsletter/newsletter';
 
 export interface FooterLink {
   readonly label: string;
@@ -10,7 +11,7 @@ export interface FooterLink {
 @Component({
   selector: 'app-footer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, NgTemplateOutlet],
+  imports: [RouterLink, NgTemplateOutlet, Newsletter],
   templateUrl: './footer.html',
   styleUrl: './footer.css',
 })

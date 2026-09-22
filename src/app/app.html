@@ -1,5 +1,9 @@
-<app-header />
+@if (!isPrelaunch()) {
+  <app-header />
+}
 <main>
   <router-outlet />
 </main>
-<app-footer />
+@if (!isPrelaunch()) {
+  <app-footer />
+}
