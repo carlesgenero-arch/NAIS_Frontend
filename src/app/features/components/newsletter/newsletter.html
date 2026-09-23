@@ -1,17 +1,16 @@
 <section class="footer-newsletter">
   <div class="footer-newsletter__inner">
     <div class="footer_newsletter_text">
-        <h3 class="footer-newsletter__title">Apunta’t a NAIS</h3>
-          <p class="footer-newsletter__legal">
-          *En proporcionar-nos el teu email, acceptes rebre comunicacions sobre nous llançaments, promocions i novetats exclusives. 
-        </p>
+        <h3 class="footer-newsletter__title">Segueix-nos de prop</h3>
+        
+          
     </div>
     <div class="footer_newsletter_form_section">
         <form 
           class="footer-newsletter__form"
           [formGroup]="newsletterForm"
           (ngSubmit)="onSubmit()">
-
+        <div class="footer-newsletter__controls">
           <input
             type="email"
             formControlName="email"
@@ -25,6 +24,10 @@
             [disabled]="newsletterForm.invalid">
             Subscriu‑te
           </button>
+          </div>
+           <p class="footer-newsletter__legal footer-newsletter__legal--form">
+          *En proporcionar-nos el teu email, acceptes rebre comunicacions sobre nous llançaments, promocions i novetats exclusives.
+        </p>
         </form>
     </div>
   
