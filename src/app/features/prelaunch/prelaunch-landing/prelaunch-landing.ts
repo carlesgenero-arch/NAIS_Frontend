@@ -27,23 +27,23 @@ export class PrelaunchLanding {
     },
     {
       src: 'images/carousel/drinking-ginger-crush.jpeg',
-      alt: 'Llauna de NAIS Passion Hugo amb il·lustracions verdes de fruita',
+      alt: 'Una persona amb ulleres de sol beu una llauna de Ginger Crush',
       type: 'brand',
     },
     {
       src: 'images/carousel/offering-orange-spritz.jpeg',
-      alt: 'Llaunes de Ginger Crush, Passion Hugo i Orange Spritz sobre un mur',
+      alt: 'Una persona mostra una llauna de NAIS Orange Spritz',
+      type: 'brand',
+    },
+    {
+      src: 'images/hero/nais-fruit-sodas.jpeg',
+      alt: 'Llaunes de Passion Hugo, Orange Spritz i Ginger Crush sobre un fons blau',
       type: 'brand',
     },
     {
       src: 'images/brand/nais-logo.svg',
       alt: 'NAIS Drinks',
       type: 'logo',
-    },
-    {
-      src: 'images/hero/nais-fruit-sodas.jpeg',
-      alt: 'Llauna de NAIS Orange Spritz amb il·lustracions blaves de fruita',
-      type: 'brand',
     },
   ];
 }

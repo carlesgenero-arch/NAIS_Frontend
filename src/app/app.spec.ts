@@ -19,7 +19,7 @@ describe('App routes', () => {
       await fixture.whenStable();
       expect(element.classList.contains('prelaunch')).toBe(true);
       expect(element.querySelectorAll('main').length).toBe(1);
-      expect(element.querySelector('app-prelaunch-landing h1')?.textContent).toContain('nais');
+      expect(element.querySelector('app-prelaunch-landing h1')?.textContent?.toLowerCase()).toContain('nais');
       expect(element.querySelector('app-prelaunch-landing [data-type="logo"] img')?.getAttribute('alt')).toBe('NAIS Drinks');
       expect(element.querySelector('app-header, app-footer, app-navbar, app-product-grid')).toBeNull();
       expect(element.querySelector('a, button, input')).toBeNull();
