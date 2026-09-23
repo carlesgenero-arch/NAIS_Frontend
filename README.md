@@ -117,3 +117,31 @@ Carles Generó
 Full Stack Developer 
 GitHub: https://github.com/carlesgenero-arch
 LinkedIn: https://www.linkedin.com/in/carles-genero/
+
+# Vercel deployment
+
+Use the Angular project directory (the folder containing `angular.json`) as the
+Vercel Root Directory. `vercel.json` sets:
+
+- Framework: Angular.
+- Install command: `npm ci` (keep `package-lock.json` committed).
+- Production build: `npm run build -- --configuration production`.
+- Output directory: `dist/nais_frontend/browser`, including `index.html` and public assets.
+
+The root `/` serves `index.html`. Explicit SPA rewrites support direct links and
+refreshes for `/home`, `/products`, `/products/:slug`, and the legacy `/shop`
+route. Asset URLs such as `/images/...`, `/fonts/...`, and generated JavaScript
+and CSS files are not matched by these rewrites. When adding an Angular route,
+add its corresponding Vercel rewrite if it needs direct access.
+
+Only `X-Content-Type-Options: nosniff` and
+`Referrer-Policy: strict-origin-when-cross-origin` are added. No CSP is imposed.
+Do not place private credentials in `src/`, `public/`, Angular environment files,
+or frontend build substitutions: browser output is public. Backend credentials
+must remain in a separate server environment. Local `.env` files and `.vercel/`
+are ignored by Git.
+
+Before publishing, run the production build and `npm audit`, review the audit
+findings, and check a Vercel preview: open and refresh `/`, `/home`, `/products`,
+and `/products/orange-spritz`. Confirm that fonts and images load and that a
+missing `/images/missing.png` returns 404 rather than the SPA HTML.
