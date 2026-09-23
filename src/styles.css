@@ -140,7 +140,6 @@ body {
 h1, h2, h3, h4, h5, h6, .titular {
   font-family: var(--font-body);
   font-weight: bold;
-  text-transform: lowercase; /* Forzar exclusivamente minúsculas */
   letter-spacing: 0.03em;    /* Equivalente a +30 pts */
 }
 
@@ -148,7 +147,6 @@ h1, h2, h3, h4, h5, h6, .titular {
 p, span, small, .microtexto {
   font-family: var(--font-body);
   font-size: 15px;            /* Límite estricto de tamaño */
-  text-transform: uppercase; /* Forzar exclusivamente mayúsculas */
   letter-spacing: 0.03em;    /* Equivalente a +30 pts */
 }
 /* Los controles no heredan la tipografía del body por defecto. */

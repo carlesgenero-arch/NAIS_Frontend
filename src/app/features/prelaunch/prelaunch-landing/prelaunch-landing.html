@@ -1,9 +1,15 @@
 <section class="prelaunch" aria-labelledby="prelaunch-heading" lang="ca">
-  <img class="prelaunch__logo" src="images/brand/nais-logo.svg" alt="NAIS Drinks" width="756" height="429" />
+  <div class="prelaunch__composition" role="group" aria-label="L'univers de NAIS Drinks">
+    @for (asset of assets; track asset.src) {
+      <div class="prelaunch__card" [attr.data-type]="asset.type" [style.--asset-order]="$index">
+        <img [src]="asset.src" [alt]="asset.alt" width="240" height="300" />
+      </div>
+    }
+  </div>
   <div class="prelaunch__message">
     <p class="prelaunch__eyebrow">Real fruit mocktails</p>
-    <h1 id="prelaunch-heading">Alguna cosa nais<br />està a punt d'arribar.</h1>
-    <p>Estem preparant la nostra nova web.<br />Ens veiem molt aviat.</p>
+    <h1 id="prelaunch-heading">Alguna cosa NAIS<br />està a punt d'arribar</h1>
+    <p>Estem preparant la nostra nova web<br />Ens veiem molt aviat</p>
   </div>
   <div class="prelaunch__bubbles" aria-hidden="true">
     <span></span><span></span><span></span><span></span><span></span>
