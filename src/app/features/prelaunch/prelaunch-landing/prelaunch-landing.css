@@ -204,18 +204,23 @@ p {
   }
 }
 
-/* Visible by default: no JavaScript timer or class is needed to reveal the cards. */
+/* Start the stagger together once the images have loaded or failed. */
 @media (prefers-reduced-motion: no-preference) {
   .prelaunch__card {
     animation: landing-asset-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-    animation-delay: calc(var(--asset-order, 0) * 180ms);
+    animation-delay: calc(var(--asset-order, 0) * 320ms);
   }
 
   .prelaunch__card[data-type='logo'] {
     animation-name: landing-logo-enter;
     animation-duration: 600ms;
-    /* Let the previous card finish before the final logo reveal. */
-    animation-delay: calc(var(--asset-order, 0) * 180ms + 400ms);
+    /* Reveal the logo last, independently of its position in the grid. */
+    animation-delay: calc((var(--asset-count, 1) - 1) * 320ms + 560ms);
+  }
+
+  .prelaunch__composition--waiting .prelaunch__card {
+    opacity: 0;
+    animation: none;
   }
 }
 

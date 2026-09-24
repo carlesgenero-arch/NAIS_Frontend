@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { PrelaunchLanding } from './prelaunch-landing';
 
 describe('PrelaunchLanding composition', () => {
-  it('renders accessible image cards with the unobstructed logo last and no shop controls', async () => {
+  it('renders accessible image cards with an unobstructed logo and no shop controls', async () => {
     await TestBed.configureTestingModule({ imports: [PrelaunchLanding] }).compileComponents();
     const fixture = TestBed.createComponent(PrelaunchLanding);
     await fixture.whenStable();
@@ -11,8 +11,7 @@ describe('PrelaunchLanding composition', () => {
     expect(cards.length).toBeGreaterThan(1);
     expect(cards.filter(card => card.getAttribute('data-type') === 'logo').length).toBe(1);
     expect(cards.some(card => card.getAttribute('data-type') === 'brand')).toBe(true);
-    expect(cards.at(-1)?.getAttribute('data-type')).toBe('logo');
-    expect(cards.at(-1)?.querySelector('img')?.getAttribute('alt')).toBe('NAIS Drinks');
+    expect(element.querySelector('[data-type="logo"] img')?.getAttribute('alt')).toBe('NAIS Drinks');
     for (const [index, card] of cards.entries()) {
       expect((card as HTMLElement).style.getPropertyValue('--asset-order')).toBe(String(index));
       const image = card.querySelector('img')!;
@@ -26,5 +25,25 @@ describe('PrelaunchLanding composition', () => {
     expect(element.querySelectorAll('h1').length).toBe(1);
     expect(element.querySelector('.prelaunch__message')?.textContent).toContain('Estem preparant la nostra nova web');
     expect(element.querySelector('.prelaunch__bubbles')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('waits for all images and tolerates duplicate events and failed images', async () => {
+    await TestBed.configureTestingModule({ imports: [PrelaunchLanding] }).compileComponents();
+    const fixture = TestBed.createComponent(PrelaunchLanding);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const images = Array.from(element.querySelectorAll('img'));
+    const composition = element.querySelector('.prelaunch__composition')!;
+    expect(composition.classList.contains('prelaunch__composition--waiting')).toBe(true);
+    for (const image of images.slice(0, -1)) {
+      image.dispatchEvent(new Event('load'));
+      image.dispatchEvent(new Event('load'));
+    }
+    fixture.detectChanges();
+    expect(composition.classList.contains('prelaunch__composition--waiting')).toBe(true);
+    images.at(-1)!.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(composition.classList.contains('prelaunch__composition--waiting')).toBe(false);
+    fixture.destroy();
   });
 });

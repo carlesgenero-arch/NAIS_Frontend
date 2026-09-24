@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 
 export interface LandingAsset {
   readonly src: string;
@@ -13,6 +13,25 @@ export interface LandingAsset {
   styleUrl: './prelaunch-landing.css',
 })
 export class PrelaunchLanding {
+  protected readonly imagesReady = signal(false);
+  private readonly settledAssets = new Set<string>();
+
+  constructor() {
+    const destroyRef = inject(DestroyRef);
+    afterNextRender(() => {
+      // A stalled image must not keep the composition hidden indefinitely.
+      const fallback = setTimeout(() => this.imagesReady.set(true), 8000);
+      destroyRef.onDestroy(() => clearTimeout(fallback));
+    });
+  }
+
+  protected onAssetSettled(src: string): void {
+    this.settledAssets.add(src);
+    if (this.settledAssets.size === this.assets.length) {
+      this.imagesReady.set(true);
+    }
+  }
+
   protected readonly assets: readonly LandingAsset[] = [
  
     {

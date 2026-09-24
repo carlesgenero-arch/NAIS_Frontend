@@ -1,8 +1,8 @@
 <section class="prelaunch" aria-labelledby="prelaunch-heading" lang="ca">
-  <div class="prelaunch__composition" role="group" aria-label="L'univers de NAIS Drinks">
+  <div class="prelaunch__composition" [class.prelaunch__composition--waiting]="!imagesReady()" [style.--asset-count]="assets.length" role="group" aria-label="L'univers de NAIS Drinks">
     @for (asset of assets; track asset.src) {
       <div class="prelaunch__card" [attr.data-type]="asset.type" [style.--asset-order]="$index">
-        <img [src]="asset.src" [alt]="asset.alt" width="240" height="300" />
+        <img [src]="asset.src" [alt]="asset.alt" width="240" height="300" (load)="onAssetSettled(asset.src)" (error)="onAssetSettled(asset.src)" />
       </div>
     }
   </div>
