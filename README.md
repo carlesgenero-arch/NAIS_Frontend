@@ -123,21 +123,22 @@ LinkedIn: https://www.linkedin.com/in/carles-genero/
 Use Cloudflare **Pages** with the Angular project directory (containing
 `angular.json` and `package.json`) as the root directory.
 
-- Build command: `npm ci && npm run build -- --configuration production`.
+- Framework preset: Angular.
+- Build command: `ng build`.
+- Install command: `npm install` (automatic dependency installation in Pages).
+- Development command: `ng serve` (local development).
 - Build output directory: `dist/nais_frontend/browser`.
 - Node.js: `24.12.0`, pinned in `.node-version`. Remove an older `NODE_VERSION` override or set it to the same version.
 - Root directory: leave blank (repository root). `git rev-parse --show-toplevel`
   confirms `angular.json` and `package.json` are at the root of this repository.
   Do not enter the local Windows path or `nais_frontend` as a subdirectory.
 - Keep `package-lock.json` committed. No Wrangler dependency or backend is required.
-- Set `SKIP_DEPENDENCY_INSTALL=true` in the Pages build environment when using
-  the build command above: it already runs `npm ci` against the committed lockfile.
+- Leave `SKIP_DEPENDENCY_INSTALL` unset so Pages installs dependencies before running `ng build`. Remove the previously suggested override if it was configured.
 
 Production output verification:
 
 - `package.json` maps `npm run build` to `ng build`; `angular.json` selects the
-  `production` configuration by default. Use `npm run build -- --configuration production`
-  to make the production choice explicit.
+  `production` configuration by default. Use `ng build` without additional flags.
 - The project name is `nais_frontend`, using `@angular/build:application`.
   No `outputPath` override is set. The installed builder resolves its base to
   `dist/nais_frontend` and its browser subdirectory to `browser`.
@@ -191,8 +192,8 @@ or frontend build substitutions. Everything in the browser output is public.
 Local verification:
 
 ```sh
-npm ci
-npm run build -- --configuration production
+npm install
+ng build
 npm test -- --watch=false
 ```
 
