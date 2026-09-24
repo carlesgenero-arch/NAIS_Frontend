@@ -36,14 +36,15 @@ export class PrelaunchLanding {
       type: 'brand',
     },
     {
-      src: 'images/hero/nais-fruit-sodas.jpeg',
-      alt: 'Llaunes de Passion Hugo, Orange Spritz i Ginger Crush sobre un fons blau',
-      type: 'brand',
-    },
-    {
       src: 'images/brand/nais-logo.svg',
       alt: 'NAIS Drinks',
       type: 'logo',
     },
+    {
+      src: 'images/hero/nais-fruit-sodas.jpeg',
+      alt: 'Llaunes de Passion Hugo, Orange Spritz i Ginger Crush sobre un fons blau',
+      type: 'brand',
+    },
+    
   ];
 }
