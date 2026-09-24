@@ -1,7 +1,7 @@
 <section class="shop-page" aria-label="Botiga" lang="ca">
   @if (selectedProduct(); as product) {
     <div class="shop-detail">
-      <app-product-selected-detail [product]="product" (addRequested)="requestAdd({ product: $event, quantity: 1 })" />
+      <app-product-selected-detail [product]="product" (addRequested)="requestSelectedProductAdd($event)" />
     </div>
   }
   <p class="cart-status" role="status">{{ cartMessage() }}</p>

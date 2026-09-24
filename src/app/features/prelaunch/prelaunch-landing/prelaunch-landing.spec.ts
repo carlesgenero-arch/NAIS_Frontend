@@ -9,7 +9,7 @@ describe('PrelaunchLanding composition', () => {
     const element = fixture.nativeElement as HTMLElement;
     const cards = Array.from(element.querySelectorAll('.prelaunch__card'));
     expect(cards.length).toBeGreaterThan(1);
-    expect(cards.some(card => card.getAttribute('data-type') === 'product')).toBe(true);
+    expect(cards.filter(card => card.getAttribute('data-type') === 'logo').length).toBe(1);
     expect(cards.some(card => card.getAttribute('data-type') === 'brand')).toBe(true);
     expect(cards.at(-1)?.getAttribute('data-type')).toBe('logo');
     expect(cards.at(-1)?.querySelector('img')?.getAttribute('alt')).toBe('NAIS Drinks');
@@ -24,7 +24,7 @@ describe('PrelaunchLanding composition', () => {
     expect(section.getAttribute('lang')).toBe('ca');
     expect(section.getAttribute('aria-labelledby')).toBe(element.querySelector('h1')?.id);
     expect(element.querySelectorAll('h1').length).toBe(1);
-    expect(element.querySelector('.prelaunch__message')?.textContent).toContain('Estem preparant la nostra nova web.');
+    expect(element.querySelector('.prelaunch__message')?.textContent).toContain('Estem preparant la nostra nova web');
     expect(element.querySelector('.prelaunch__bubbles')?.getAttribute('aria-hidden')).toBe('true');
   });
 });

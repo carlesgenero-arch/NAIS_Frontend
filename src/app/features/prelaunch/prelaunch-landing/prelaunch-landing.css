@@ -220,6 +220,12 @@ p {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .prelaunch__bubbles span {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+
   .prelaunch__card {
     opacity: 1;
     translate: none;
