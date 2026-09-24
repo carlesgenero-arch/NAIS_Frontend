@@ -1,0 +1,127 @@
+/* Customisation */
+/* Edit the inherited layout properties in header.css. */
+:host {
+  --shop-border-width: 4px; /* Outline of the oval button. */
+  --shop-base-depth: 7px; /* Solid lower edge of the button. */
+  display: block;
+  min-width: 0;
+}
+
+/* Header layout */
+.navigation {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--header-column-gap);
+  min-height: var(--header-height);
+  padding: var(--header-block-padding) var(--header-inline-padding);
+  /*border: var(--navbar-border-width) solid var(--color-negro);*/
+  border-radius: var(--navbar-border-radius);
+  background: var(--surface-card);
+}
+
+/* Shop button */
+.shop {
+  position:absolute;
+  right: 3.5rem;
+  bottom: -2.5rem;
+  box-sizing: border-box;
+  justify-self: center;
+  align-self:flex-end;
+  margin-inline-start: var(--shop-button-left-inset);
+  margin-block: var(--header-column-gap);
+  width: min(var(--shop-button-width), 12rem);
+  min-height: max(var(--control-min-size), var(--shop-button-height));
+  padding: var(--pill-padding-block) var(--pill-padding-inline);
+  border: var(--shop-border-width) solid var(--color-negro);
+  border-radius: 50%;
+  background: var(--color-fruta-3);
+  color: var(--color-negro);
+  font-size: var(--shop-button-font-size);
+  font-weight: 400;
+  line-height: 1.25;
+  transform: rotate(-12deg);
+  box-shadow: 0 var(--shop-base-depth) 0 var(--color-negro), var(--shadow-soft);
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.shop:hover:not(:disabled) {
+  transform: rotate(-12deg) translate(1px, 1px);
+  box-shadow:
+    0 4px 0 var(--color-negro),
+    var(--shadow-soft);
+}
+
+.shop:active:not(:disabled) {
+  transform: rotate(-12deg) translate(0.35rem, 0.3rem);
+  box-shadow: 0 0 0 var(--color-negro);
+}
+
+.shop:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+
+/* Main logo */
+.brand {
+  display: block;
+  width: 100%;
+  max-width: var(--main-logo-width);
+  min-width: 0;
+  justify-self: center;
+  align-self: center;
+  /*border-radius: var(--radius-sm);*/
+}
+
+.brand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.brand:focus-visible,
+.shop:focus-visible {
+  outline: 3px solid var(--color-negro);
+  outline-offset: 6px;
+}
+
+/* Header actions */
+/* The cart and secondary logo are grouped in Header, outside this navigation. */
+
+/* Responsive adjustments */
+/* Equal side columns keep the main logo centered independently of Shop. */
+@media (min-width: 64rem) {
+  .navigation {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, var(--main-logo-width))
+      minmax(0, 1fr);
+  }
+
+  .shop {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .brand {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shop {
+    transition: none;
+  }
+
+  .shop:hover:not(:disabled),
+  .shop:active:not(:disabled) {
+    transform: rotate(-12deg);
+  }
+}

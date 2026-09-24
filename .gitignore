@@ -42,3 +42,10 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Local deployment state and private environment values
+/.vercel/
+.env
+.env.*
+!.env.example
+/.wrangler/

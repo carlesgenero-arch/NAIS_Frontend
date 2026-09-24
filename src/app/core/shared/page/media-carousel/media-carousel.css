@@ -1,0 +1,64 @@
+.media-carousel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.media-carousel__track {
+  flex:1;
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 1rem;
+  padding-inline: 0.5rem;
+  scrollbar-width: none;
+}
+
+.media-carousel__card {
+  flex: 0 0 240px;
+  height: 300px;
+  scroll-snap-align: start;
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+.media-carousel__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-carousel__arrow {
+ position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.9;
+  color: #ffffff;
+  padding: 1rem;
+  z-index: 10;
+  text-shadow: 0 0 10px rgba(0,0,0,0.25);
+ 
+}
+
+.media-carousel__arrow:hover {
+  opacity: 1;
+}
+
+.media-carousel__arrow--left {
+  left: 0;
+  transform: translateY(-50%) scale(1.5);
+}
+
+.media-carousel__arrow--right {
+  right: 0;
+  transform: translateY(-50%) scale(1.3);
+}

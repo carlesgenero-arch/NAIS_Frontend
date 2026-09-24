@@ -1,0 +1,22 @@
+  <app-hero />
+  <section class="info-section" aria-labelledby="info-heading" lang="ca">
+    <div class="info-introduction">
+      <h1>Què és Nais?</h1>
+      <h2 id="info-heading">REAL FRUIT MOCKTAILS</h2>
+      <p>Beguda sense alcohol a base de sucs naturals i botànics</p>
+    </div>
+    <div class="info-benefits">
+      @for (card of infoCards; track card.colour) {
+        <app-info-card [content]="card" />
+      }
+    </div>
+  </section>
+  <app-brand-message-card/>
+  <app-animated-banner/>
+  @for (product of featuredProducts; track product.id) {
+    <app-product-feature-card [product]="product" />
+  }
+  @for (product of products; track product.id) {
+    <app-product-card [product]="product" />
+  }
+  <app-media-carousel [images]="carouselImages" label="Moments NAIS Drinks" />

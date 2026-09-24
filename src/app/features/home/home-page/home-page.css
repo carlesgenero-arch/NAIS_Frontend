@@ -1,0 +1,94 @@
+
+/* InfoCard customisation */
+:host {
+  --info-section-background: var(--surface-card);
+  --info-section-padding: var(--surface-padding);
+  --info-section-gap: var(--space-group);
+  --info-card-background: var(--surface-card);
+  --info-card-border-width: 1px;
+  --info-card-border-radius: var(--radius-card);
+  --info-card-padding: var(--page-gutter);
+  /* Scale headings gently while keeping mobile copy readable. */
+  --info-card-text-size: clamp(1rem, 2vw, 1.75rem);
+  display: block;
+
+}
+
+.info-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--info-section-gap);
+  padding: var(--info-section-padding);
+  margin-bottom: var(--space-section);
+  border: var(--info-card-border-width) solid var(--color-negro);
+  border-radius: var(--radius-panel);
+  background: var(--info-section-background);
+}
+
+.info-introduction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--info-section-gap);
+  min-width: 0;
+  text-align: center;
+}
+
+.info-introduction h1{
+  display: inline-block;
+  margin: 0;
+  padding: 0.45rem 1.25rem;
+  border-radius: 0.45rem;
+  background-color: var(--color-fruta-1-light);
+  color: var(--color-negro);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 2vw, 1.6rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.info-introduction h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 4vw, 4.5rem);
+  line-height: 1.05;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+.info-introduction p {
+  margin: 0;
+  max-width: 30ch;
+  font-family: var(--font-body);
+  font-size: clamp(2rem, 1.4vw, 1.25rem);
+  font-weight: 400;
+  line-height: 1.5;
+  text-transform: none;
+}
+
+
+.info-benefits {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--info-section-gap);
+}
+
+/* Keep the three benefits together where each circle has room for its text. */
+@media (min-width: 64rem) {
+  .info-benefits {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+
+app-product-feature-card {
+  margin-bottom: var(--space-section);
+}
+
+app-media-carousel {
+  margin-block: var(--space-section);
+}

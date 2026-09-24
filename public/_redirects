@@ -1,0 +1,9 @@
+# Serve the Angular shell only for application routes.
+/home /index.html 200
+/home/ /index.html 200
+/products /index.html 200
+/products/ /index.html 200
+/shop /index.html 200
+/shop/ /index.html 200
+/products/:slug /index.html 200
+/products/:slug/ /index.html 200

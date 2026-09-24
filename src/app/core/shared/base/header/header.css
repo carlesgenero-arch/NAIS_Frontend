@@ -1,0 +1,80 @@
+/* Customisation */
+:host {
+  --header-height: 20rem; /* Minimum Navbar height; content can grow. */
+  --header-inline-padding: var(--surface-padding); /* Inner horizontal padding. */
+  --header-block-padding: var(--surface-padding); /* Inner vertical padding. */
+  --header-column-gap: var(--space-group); /* Space between layout columns. */
+  --shop-button-width: 17rem; /* Shop button preferred width. */
+  --shop-button-height: 8rem; /* Shop button minimum height. */
+  --shop-button-font-size: 2.5rem; /* Shop button text size. */
+  --shop-button-left-inset: clamp(0.5rem, 2vw, 2rem); /* Move Shop inward from the left. */
+  --main-logo-width: 80rem; /* Main logo maximum width. */
+  --header-action-size: 30px; /* Shared cart and secondary logo dimensions. */
+  --header-actions-gap: 0.5rem; /* Gap between the two action slots. */
+  --navbar-border-width: 1px; /* Continuous Navbar outline thickness. */
+  --navbar-border-radius: var(--radius-panel); /* Rounded Navbar corners. */
+  display: block;
+}
+
+/* Header layout */
+.site-header {
+  display: grid;
+  gap: var(--header-column-gap);
+  padding-block: var(--space-group) var(--space-section);
+  color: var(--color-negro);
+}
+
+.utilities {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--header-column-gap);
+}
+
+.languages {
+  display: flex;
+  align-items: center;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--control-min-size);
+  min-height: var(--control-min-size);
+  padding: 0.25rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+
+
+button:focus-visible {
+  outline: 3px solid var(--color-negro);
+  outline-offset: 6px;
+}
+
+/* Header actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--header-actions-gap);
+  margin-inline-start: auto;
+}
+
+.cart svg,
+.brand-mark {
+  display: block;
+  width: var(--header-action-size);
+  height: var(--header-action-size);
+  object-fit: contain;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* Responsive adjustments */
+/* Utility items wrap naturally if custom sizes exceed the available width. */

@@ -1,0 +1,17 @@
+<article class="product-feature" [attr.aria-label]="product().name">
+  <div class="product-feature__visual">
+    @if (product().featureBackgroundImageUrl; as backgroundUrl) {
+      <img class="product-feature__background" [src]="backgroundUrl" alt="" loading="lazy" />
+    }
+    @if (imageUrl(); as image) {
+      <img class="product-feature__image" [src]="image" [alt]="imageAlt()" loading="lazy" />
+    }
+  </div>
+  <div class="product-feature__content">
+    <!--<span class="product-feature__badge">{{ badge() }}</span>-->
+    <h2>{{ product().name }}</h2>
+    <p>{{ product().featureDescription ?? product().description }}</p>
+    <a class="button--buy product-feature__cta" [routerLink]="['/products', product().slug]"
+      [attr.aria-label]="'Descobreix ' + product().name">Descobreix més</a>
+  </div>
+</article>

@@ -1,0 +1,149 @@
+:host {
+  display: block;
+}
+
+.footer {
+  padding: var(--surface-padding) var(--page-gutter);
+  background: var(--surface-card);
+  color: var(--color-negro);
+  font-family: var(--font-body);
+}
+
+.footer__main {
+  display: grid;
+  grid-template-areas: 'brand' 'social' 'contact';
+  justify-items: center;
+  gap: var(--space-group);
+  text-align: center;
+}
+
+.footer__social {
+  grid-area: social;
+}
+
+.footer__brand {
+  grid-area: brand;
+  display: block;
+  width: clamp(10rem, 24vw, 18rem);
+  max-width: 100%;
+}
+
+.footer__brand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.footer__contact {
+  grid-area: contact;
+  min-width: 0;
+}
+
+.footer__label {
+  margin: 0 0 calc(var(--space-group) / 4);
+}
+
+.footer p,
+.footer span {
+  font-size: inherit;
+  text-transform: none;
+}
+
+.footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.footer a:focus-visible {
+  outline: 2px solid var(--color-negro);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.footer__social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--control-min-size);
+  min-height: var(--control-min-size);
+}
+
+.footer__icon {
+  width: 2rem;
+  height: 2rem;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.footer__icon-dot {
+  fill: currentColor;
+  stroke: none;
+}
+
+.footer__email {
+  display: inline-block;
+  padding-block: calc(var(--space-group) / 4);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.footer__bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-group);
+  margin-top: var(--surface-padding);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.footer__copyright {
+  margin: 0;
+}
+
+.footer__legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.footer__legal li {
+  padding-inline: calc(var(--space-group) / 4);
+  margin-block: calc(var(--space-group) / 8);
+}
+
+.footer__legal li + li {
+  border-inline-start: 1px solid var(--color-negro);
+}
+
+@media (min-width: 48rem) {
+  .footer__main {
+    grid-template-areas: 'social brand contact';
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .footer__social,
+  .footer__contact {
+    padding-top: calc(var(--space-group) / 2);
+  }
+
+  .footer__bottom {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  .footer__legal {
+    justify-content: flex-end;
+  }
+}

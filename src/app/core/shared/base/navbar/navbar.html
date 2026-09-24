@@ -1,0 +1,8 @@
+<nav class="navigation" aria-label="Navegació principal">
+  <button class="shop" type="button" routerLink="/products" routerLinkActive #shopLink="routerLinkActive"
+    [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
+    [hidden]="shopLink.isActive" aria-label="Botiga">BOTIGA</button>
+  <a class="brand" routerLink="/" aria-label="NAIS Drinks, inici">
+    <img src="images/brand/nais logos-02.svg" alt="NAIS Drinks" width="756" height="429" fetchpriority="high" />
+  </a>
+</nav>

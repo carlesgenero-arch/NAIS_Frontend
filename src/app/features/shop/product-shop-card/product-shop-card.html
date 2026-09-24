@@ -1,0 +1,50 @@
+<article
+  class="product-shop-card"
+  [class.product-shop-card--featured]="!!product().featureBackgroundImageUrl"
+  [attr.data-variant]="product().variant"
+  [attr.aria-label]="product().name"
+  lang="ca"
+>
+  <a class="product-visual" [routerLink]="['/products', product().slug]" [attr.aria-label]="product().name">
+    @if (product().cardImageUrl ?? product().imageUrl; as imageUrl) {
+      <img [src]="imageUrl" [alt]="imageAlt()" loading="lazy" />
+    }
+  </a>
+
+  <div class="product-details">
+    <h2>
+      <a class="product-select" [routerLink]="['/products', product().slug]" [attr.aria-label]="'Veure ' + product().name">{{ product().name }}</a>
+    </h2>
+
+    <p class="product-format">{{ product().format }}</p>
+
+    <p class="product-price">{{ priceLabel() }}</p>
+
+    <div class="product-actions">
+      <div class="product-quantity" role="group" [attr.aria-label]="'Quantitat de ' + product().name">
+        <button
+          class="button--quantity"
+          type="button"
+          [attr.aria-label]="'Reduir la quantitat de ' + product().name"
+          [disabled]="quantity() === 1"
+          (click)="decreaseQuantity()"
+        >−</button>
+        <output class="product-quantity__value" aria-live="polite" aria-atomic="true" aria-label="Quantitat">{{ quantity() }}</output>
+        <button
+          class="button--quantity"
+          type="button"
+          [attr.aria-label]="'Augmentar la quantitat de ' + product().name"
+          (click)="increaseQuantity()"
+        >+</button>
+      </div>
+      <button
+        class="button--add"
+        type="button"
+        [attr.aria-label]="addLabel()"
+        (click)="addRequested.emit({ product: product(), quantity: quantity() })"
+      >
+        AFEGIR
+      </button>
+    </div>
+  </div>
+</article>

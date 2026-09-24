@@ -1,0 +1,20 @@
+:host { display: block; min-width: 0; }
+
+.product-catalogue {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-group);
+}
+
+@media (min-width: 48rem) {
+  .product-catalogue {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .product-catalogue {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+

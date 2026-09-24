@@ -1,0 +1,10 @@
+<section class="shop-page" aria-label="Botiga" lang="ca">
+  @if (selectedProduct(); as product) {
+    <div class="shop-detail">
+      <app-product-selected-detail [product]="product" (addRequested)="requestSelectedProductAdd($event)" />
+    </div>
+  }
+  <p class="cart-status" role="status">{{ cartMessage() }}</p>
+  <h2 id="shop-heading">TOTS ELS PRODUCTES</h2>
+  <app-product-grid (addRequested)="requestAdd($event)" />
+</section>

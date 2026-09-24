@@ -1,0 +1,26 @@
+/* Hero customisation */
+:host {
+  --hero-border-width: 1px;
+  --hero-border-radius: var(--radius-panel);
+  display: block;
+  min-width: 0;
+  margin-bottom: var(--space-section);
+}
+
+.hero {
+  border: var(--hero-border-width) solid var(--color-negro);
+  border-radius: var(--hero-border-radius);
+  background: var(--surface-card);
+  overflow: hidden;
+}
+
+.hero-visual {
+  margin: 0;
+}
+
+.hero-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}

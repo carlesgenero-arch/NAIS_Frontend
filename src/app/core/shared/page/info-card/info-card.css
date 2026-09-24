@@ -1,0 +1,69 @@
+/* InfoCard customisation uses the section's shared sizing properties. */
+:host {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.info-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  box-sizing: border-box;
+  width: min(100%, 20rem);
+  margin: 0;
+  gap: var(--space-group);
+  align-content: start;
+}
+
+.info-card__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  margin-inline: auto;
+  border-radius: 50%;
+  object-fit: cover;
+  animation: info-card-float 1.5s ease-in-out infinite;
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease;
+}
+
+
+@keyframes info-card-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-0.35rem);
+  }
+}
+
+.info-card[data-colour='pink'] .info-card__image {
+  animation-delay: 10ms;
+}
+
+.info-card[data-colour='blue'] .info-card__image {
+  animation-delay: 280ms;
+}
+
+.info-card[data-colour='green'] .info-card__image {
+  animation-delay: 560ms;
+}
+
+.info-card h2 {
+  max-width: 100%;
+  min-height: 3.6em;
+  margin: 0;
+  color: var(--color-negro);
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: none;
+  overflow-wrap: break-word;
+}
+
+

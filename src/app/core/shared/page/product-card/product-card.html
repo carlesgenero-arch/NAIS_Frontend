@@ -1,0 +1,26 @@
+<article class="product-card" [class.product-card--catalogue]="presentation() === 'catalogue'" [attr.data-variant]="product().variant" [attr.aria-label]="product().name" lang="ca">
+  <div class="product-content">
+    <h2>{{ product().name }}</h2>
+    <p class="product-description">{{ product().description }}</p>
+    @if (product().ingredients) {
+      @if (presentation() === 'catalogue') {
+        <p class="product-ingredients">{{ product().ingredients }}</p>
+      } @else {
+        <h1 class="product-ingredients">{{ product().ingredients }}</h1>
+      }
+    }
+    @if (presentation() === 'catalogue') {
+      <button class="button--add" type="button" [attr.aria-label]="addLabel()" (click)="addRequested.emit(product())">AFEGIR</button>
+    } @else {
+      <a class="button--buy" [routerLink]="['/products', product().slug]">COMPRAR</a>
+    }
+  </div>
+  <figure class="product-image-switcher" [attr.tabindex]="product().fruitImage ? 0 : null" [attr.aria-label]="product().name">
+    @if (product().imageUrl; as imageUrl) {
+      <img class="product-image product-image--can" [src]="imageUrl" [alt]="imageAlt()" loading="lazy" />
+    }
+    @if (product().fruitImage; as fruitImage) {
+      <img class="product-image product-image--fruit" [src]="fruitImage.url" [alt]="fruitImage.alt" loading="lazy" />
+    }
+  </figure>
+</article>
