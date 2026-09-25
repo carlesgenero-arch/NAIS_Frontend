@@ -1,11 +1,14 @@
-<dialog #dialog [class.drawer]="variant() === 'drawer'" [attr.aria-label]="title()" aria-modal="true" lang="ca"
+<dialog #dialog [class.drawer]="variant() === 'drawer'" [class.promotion]="variant() === 'promotion'" [attr.aria-label]="title()" aria-modal="true" lang="ca"
   (close)="handleNativeClose()" (cancel)="cancel($event)" (click)="closeOnBackdrop($event)">
   <h2>{{ title() }} @if (titleCount() !== undefined) { <span class="title-count" aria-live="polite" [attr.aria-label]="titleCount() + ' unitats'">{{ titleCount() }}</span> }</h2>
   @if (variant() === 'drawer') {
     <button class="button--nutrition modal-close" type="button" autofocus aria-label="Tancar cistella" (click)="close()">X</button>
   }
+  @if (variant() === 'promotion') {
+    <button class="button--nutrition modal-close" type="button" autofocus aria-label="Tancar promoció" (click)="close()">X</button>
+  }
   <div class="modal-content"><ng-content /></div>
-  @if (variant() !== 'drawer') {
+  @if (variant() === 'dialog') {
     <button class="button--nutrition modal-close" type="button" autofocus (click)="close()">TANCAR</button>
   }
 </dialog>

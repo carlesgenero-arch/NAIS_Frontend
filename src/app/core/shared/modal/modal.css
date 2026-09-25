@@ -58,6 +58,9 @@ dialog.drawer[open] {
 .drawer h2 { grid-column: 1; grid-row: 1; margin: 0; align-self: center; }
 .drawer .modal-close { grid-column: 2; grid-row: 1; margin: 0; }
 .drawer .modal-close { width: var(--control-min-size); height: var(--control-min-size); padding: 0; border: 0; box-shadow: none; background: transparent; }
+.modal-close:focus-visible {
+  outline: none;
+}
 .title-count {
   display: inline-grid;
   place-items: center;
@@ -87,6 +90,23 @@ dialog.drawer[open] {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
 }
+
+dialog.promotion {
+  width: min(32rem, calc(100% - var(--page-gutter) * 2));
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--surface-card) 60%, transparent),
+    color-mix(in srgb, var(--surface-card) 65%, transparent) 75%,
+    color-mix(in srgb, var(--surface-card) 62%, transparent)
+  ), url('/images/promotion/nais-ma.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.promotion[open] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--page-gutter); }
+.promotion h2 { grid-row: 2; margin: 0; text-align: center; font-size: clamp(1.75rem, 5vw, 2.5rem); }
+.promotion .modal-close { grid-row: 1; justify-self: end; margin: 0; padding: 0; width: var(--control-min-size); height: var(--control-min-size); border: 0; background: transparent; box-shadow: none; }
+.promotion .modal-content { grid-row: 3; min-width: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   dialog.drawer[open] { animation: none; }
