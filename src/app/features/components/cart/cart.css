@@ -1,0 +1,129 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.cart-page {
+  margin-block: var(--space-section);
+  color: var(--color-negro);
+  overflow-wrap: anywhere;
+}
+
+.cart-items {
+  display: grid;
+  gap: var(--space-group);
+  padding: 0;
+  list-style: none;
+}
+
+.cart-panel {
+  min-width: 0;
+  padding: var(--page-gutter);
+  border: 1px solid var(--color-negro);
+  border-radius: var(--radius-panel);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.cart-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-group);
+}
+
+.cart-image {
+  width: 10rem;
+  max-width: 100%;
+  height: 10rem;
+  object-fit: contain;
+  border-radius: var(--radius-card);
+}
+
+.cart-details {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+h2 { margin-top: 0; }
+a { color: inherit; }
+a:focus-visible, .cart-page:focus-visible {
+  outline: 3px solid var(--color-negro);
+  outline-offset: 4px;
+}
+
+.quantity-controls, .cart-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--page-gutter);
+}
+
+.button--quantity {
+  box-sizing: border-box;
+  min-width: var(--control-min-size);
+  min-height: var(--control-min-size);
+  padding: var(--button-padding-block);
+  background: var(--surface-card);
+}
+
+output { min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums; }
+.line-total, .subtotal { font-weight: 700; }
+.subtotal { font-size: 1.5rem; }
+.button--buy { box-sizing: border-box; min-width: 0; max-width: 100%; line-height: 1.4; }
+button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.cart-page--drawer { margin-block: 0; }
+:host(.drawer-cart) { display: flex; flex: 1; min-height: 0; }
+.cart-page--drawer { display: flex; flex-direction: column; flex: 1; min-height: 0; min-width: 0; }
+.cart-page--drawer .cart-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--button-padding-block); }
+.drawer-footer { flex-shrink: 0; max-height: 50%; overflow-y: auto; overscroll-behavior: contain; padding: var(--button-padding-block); border-top: 1px solid var(--surface-border); background: var(--surface-card); }
+.drawer-footer dl { margin: 0 0 var(--page-gutter); }
+.drawer-footer dl > div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--button-padding-block); }
+.drawer-footer dd { margin: 0; font-variant-numeric: tabular-nums; }
+.drawer-total-row { font-weight: 700; }
+.drawer-footer .checkout { width: 100%; min-height: var(--control-min-size); }
+.drawer-footer p { margin-bottom: 0; }
+.checkout-status:empty { display: none; }
+.cart-page--drawer .cart-items { gap: var(--button-padding-block); margin-block: 0; }
+.cart-page--drawer .cart-item { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: var(--button-padding-block); padding: calc(var(--button-padding-block) / 2) var(--button-padding-block); }
+.cart-page--drawer .cart-image { width: 100%; height: 9rem; object-fit: contain; }
+.cart-page--drawer .cart-details { grid-column: 2; }
+.cart-page--drawer h2 { font-size: 1rem; margin-bottom: calc(var(--button-padding-block) / 2); }
+.cart-page--drawer .cart-details p { margin-block: calc(var(--button-padding-block) / 2); font-size: 0.875rem; }
+.cart-page--drawer .item-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 var(--button-padding-block); }
+.cart-page--drawer .item-actions .quantity-controls { flex-wrap: nowrap; flex-shrink: 0; }
+.cart-page--drawer .item-actions .line-total { margin-block: 0; margin-inline-start: auto; text-align: right; font-variant-numeric: tabular-nums; }
+.cart-page--drawer .quantity-controls { gap: calc(var(--button-padding-block) / 2); }
+.cart-page--drawer .button--quantity {
+  position: relative;
+  isolation: isolate;
+  padding: 0;
+  width: var(--control-min-size);
+  height: var(--control-min-size);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.875rem;
+}
+
+/* Compact visual button inside the unchanged 44px touch target. */
+.cart-page--drawer .button--quantity::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  z-index: -1;
+  border: 1px solid var(--button-border-color);
+  border-radius: var(--button-radius);
+  background: var(--surface-card);
+  pointer-events: none;
+}
+
+@media (max-width: 22rem) {
+  .cart-page--drawer .cart-item { grid-template-columns: minmax(0, 0.65fr) minmax(0, 1.35fr); }
+  .cart-page--drawer .quantity-controls { gap: 0.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button, .button--buy { transition: none; }
+}

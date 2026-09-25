@@ -37,7 +37,8 @@
   align-items: center;
 }
 
-button {
+button,
+.cart {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -53,7 +54,8 @@ button {
 
 
 
-button:focus-visible {
+button:focus-visible,
+.cart:focus-visible {
   outline: 3px solid var(--color-negro);
   outline-offset: 6px;
 }
@@ -74,6 +76,34 @@ button:focus-visible {
   object-fit: contain;
   flex-shrink: 0;
   cursor: pointer;
+}
+
+.cart {
+  gap: var(--header-actions-gap);
+  text-decoration: none;
+}
+
+.cart,
+.cart svg {
+  cursor: pointer;
+}
+
+.cart__count {
+  min-width: 2ch;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.cart__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* Responsive adjustments */
