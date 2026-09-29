@@ -4,10 +4,11 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { Header } from './core/shared/base/header/header';
 import { Footer } from './core/shared/base/footer/footer';
+import { Promotion } from './features/components/promotion/promotion';
 
 @Component({
   selector: 'app-root',
-  imports: [Header, RouterOutlet, Footer],
+  imports: [Header, RouterOutlet, Footer, Promotion],
   templateUrl: './app.html',
   styleUrl: './app.css',
   host: { '[class.prelaunch]': 'isPrelaunch()' },

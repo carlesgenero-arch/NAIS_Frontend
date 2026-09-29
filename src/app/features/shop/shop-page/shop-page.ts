@@ -4,6 +4,9 @@ import { ActivatedRoute } from '@angular/router';
 import { ProductGrid } from '../product-grid/product-grid';
 import { AddProductRequest, Product } from '../../../models/product.interface';
 import { ProductService } from '../../../services/product.service';
+import { CartService } from '../../../services/cart.service';
+import { CartDrawerService } from '../../../services/cart-drawer.service';
+import { MAX_CART_QUANTITY } from '../../../models/cart.interface';
 import { ProductSelectedDetail } from '../product-selected-detail/product-selected-detail';
 
 @Component({
@@ -14,6 +17,8 @@ import { ProductSelectedDetail } from '../product-selected-detail/product-select
   styleUrl: './shop-page.css',
 })
 export class ShopPage {
+  private readonly cart = inject(CartService);
+  private readonly cartDrawer = inject(CartDrawerService);
   private readonly products = inject(ProductService).products;
   private readonly routeParams = toSignal(inject(ActivatedRoute).paramMap);
   protected readonly selectedProduct = computed(() => {
@@ -24,9 +29,12 @@ export class ShopPage {
   });
   protected readonly cartMessage = signal('');
 
-  protected requestAdd({ product }: AddProductRequest): void {
-    // Connect this event to CartService when its placeholder has an add operation.
-    this.cartMessage.set(`El carret encara no està disponible. No s'ha afegit ${product.name}.`);
+  protected requestAdd({ product, quantity }: AddProductRequest): void {
+    const added = this.cart.addItem(product.id, quantity);
+    this.cartMessage.set(added
+      ? `${product.name}: afegit al carret. Total: ${this.cart.totalQuantity()} unitats.`
+      : `No s'ha afegit ${product.name}. La quantitat ha de ser un enter positiu i el total per producte no pot superar ${MAX_CART_QUANTITY} unitats.`);
+    if (added) this.cartDrawer.open();
   }
 
   protected requestSelectedProductAdd(product: Product): void {

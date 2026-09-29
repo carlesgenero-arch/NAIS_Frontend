@@ -124,6 +124,11 @@ body {
   margin: 0;
 }
 
+html.nais-drawer-open,
+html.nais-drawer-open body {
+  overflow: hidden;
+}
+
 /* ==========================================
    2. REGLAS DE TIPOGRAFÍA Y DISEÑO
    ========================================== */

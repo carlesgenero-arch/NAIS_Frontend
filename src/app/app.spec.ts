@@ -5,10 +5,13 @@ import { routes } from './app.routes';
 
 describe('App routes', () => {
   beforeEach(async () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(key => key === 'nais.promotion.dismissed.v1' ? '1' : null);
     await TestBed.configureTestingModule({
       imports: [App], providers: [provideRouter(routes)],
     }).compileComponents();
   });
+
+  afterEach(() => vi.restoreAllMocks());
 
   it('shows only the prelaunch page at the root, including query strings and fragments', async () => {
     const fixture = TestBed.createComponent(App);
@@ -22,7 +25,7 @@ describe('App routes', () => {
       expect(element.querySelector('app-prelaunch-landing h1')?.textContent?.toLowerCase()).toContain('nais');
       expect(element.querySelector('app-prelaunch-landing [data-type="logo"] img')?.getAttribute('alt')).toBe('NAIS Drinks');
       expect(element.querySelector('app-header, app-footer, app-navbar, app-product-grid')).toBeNull();
-      expect(element.querySelector('a, button, input')).toBeNull();
+      expect(element.querySelector('main a, main button, main input')).toBeNull();
     }
     expect(routes.find(route => route.path === '')?.loadComponent).toBeDefined();
   });
@@ -68,6 +71,6 @@ describe('App routes', () => {
     await router.navigateByUrl('/');
     await fixture.whenStable();
     expect(element.querySelector('app-prelaunch-landing')).not.toBeNull();
-    expect(element.querySelector('app-header, app-footer, button, a')).toBeNull();
+    expect(element.querySelector('app-header, app-footer, main button, main a')).toBeNull();
   });
 });

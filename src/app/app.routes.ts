@@ -24,4 +24,8 @@ export const routes: Routes = [
     loadComponent: () => import('./features/shop/shop-page/shop-page').then(module => module.ShopPage),
   },
   { path: 'shop', pathMatch: 'full', redirectTo: 'products' },
+  {
+    path: 'cart',
+    loadComponent: () => import('./features/components/cart/cart').then(module => module.Cart),
+  },
 ];

@@ -1,0 +1,22 @@
+<app-modal title="OBTÉN UN 10% DESCOMPTE" variant="promotion" (closed)="dismiss()">
+  <div class="promotion-layout">
+    <div class="promotion-content">
+      <p class="promotion-subtitle">AMB LES PRIMERES COMANDES</p>
+      @if (submitted()) {
+        <p role="status" class="promotion-success">Email validat. L’enviament del codi encara no està disponible; no s’ha enviat cap correu ni s’ha desat l’adreça.</p>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          
+          <input id="promotion-email" type="email" formControlName="email" required autocomplete="email"
+            placeholder="Introdueix el teu email" aria-describedby="promotion-legal promotion-error"
+            [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid" />
+          <p id="promotion-error" class="promotion-error" aria-live="polite">
+            @if (form.controls.email.touched && form.controls.email.invalid) { Introdueix un correu electrònic vàlid. }
+          </p>
+          <button class="button--buy" type="submit">OBTÉN CODI</button>
+          <p id="promotion-legal" class="promotion-legal">*En proporcionar-nos el teu email, acceptes rebre comunicacions sobre nous llançaments, promocions i novetats exclusives.</p>
+        </form>
+      }
+    </div>
+  </div>
+</app-modal>

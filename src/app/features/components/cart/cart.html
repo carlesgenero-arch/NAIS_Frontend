@@ -1,1 +1,75 @@
-<p>cart works!</p>
+<section class="cart-page" [class.cart-page--drawer]="presentation() === 'drawer'" aria-label="Productes de la cistella" #heading tabindex="-1" lang="ca">
+  @if (presentation() === 'page') {
+    <h1>La teva cistella</h1>
+  }
+  <div class="cart-body">
+  @if (cart.isEmpty()) {
+    <div class="cart-panel empty-cart">
+      <p>La cistella és buida.</p>
+      @if (presentation() === 'page') {
+        <a class="button--buy" routerLink="/products">Descobreix els productes</a>
+      }
+    </div>
+  } @else {
+    <ul class="cart-items" aria-label="Productes de la cistella">
+      @for (item of cart.items(); track item.product.id) {
+        <li class="cart-panel cart-item">
+          @if (item.product.cardImageUrl ?? item.product.imageUrl; as image) {
+            <img class="cart-image" [src]="image" [alt]="item.product.imageAlt ?? item.product.name" width="160" height="160" />
+          }
+          <div class="cart-details">
+            <h2>
+              @if (presentation() === 'page') {
+                <a [routerLink]="['/products', item.product.slug]">{{ item.product.name }}</a>
+              } @else {
+                {{ item.product.name }}
+              }
+            </h2>
+            @if (presentation() === 'drawer') {
+              <p>Pack 16</p>
+            } @else if (item.product.format) {
+              <p>{{ item.product.format }}</p>
+            }
+            <div class="item-actions">
+            <div class="quantity-controls" role="group" [attr.aria-label]="'Quantitat de ' + item.product.name">
+              <button class="button--quantity" type="button"
+                [attr.aria-label]="item.quantity === 1 ? 'Treure ' + item.product.name + ' de la cistella' : 'Reduir la quantitat de ' + item.product.name"
+                (click)="decreaseQuantity(item.product.id, item.quantity, heading)">−</button>
+              <output aria-live="polite" [attr.aria-label]="'Quantitat de ' + item.product.name">{{ item.quantity }}</output>
+              <button class="button--quantity" type="button" [disabled]="item.quantity >= maxQuantity"
+                [attr.aria-label]="'Augmentar la quantitat de ' + item.product.name"
+                (click)="cart.increaseQuantity(item.product.id)">+</button>
+            </div>
+            <p class="line-total" aria-label="Total del producte">@if (presentation() === 'page') {Total: }{{ priceLabel(item.product.price, item.quantity) }}</p>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+    @if (presentation() === 'page') {
+    <section class="cart-panel cart-summary" aria-labelledby="subtotal-heading">
+      <h2 id="subtotal-heading">Subtotal</h2>
+      <p class="subtotal" aria-live="polite" aria-atomic="true">{{ formatCents(cart.subtotalCents()) }}</p>
+      <p>{{ cart.totalQuantity() }} unitats a la cistella</p>
+      <div class="cart-actions">
+        <button class="button--nutrition clear-cart" type="button" (click)="cart.clearCart(); heading.focus()">Buidar la cistella</button>
+        <button class="button--buy checkout" type="button" disabled aria-describedby="checkout-note">Finalitzar la compra</button>
+      </div>
+      <p id="checkout-note">El pagament en línia estarà disponible pròximament.</p>
+    </section>
+    }
+  }
+  </div>
+  @if (presentation() === 'drawer') {
+    <footer class="drawer-footer" aria-label="Resum de la cistella">
+      <dl aria-live="polite" aria-atomic="true">
+        <div><dt>Subtotal</dt><dd class="drawer-subtotal">{{ formatCents(cart.subtotalCents()) }}</dd></div>
+        <div class="drawer-total-row"><dt>Total</dt><dd class="drawer-total">{{ formatCents(cart.subtotalCents()) }}</dd></div>
+      </dl>
+      <button class="button--buy checkout" type="button" [disabled]="cart.isEmpty() || cart.subtotalCents() === null"
+        aria-describedby="drawer-checkout-note" (click)="requestCheckout()">Checkout</button>
+      <p id="drawer-checkout-note">Pagament en línia pròximament.</p>
+      <p class="checkout-status" role="status">{{ checkoutMessage() }}</p>
+    </footer>
+  }
+</section>
