@@ -1,6 +1,9 @@
 export type ProductVariant = 'neutral' | 'citrus' | 'botanical' | 'ginger' | 'tropical' | 'assorted';
 
+export type ProductStatus = 'active' | 'coming-soon' | 'draft' | 'archived';
+
 export interface Product {
+  status: ProductStatus;
   id: string;
   slug: string;
   name: string;

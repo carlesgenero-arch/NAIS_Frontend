@@ -11,7 +11,7 @@ const MAX_STORED_CART_LENGTH = 64 * 1024;
   providedIn: 'root',
 })
 export class CartService {
-  private readonly catalogue = inject(ProductService).products;
+  private readonly catalogue = inject(ProductService).activeProducts;
   private readonly storage = this.getStorage(inject(PLATFORM_ID));
   private readonly state = signal<readonly CartEntry[]>(Object.freeze([]));
 

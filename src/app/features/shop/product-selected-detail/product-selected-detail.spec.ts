@@ -95,7 +95,7 @@ describe('ProductSelectedDetail', () => {
       button.click();
     }
     expect(received).toEqual(products);
-    fixture.componentRef.setInput('product', { id: 'missing', slug: 'missing', name: 'Sense dades', description: '' } satisfies Product);
+    fixture.componentRef.setInput('product', { status: 'active', id: 'missing', slug: 'missing', name: 'Sense dades', description: '' } satisfies Product);
     await fixture.whenStable();
     expect(element.querySelector('.selected-detail__ingredients')?.textContent).toBe('Informació dels ingredients no disponible');
     expect(element.querySelector('img')).toBeNull();

@@ -74,7 +74,7 @@ describe('ProductCard', () => {
     expect(element.querySelector('a.button--buy')?.getAttribute('href')).toBe('/products/orange-spritz');
 
     const nextProduct: Product = {
-      id: 'test-product', slug: 'test-product', name: 'Test flavour', description: 'Test description',
+      status: 'active', id: 'test-product', slug: 'test-product', name: 'Test flavour', description: 'Test description',
       imageUrl: 'images/test.png', variant: 'neutral', purchaseUrl: '/test-product',
     };
     fixture.componentRef.setInput('product', nextProduct);
@@ -87,5 +87,86 @@ describe('ProductCard', () => {
     expect(element.querySelector('.product-image--fruit')).toBeNull();
     expect(element.querySelector('.product-image-switcher')?.hasAttribute('tabindex')).toBe(false);
     expect(element.querySelector('a.button--buy')?.getAttribute('href')).toBe('/products/test-product');
+  });
+});
+
+
+describe('ProductCard scroll reveal', () => {
+  let notify: IntersectionObserverCallback;
+  const observe = vi.fn();
+  const disconnect = vi.fn();
+
+  beforeEach(() => {
+    observe.mockClear();
+    disconnect.mockClear();
+    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })));
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback: IntersectionObserverCallback) { notify = callback; }
+      observe = observe;
+      disconnect = disconnect;
+    });
+    TestBed.configureTestingModule({ imports: [ProductCard], providers: [provideRouter([])] });
+  });
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+    vi.unstubAllGlobals();
+  });
+
+  async function setup(enabled = true, presentation: 'editorial' | 'catalogue' = 'editorial') {
+    const fixture = TestBed.createComponent(ProductCard);
+    fixture.componentRef.setInput('product', new ProductService().products[0]);
+    fixture.componentRef.setInput('scrollReveal', enabled);
+    fixture.componentRef.setInput('presentation', presentation);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  it('reveals once on intersection and disconnects on destruction', async () => {
+    const fixture = await setup();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(observe).toHaveBeenCalledWith(host);
+    expect(host.classList.contains('product-card--reveal')).toBe(true);
+    const emit = (isIntersecting: boolean) => notify(
+      [{ isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver);
+    emit(false);
+    fixture.detectChanges();
+    expect(host.classList.contains('product-card--revealed')).toBe(false);
+    emit(true);
+    fixture.detectChanges();
+    expect(host.classList.contains('product-card--revealed')).toBe(true);
+    expect(disconnect).toHaveBeenCalled();
+    emit(false);
+    fixture.detectChanges();
+    expect(host.classList.contains('product-card--revealed')).toBe(true);
+    fixture.destroy();
+    expect(disconnect).toHaveBeenCalledTimes(2);
+  });
+
+  it('reveals immediately for keyboard focus', async () => {
+    const fixture = await setup();
+    fixture.nativeElement.dispatchEvent(new Event('focusin'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.classList.contains('product-card--revealed')).toBe(true);
+  });
+
+  it('keeps reduced-motion content visible without observation', async () => {
+    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true })));
+    const fixture = await setup();
+    expect(observe).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.classList.contains('product-card--reveal')).toBe(false);
+  });
+
+  it('keeps content visible if IntersectionObserver is unavailable', async () => {
+    vi.stubGlobal('IntersectionObserver', undefined);
+    const fixture = await setup();
+    expect(fixture.nativeElement.classList.contains('product-card--reveal')).toBe(false);
+  });
+
+  it('does not observe catalogue cards or cards without opt-in', async () => {
+    await setup(false);
+    await setup(true, 'catalogue');
+    expect(observe).not.toHaveBeenCalled();
   });
 });

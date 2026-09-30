@@ -17,7 +17,7 @@ import { AnimatedBanner } from '../../../core/shared/page/animated-banner/animat
 })
 export class HomePage {
   protected readonly carouselImages = homeCarouselImages;
-  private readonly catalogue = inject(ProductService).products;
+  private readonly catalogue = inject(ProductService).activeProducts;
   protected readonly featuredProducts = this.catalogue.filter(
     product => product.isFeatured || product.isSeasonal);
   protected readonly products = this.catalogue.filter(

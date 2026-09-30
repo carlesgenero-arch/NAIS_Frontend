@@ -43,7 +43,7 @@ describe('ProductFeatureCard', () => {
   it('updates for limited editions and falls back to ordinary product content', async () => {
     const { fixture, element } = await setup();
     const limited: Product = {
-      id: 'limited', slug: 'limited', name: 'Edició limitada', description: 'Una edició especial.',
+      status: 'active', id: 'limited', slug: 'limited', name: 'Edició limitada', description: 'Una edició especial.',
       badge: 'EDICIÓ LIMITADA', imageUrl: 'images/products/hops_1.png',
     };
     fixture.componentRef.setInput('product', limited);

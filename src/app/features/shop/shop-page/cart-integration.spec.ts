@@ -46,7 +46,7 @@ describe('Shop cart integration', () => {
     const harness = await RouterTestingHarness.create('/products?from=home#catalogue');
     const { header, dialog, close } = createDrawer();
     const cart = TestBed.inject(CartService);
-    const products = TestBed.inject(ProductService).products;
+    const products = TestBed.inject(ProductService).activeProducts;
     const cards = harness.routeNativeElement!.querySelectorAll('app-product-shop-card');
     let quantity = 0;
     for (const [index, product] of products.entries()) {
@@ -92,7 +92,7 @@ describe('Shop cart integration', () => {
     const harness = await RouterTestingHarness.create('/products');
     const header = TestBed.createComponent(Header);
     const cart = TestBed.inject(CartService);
-    const products = TestBed.inject(ProductService).products;
+    const products = TestBed.inject(ProductService).activeProducts;
     const cards = harness.routeNativeElement!.querySelectorAll('app-product-shop-card');
     const add = (index: number) => cards[index].querySelector<HTMLButtonElement>('.button--add')!.click();
 

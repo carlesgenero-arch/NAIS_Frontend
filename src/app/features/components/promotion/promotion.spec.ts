@@ -1,12 +1,15 @@
+import { PromoSignupService } from '../../../services/promo-signup.service';
 import { TestBed } from '@angular/core/testing';
 import { Promotion, PROMOTION_SESSION_KEY } from './promotion';
 
 describe('Promotion', () => {
+  const register = vi.fn();
   let values: Map<string, string>;
   let showDescriptor: PropertyDescriptor | undefined;
   let closeDescriptor: PropertyDescriptor | undefined;
 
   beforeEach(() => {
+    register.mockReset().mockResolvedValue('registered');
     values = new Map();
     const storage: Storage = {
       get length() { return values.size; },
@@ -21,7 +24,7 @@ describe('Promotion', () => {
     closeDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close');
     Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: function(this: HTMLDialogElement) { this.setAttribute('open', ''); } });
     Object.defineProperty(HTMLDialogElement.prototype, 'close', { configurable: true, value: function(this: HTMLDialogElement) { this.removeAttribute('open'); this.dispatchEvent(new Event('close')); } });
-    TestBed.configureTestingModule({ imports: [Promotion] });
+    TestBed.configureTestingModule({ imports: [Promotion], providers: [{ provide: PromoSignupService, useValue: { register } }] });
   });
 
   afterEach(() => {
@@ -84,14 +87,65 @@ describe('Promotion', () => {
       expect(element.querySelector('#promotion-error')?.textContent).toContain('vàlid');
       expect(values.size).toBe(0);
     }
-    input.value = 'person@example.com';
+    expect(register).not.toHaveBeenCalled();
+    input.value = ' person@example.com ';
     input.dispatchEvent(new Event('input'));
     form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(register).toHaveBeenCalledExactlyOnceWith('person@example.com');
     expect(element.querySelector('[role="status"]')?.textContent).toContain('no s’ha enviat cap correu');
     expect(element.querySelector('input')).toBeNull();
     expect(document.activeElement).toBe(element.querySelector('.modal-close'));
     expect([...values]).toEqual([[PROMOTION_SESSION_KEY, '1']]);
+  });
+
+  it('shows a neutral duplicate response without exposing or storing the email', async () => {
+    register.mockResolvedValue('already_registered');
+    const { fixture, element } = await create();
+    const input = element.querySelector('input')!;
+    input.value = 'user@example.com';
+    input.dispatchEvent(new Event('input'));
+    element.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(element.querySelector('[role="status"]')?.textContent).toContain('ja s’ha utilitzat');
+    expect([...values]).toEqual([[PROMOTION_SESSION_KEY, '1']]);
+  });
+
+  it.each(['invalid_email', 'unavailable'])('allows retry after server response %s', async result => {
+    register.mockResolvedValue(result);
+    const { fixture, element } = await create();
+    const input = element.querySelector('input')!;
+    input.value = 'user@example.com';
+    input.dispatchEvent(new Event('input'));
+    element.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(element.querySelector('input')).not.toBeNull();
+    expect(element.querySelector('#promotion-error')?.textContent?.trim()).not.toBe('');
+    expect(values.size).toBe(0);
+  });
+
+  it('waits for server eligibility and prevents duplicate submissions while pending', async () => {
+    let complete!: (result: string) => void;
+    register.mockReturnValue(new Promise<string>(resolve => { complete = resolve; }));
+    const { fixture, element } = await create();
+    const input = element.querySelector('input')!;
+    input.value = 'user@example.com';
+    input.dispatchEvent(new Event('input'));
+    const form = element.querySelector('form')!;
+    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    fixture.detectChanges();
+    expect(register).toHaveBeenCalledTimes(1);
+    expect(element.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(true);
+    expect(element.querySelector('.promotion-success')).toBeNull();
+    complete('registered');
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(element.querySelector('.promotion-success')?.textContent).toContain('Registre confirmat');
   });
 
   it('can open and close when sessionStorage is unavailable', async () => {
