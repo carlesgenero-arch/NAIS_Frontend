@@ -44,10 +44,10 @@ describe('ProductCard', () => {
       expect(element.querySelector('.product-ingredients')?.textContent).toBe(product.ingredients);
       expect(element.querySelector('img')?.getAttribute('src')).toBe(product.imageUrl);
       expect(element.querySelector('img')?.getAttribute('alt')).toBe(product.imageAlt);
-      const preview = element.querySelector<HTMLElement>('.product-image-switcher');
+      const preview = element.querySelector<HTMLElement>('.visual');
       expect(preview?.hasAttribute('tabindex')).toBe(!!product.fruitImage);
-      expect(element.querySelector('.product-image--fruit')?.getAttribute('src')).toBe(product.fruitImage?.url);
-      expect(element.querySelector('.product-image--fruit')?.getAttribute('alt')).toBe(product.fruitImage?.alt);
+      expect(element.querySelector('.fruit')?.getAttribute('src')).toBe(product.fruitImage?.url);
+      expect(element.querySelector('.fruit')?.getAttribute('alt')).toBe(product.fruitImage?.alt);
       if (product.fruitImage) {
         preview?.focus();
         expect(document.activeElement).toBe(preview);
@@ -84,8 +84,8 @@ describe('ProductCard', () => {
     expect(element.querySelector('img')?.getAttribute('alt')).toBe('Test flavour can');
     expect(element.querySelector('article')?.getAttribute('data-variant')).toBe('neutral');
     expect(element.querySelector('.product-ingredients')).toBeNull();
-    expect(element.querySelector('.product-image--fruit')).toBeNull();
-    expect(element.querySelector('.product-image-switcher')?.hasAttribute('tabindex')).toBe(false);
+    expect(element.querySelector('.fruit')).toBeNull();
+    expect(element.querySelector('.visual')?.hasAttribute('tabindex')).toBe(false);
     expect(element.querySelector('a.button--buy')?.getAttribute('href')).toBe('/products/test-product');
   });
 });

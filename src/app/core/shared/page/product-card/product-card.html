@@ -1,5 +1,5 @@
-<article class="product-card" [class.product-card--catalogue]="presentation() === 'catalogue'" [attr.data-variant]="product().variant" [attr.aria-label]="product().name" lang="ca">
-  <div class="product-content">
+<article class="product-card" [class.catalogue]="presentation() === 'catalogue'" [attr.data-variant]="product().variant" [attr.aria-label]="product().name" lang="ca">
+  <div class="content">
     <h2>{{ product().name }}</h2>
     <p class="product-description">{{ product().description }}</p>
     @if (product().ingredients) {
@@ -15,12 +15,12 @@
       <a class="button--buy" [routerLink]="['/products', product().slug]">COMPRAR</a>
     }
   </div>
-  <figure class="product-image-switcher" [attr.tabindex]="product().fruitImage ? 0 : null" [attr.aria-label]="product().name">
+  <figure class="visual" [attr.tabindex]="product().fruitImage ? 0 : null" [attr.aria-label]="product().name">
     @if (product().imageUrl; as imageUrl) {
-      <img class="product-image product-image--can" [src]="imageUrl" [alt]="imageAlt()" loading="lazy" />
+      <img class="image can" [src]="imageUrl" [alt]="imageAlt()" loading="lazy" />
     }
     @if (product().fruitImage; as fruitImage) {
-      <img class="product-image product-image--fruit" [src]="fruitImage.url" [alt]="fruitImage.alt" loading="lazy" />
+      <img class="image fruit" [src]="fruitImage.url" [alt]="fruitImage.alt" loading="lazy" />
     }
   </figure>
 </article>

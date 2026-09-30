@@ -1,16 +1,16 @@
 /* 1. Shared component tokens */
 :host {
-  --product-card-gap: var(--space-group);
-  --product-card-content-gap: 0.5rem;
-  --product-card-title-size: clamp(1.5rem, 3.6vw, 4rem);
-  --product-card-catalogue-title-size: clamp(1.25rem, 2vw, 1.75rem);
-  --product-card-text-size: clamp(1rem, 1.4vw, 1.25rem);
-  --product-card-image-height: clamp(20rem, 32vw, 32rem);
-  --product-card-image-active-scale: 1.0;
-  --product-card-image-transition: opacity 220ms ease, transform 220ms ease;
-  --product-card-background: var(--surface-card);
-  --product-card-content-padding: var(--page-gutter);
-  --product-card-divider: 1px solid var(--color-negro);
+  --card-gap: var(--space-group);
+  --card-content-gap: 0.5rem;
+  --card-title-size: clamp(1.5rem, 3.6vw, 4rem);
+  --card-catalogue-title-size: clamp(1.25rem, 2vw, 1.75rem);
+  --card-text-size: clamp(1rem, 1.4vw, 1.25rem);
+  --card-image-height: clamp(20rem, 32vw, 32rem);
+  --card-image-active-scale: 1.0;
+  --card-image-transition: opacity 220ms ease, transform 220ms ease;
+  --card-background: var(--surface-card);
+  --card-content-padding: var(--page-gutter);
+  --card-divider: 1px solid var(--color-negro);
   display: block;
   min-width: 0;
 }
@@ -20,63 +20,63 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   box-sizing: border-box;
-  border: var(--product-card-divider);
+  border: var(--card-divider);
   border-radius: var(--radius-panel);
-  background: var(--product-card-background);
+  background: var(--card-background);
   color: var(--color-negro);
   box-shadow: var(--shadow-soft);
 }
 
 .product-card[data-variant='citrus'] {
-  --product-card-background: var(--surface-product-citrus);
-  --product-card-panel-background: var(--surface-product-citrus-panel);
+  --card-background: var(--surface-product-citrus);
+  --card-panel-background: var(--surface-product-citrus-panel);
 }
 
 .product-card[data-variant='botanical'] {
-  --product-card-background: var(--surface-product-botanical);
-   --product-card-panel-background: var(--surface-product-botanical-panel);
+  --card-background: var(--surface-product-botanical);
+   --card-panel-background: var(--surface-product-botanical-panel);
 }
 
 .product-card[data-variant='ginger'] {
-  --product-card-background: var(--surface-product-ginger);
-  --product-card-panel-background: var(--surface-product-ginger-panel);
+  --card-background: var(--surface-product-ginger);
+  --card-panel-background: var(--surface-product-ginger-panel);
 }
 
 .product-card[data-variant='tropical'] {
-  --product-card-background: var(--surface-product-tropical);
-  --product-card-panel-background: var(--surface-product-tropical-panel);
+  --card-background: var(--surface-product-tropical);
+  --card-panel-background: var(--surface-product-tropical-panel);
 }
 
-.product-content {
+.content {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   min-width: 0;
-  gap: var(--product-card-content-gap);
+  gap: var(--card-content-gap);
 }
 
-.product-content h2,
-.product-content p,
-.product-content .product-ingredients {
+.content h2,
+.content p,
+.content .product-ingredients {
   width: 100%;
   margin: 0;
   text-transform: none;
   overflow-wrap: anywhere;
 }
 
-.product-content h2 {
+.content h2 {
   font-family: var(--font-display);
   line-height: 1.15;
 }
 
-.product-content p {
+.content p {
   font-family: var(--font-body);
-  font-size: var(--product-card-text-size);
+  font-size: var(--card-text-size);
   font-weight: 400;
   line-height: 1.25;
 }
 
-.product-image-switcher {
+.visual {
   position: relative;
   display: grid;
   place-items: center;
@@ -85,28 +85,28 @@
   border-radius: var(--radius-panel);
 }
 
-.product-image-switcher:focus-visible {
+.visual:focus-visible {
   outline: 3px solid var(--color-negro);
   outline-offset: 4px;
 }
 
-.product-image {
+.image {
   display: block;
   min-height: 0;
-  transition: var(--product-card-image-transition);
+  transition: var(--card-image-transition);
   filter: brightness(1.10);
 }
 
-.product-image--can {
-  width: calc(100% / var(--product-card-image-active-scale));
-  height: calc(100% / var(--product-card-image-active-scale));
+.can {
+  width: calc(100% / var(--card-image-active-scale));
+  height: calc(100% / var(--card-image-active-scale));
   object-fit: contain;
 }
 
-.product-image--fruit {
+.fruit {
   position: absolute;
   inset: 0;
-  width: min(100%, var(--product-card-image-height));
+  width: min(100%, var(--card-image-height));
   max-height: 100%;
   aspect-ratio: 1;
   margin: auto;
@@ -115,65 +115,65 @@
   opacity: 0;
 }
 
-.product-image-switcher[tabindex]:focus-visible .product-image--can {
+.visual[tabindex]:focus-visible .can {
   opacity: 0;
-  transform: scale(var(--product-card-image-active-scale));
+  transform: scale(var(--card-image-active-scale));
 }
 
-.product-image-switcher[tabindex]:focus-visible .product-image--fruit {
+.visual[tabindex]:focus-visible .fruit {
   opacity: 1;
 }
 
 /* 3. Home editorial presentation */
-:host(:not(.product-card--catalogue)) {
+:host(:not(.catalogue)) {
   margin-bottom: var(--space-section);
 }
 
-.product-card:not(.product-card--catalogue) {
+.product-card:not(.catalogue) {
   align-items: stretch;
   overflow: hidden;
   min-height: clamp(24rem, 42vw, 36rem);
 }
 
-.product-card:not(.product-card--catalogue) .product-content {
+.product-card:not(.catalogue) .content {
   align-items: flex-start;
   justify-content: center;
-  padding: var(--product-card-content-padding);
-  border-block-end: var(--product-card-divider);
-  background: var(--product-card-panel-background);
+  padding: var(--card-content-padding);
+  border-block-end: var(--card-divider);
+  background: var(--card-panel-background);
   text-align: left;
 }
 
-.product-card:not(.product-card--catalogue) h2 {
-  font-size: var(--product-card-title-size);
+.product-card:not(.catalogue) h2 {
+  font-size: var(--card-title-size);
 }
 
-.product-card:not(.product-card--catalogue) .product-ingredients {
-  margin-block-start: calc(var(--product-card-gap) - var(--product-card-content-gap) / 2);
+.product-card:not(.catalogue) .product-ingredients {
+  margin-block-start: calc(var(--card-gap) - var(--card-content-gap) / 2);
 }
 
-.product-content .button--buy {
+.content .button--buy {
   align-self: flex-start;
-  margin-top: calc(var(--product-card-content-gap) / 2);
+  margin-top: calc(var(--card-content-gap) / 2);
 }
 
-.product-card:not(.product-card--catalogue) .product-image-switcher {
-  min-height: var(--product-card-image-height);
+.product-card:not(.catalogue) .visual {
+  min-height: var(--card-image-height);
   border-radius: 0;
 }
 
-.product-card:not(.product-card--catalogue) .product-image--can {
+.product-card:not(.catalogue) .can {
   position: absolute;
   inset: 0;
   margin: auto;
 }
 
-.product-card:not(.product-card--catalogue) .product-image-switcher:focus-visible {
+.product-card:not(.catalogue) .visual:focus-visible {
   outline-offset: -6px;
 }
 
 /* 4. Catalogue presentation */
-.product-card--catalogue {
+.catalogue {
   height: 100%;
   grid-template-rows: auto 1fr;
   align-items: stretch;
@@ -181,113 +181,110 @@
   padding: var(--page-gutter);
 }
 
-.product-card--catalogue .product-image-switcher {
+.catalogue .visual {
   grid-row: 1;
-  height: calc(var(--product-card-image-height) / 2);
+  height: calc(var(--card-image-height) / 2);
 }
 
-.product-card--catalogue .product-image--fruit {
-  width: min(100%, calc(var(--product-card-image-height) / 2));
+.catalogue .fruit {
+  width: min(100%, calc(var(--card-image-height) / 2));
 }
 
-.product-card--catalogue .product-content {
+.catalogue .content {
   grid-row: 2;
   align-items: center;
   width: 100%;
   text-align: center;
 }
 
-.product-card--catalogue h2 {
-  font-size: var(--product-card-catalogue-title-size);
+.catalogue h2 {
+  font-size: var(--card-catalogue-title-size);
 }
 
-.product-card--catalogue .button--add {
+.catalogue .button--add {
   margin-top: auto;
   align-self: center;
 }
 
 /* 5. Responsive rules */
 @media (min-width: 48rem) {
-  .product-card:not(.product-card--catalogue) {
+  .product-card:not(.catalogue) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .product-card:not(.product-card--catalogue) .product-content {
+  .product-card:not(.catalogue) .content {
     grid-column: 1;
     grid-row: 1;
     border-block-end: 0;
-    border-inline-end: var(--product-card-divider);
+    border-inline-end: var(--card-divider);
   }
 
-  .product-card:not(.product-card--catalogue) .product-image-switcher {
+  .product-card:not(.catalogue) .visual {
     grid-column: 2;
     grid-row: 1;
   }
 
-}
-
-/* Alternate only editorial cards explicitly marked by Home's product index. */
-@media (min-width: 48rem) {
-  :host(.product-card--image-left) .product-card:not(.product-card--catalogue) .product-content {
+  /* Alternate only editorial cards explicitly marked by Home's product index. */
+  :host(.product-card--image-left) .product-card:not(.catalogue) .content {
     grid-column: 2;
     border-inline-end: 0;
-    border-inline-start: var(--product-card-divider);
+    border-inline-start: var(--card-divider);
   }
 
-  :host(.product-card--image-left) .product-card:not(.product-card--catalogue) .product-image-switcher {
+  :host(.product-card--image-left) .product-card:not(.catalogue) .visual {
     grid-column: 1;
   }
 }
 
 @media (min-width: 64rem) {
-  .product-card:not(.product-card--catalogue) {
+  .product-card:not(.catalogue) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   }
 
-  :host(.product-card--image-left) .product-card:not(.product-card--catalogue) {
+  :host(.product-card--image-left) .product-card:not(.catalogue) {
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   }
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .product-image-switcher[tabindex]:hover .product-image--can {
+  .visual[tabindex]:hover .can {
     opacity: 0;
-    transform: scale(var(--product-card-image-active-scale));
+    transform: scale(var(--card-image-active-scale));
   }
 
-  .product-image-switcher[tabindex]:hover .product-image--fruit {
+  .visual[tabindex]:hover .fruit {
     opacity: 1;
   }
 }
 
 /* 6. Reduced-motion rules */
 @media (prefers-reduced-motion: reduce) {
-  .product-image {
+  .image {
     transition: none;
   }
 
-  .product-image-switcher[tabindex]:is(:hover, :focus-visible) .product-image--can {
+  .visual[tabindex]:is(:hover, :focus-visible) .can {
     transform: none;
   }
 }
 
 @media (max-width: 47.99rem) {
-  .product-card:not(.product-card--catalogue) {
+  .product-card:not(.catalogue) {
     min-height: 0;
   }
 
-  .product-card:not(.product-card--catalogue) .product-image-switcher {
+  .product-card:not(.catalogue) .visual {
     grid-row: 1;
   }
 
-  .product-card:not(.product-card--catalogue) .product-content {
+  .product-card:not(.catalogue) .content {
     grid-row: 2;
     gap: var(--page-gutter);
     border-block-end: 0;
-    border-block-start: var(--product-card-divider);
+    border-block-start: var(--card-divider);
   }
 
-  .product-card:not(.product-card--catalogue) .button--buy {
+  .product-card:not(.catalogue) .button--buy {
     box-sizing: border-box;
     min-width: min(var(--button-min-width), 100%);
     max-width: 100%;
@@ -298,17 +295,17 @@
 
 /* Home-only, one-shot reveal. Reduced motion retains the untransformed base styles. */
 @media (prefers-reduced-motion: no-preference) {
-  :host(.product-card--reveal) .product-content,
-  :host(.product-card--reveal) .product-image-switcher {
+  :host(.product-card--reveal) .content,
+  :host(.product-card--reveal) .visual {
     transition: opacity 400ms ease-out, transform 400ms ease-out;
   }
 
-  :host(.product-card--reveal:not(.product-card--revealed)) .product-content {
+  :host(.product-card--reveal:not(.product-card--revealed)) .content {
     opacity: 0.2;
     transform: translateX(-48px);
   }
 
-  :host(.product-card--reveal:not(.product-card--revealed)) .product-image-switcher {
+  :host(.product-card--reveal:not(.product-card--revealed)) .visual {
     opacity: 0.2;
     transform: translateX(48px);
   }
@@ -317,95 +314,95 @@
 
 /* Reversed entrance directions apply only to the two-column layout. */
 @media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
-  :host(.product-card--image-left.product-card--reveal:not(.product-card--revealed)) .product-content {
+  :host(.product-card--image-left.product-card--reveal:not(.product-card--revealed)) .content {
     transform: translateX(48px);
   }
 
-  :host(.product-card--image-left.product-card--reveal:not(.product-card--revealed)) .product-image-switcher {
+  :host(.product-card--image-left.product-card--reveal:not(.product-card--revealed)) .visual {
     transform: translateX(-48px);
   }
 }
 
 /* Home's consecutive editorial sections share edges without changing their interiors. */
-:host(.product-card--joined:not(.product-card--catalogue)) {
+:host(.product-card--joined:not(.catalogue)) {
   margin-bottom: 0;
 }
 
-:host(.product-card--joined) .product-card:not(.product-card--catalogue) {
+:host(.product-card--joined) .product-card:not(.catalogue) {
   border-radius: 0;
   box-shadow: none;
 }
 
-:host(.product-card--joined:not(.product-card--first)) .product-card:not(.product-card--catalogue) {
+:host(.product-card--joined:not(.product-card--first)) .product-card:not(.catalogue) {
   border-block-start: 0;
 }
 
-:host(.product-card--joined.product-card--first) .product-card:not(.product-card--catalogue) {
+:host(.product-card--joined.product-card--first) .product-card:not(.catalogue) {
   border-start-start-radius: var(--radius-panel);
   border-start-end-radius: var(--radius-panel);
 }
 
-:host(.product-card--joined.product-card--last) .product-card:not(.product-card--catalogue) {
+:host(.product-card--joined.product-card--last) .product-card:not(.catalogue) {
   border-end-start-radius: var(--radius-panel);
   border-end-end-radius: var(--radius-panel);
 }
 
 /* Home can styling stays separate from catalogue cards and the section reveal. */
-:host(.product-card--joined) .product-image-switcher {
+:host(.product-card--joined) .visual {
   isolation: isolate;
 }
 
-:host(.product-card--joined) .product-image-switcher::before {
+:host(.product-card--joined) .visual::before {
   content: '';
   position: absolute;
-  width: min(96%, var(--product-card-image-height));
+  width: min(96%, var(--card-image-height));
   aspect-ratio: 1;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--product-card-panel-background) 24%, transparent);
+  background: color-mix(in srgb, var(--card-panel-background) 24%, transparent);
   pointer-events: none;
   z-index: -1;
   transition: opacity 220ms ease;
 }
 
-:host(.product-card--joined) .product-image--can {
+:host(.product-card--joined) .can {
   /* The source artwork has bottom clearance; a top origin protects the can rim. */
   transform-origin: center top;
   transform: translateY(1rem) rotate(-3deg) scale(1.04);
   filter: brightness(1.10) drop-shadow(0.4rem 0.8rem 0.6rem color-mix(in srgb, var(--color-negro) 20%, transparent));
 }
 
-:host(.product-card--joined) .product-image--fruit {
+:host(.product-card--joined) .fruit {
   transform: scale(0.96);
 }
 
-:host(.product-card--joined) .product-image-switcher[tabindex]:focus-visible::before {
+:host(.product-card--joined) .visual[tabindex]:focus-visible::before {
   opacity: 0;
 }
 
-:host(.product-card--joined) .product-image-switcher[tabindex]:focus-visible .product-image--can {
+:host(.product-card--joined) .visual[tabindex]:focus-visible .can {
   transform: translateY(1rem) rotate(-3deg) scale(1);
 }
 
-:host(.product-card--joined) .product-image-switcher[tabindex]:focus-visible .product-image--fruit {
+:host(.product-card--joined) .visual[tabindex]:focus-visible .fruit {
   transform: scale(1);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  :host(.product-card--joined) .product-image-switcher[tabindex]:hover::before {
+  :host(.product-card--joined) .visual[tabindex]:hover::before {
     opacity: 0;
   }
 
-  :host(.product-card--joined) .product-image-switcher[tabindex]:hover .product-image--can {
+  :host(.product-card--joined) .visual[tabindex]:hover .can {
     transform: translateY(1rem) rotate(-3deg) scale(1);
   }
 
-  :host(.product-card--joined) .product-image-switcher[tabindex]:hover .product-image--fruit {
+  :host(.product-card--joined) .visual[tabindex]:hover .fruit {
     transform: scale(1);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :host(.product-card--joined) .product-image-switcher::before {
+  :host(.product-card--joined) .visual::before {
     transition: none;
   }
 }

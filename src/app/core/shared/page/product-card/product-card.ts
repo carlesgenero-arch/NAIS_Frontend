@@ -7,7 +7,7 @@ import { Product } from '../../../../models/product.interface';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
   host: {
-    '[class.product-card--catalogue]': "presentation() === 'catalogue'",
+    '[class.catalogue]': "presentation() === 'catalogue'",
     '[class.product-card--reveal]': 'revealEnabled()',
     '[class.product-card--revealed]': 'revealed()',
     '(focusin)': 'reveal()',
