@@ -49,3 +49,8 @@ Thumbs.db
 .env.*
 !.env.example
 /.wrangler/
+
+# Cloudflare local runtime secrets
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
