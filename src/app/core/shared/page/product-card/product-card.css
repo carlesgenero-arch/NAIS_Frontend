@@ -207,9 +207,9 @@
 }
 
 /* 5. Responsive rules */
-@media (min-width: 64rem) {
+@media (min-width: 48rem) {
   .product-card:not(.product-card--catalogue) {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .product-card:not(.product-card--catalogue) .product-content {
@@ -224,6 +224,29 @@
     grid-row: 1;
   }
 
+}
+
+/* Alternate only editorial cards explicitly marked by Home's product index. */
+@media (min-width: 48rem) {
+  :host(.product-card--image-left) .product-card:not(.product-card--catalogue) .product-content {
+    grid-column: 2;
+    border-inline-end: 0;
+    border-inline-start: var(--product-card-divider);
+  }
+
+  :host(.product-card--image-left) .product-card:not(.product-card--catalogue) .product-image-switcher {
+    grid-column: 1;
+  }
+}
+
+@media (min-width: 64rem) {
+  .product-card:not(.product-card--catalogue) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  }
+
+  :host(.product-card--image-left) .product-card:not(.product-card--catalogue) {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -248,8 +271,141 @@
   }
 }
 
- @media (max-width: 63.99rem) {
+@media (max-width: 47.99rem) {
   .product-card:not(.product-card--catalogue) {
-    min-height: clamp(30rem, 120vw, 38rem);
+    min-height: 0;
+  }
+
+  .product-card:not(.product-card--catalogue) .product-image-switcher {
+    grid-row: 1;
+  }
+
+  .product-card:not(.product-card--catalogue) .product-content {
+    grid-row: 2;
+    gap: var(--page-gutter);
+    border-block-end: 0;
+    border-block-start: var(--product-card-divider);
+  }
+
+  .product-card:not(.product-card--catalogue) .button--buy {
+    box-sizing: border-box;
+    min-width: min(var(--button-min-width), 100%);
+    max-width: 100%;
+    min-height: var(--control-min-size);
+    padding-inline: var(--page-gutter);
+  }
+}
+
+/* Home-only, one-shot reveal. Reduced motion retains the untransformed base styles. */
+@media (prefers-reduced-motion: no-preference) {
+  :host(.product-card--reveal) .product-content,
+  :host(.product-card--reveal) .product-image-switcher {
+    transition: opacity 400ms ease-out, transform 400ms ease-out;
+  }
+
+  :host(.product-card--reveal:not(.product-card--revealed)) .product-content {
+    opacity: 0.2;
+    transform: translateX(-48px);
+  }
+
+  :host(.product-card--reveal:not(.product-card--revealed)) .product-image-switcher {
+    opacity: 0.2;
+    transform: translateX(48px);
+  }
+
+}
+
+/* Reversed entrance directions apply only to the two-column layout. */
+@media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
+  :host(.product-card--image-left.product-card--reveal:not(.product-card--revealed)) .product-content {
+    transform: translateX(48px);
+  }
+
+  :host(.product-card--image-left.product-card--reveal:not(.product-card--revealed)) .product-image-switcher {
+    transform: translateX(-48px);
+  }
+}
+
+/* Home's consecutive editorial sections share edges without changing their interiors. */
+:host(.product-card--joined:not(.product-card--catalogue)) {
+  margin-bottom: 0;
+}
+
+:host(.product-card--joined) .product-card:not(.product-card--catalogue) {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+:host(.product-card--joined:not(.product-card--first)) .product-card:not(.product-card--catalogue) {
+  border-block-start: 0;
+}
+
+:host(.product-card--joined.product-card--first) .product-card:not(.product-card--catalogue) {
+  border-start-start-radius: var(--radius-panel);
+  border-start-end-radius: var(--radius-panel);
+}
+
+:host(.product-card--joined.product-card--last) .product-card:not(.product-card--catalogue) {
+  border-end-start-radius: var(--radius-panel);
+  border-end-end-radius: var(--radius-panel);
+}
+
+/* Home can styling stays separate from catalogue cards and the section reveal. */
+:host(.product-card--joined) .product-image-switcher {
+  isolation: isolate;
+}
+
+:host(.product-card--joined) .product-image-switcher::before {
+  content: '';
+  position: absolute;
+  width: min(96%, var(--product-card-image-height));
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--product-card-panel-background) 24%, transparent);
+  pointer-events: none;
+  z-index: -1;
+  transition: opacity 220ms ease;
+}
+
+:host(.product-card--joined) .product-image--can {
+  /* The source artwork has bottom clearance; a top origin protects the can rim. */
+  transform-origin: center top;
+  transform: translateY(1rem) rotate(-3deg) scale(1.04);
+  filter: brightness(1.10) drop-shadow(0.4rem 0.8rem 0.6rem color-mix(in srgb, var(--color-negro) 20%, transparent));
+}
+
+:host(.product-card--joined) .product-image--fruit {
+  transform: scale(0.96);
+}
+
+:host(.product-card--joined) .product-image-switcher[tabindex]:focus-visible::before {
+  opacity: 0;
+}
+
+:host(.product-card--joined) .product-image-switcher[tabindex]:focus-visible .product-image--can {
+  transform: translateY(1rem) rotate(-3deg) scale(1);
+}
+
+:host(.product-card--joined) .product-image-switcher[tabindex]:focus-visible .product-image--fruit {
+  transform: scale(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :host(.product-card--joined) .product-image-switcher[tabindex]:hover::before {
+    opacity: 0;
+  }
+
+  :host(.product-card--joined) .product-image-switcher[tabindex]:hover .product-image--can {
+    transform: translateY(1rem) rotate(-3deg) scale(1);
+  }
+
+  :host(.product-card--joined) .product-image-switcher[tabindex]:hover .product-image--fruit {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host(.product-card--joined) .product-image-switcher::before {
+    transition: none;
   }
 }

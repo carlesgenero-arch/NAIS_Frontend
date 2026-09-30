@@ -117,6 +117,21 @@ describe('CartService', () => {
     expect(cart.entries()).toEqual([]);
   });
 
+  it('rejects Harvest additions and removes it from restored storage and checkout payloads', () => {
+    const cart = restore([
+      { productId: 'tropical-hops-harvest', quantity: 2 },
+      { productId: first, quantity: 1 },
+    ]);
+    expect(cart.addItem('tropical-hops-harvest')).toBe(false);
+    expect(cart.setQuantity('tropical-hops-harvest', 1)).toBe(false);
+    const items = [{ productId: first, quantity: 1 }];
+    expect(cart.entries()).toEqual(items);
+    expect(cart.getPayload()).toEqual({ items });
+    expect(cart.totalQuantity()).toBe(1);
+    expect(cart.subtotalCents()).toBe(3600);
+    expect(JSON.parse(stored.get(CART_STORAGE_KEY)!)).toEqual(items);
+  });
+
   it('persists and exports only product IDs and quantities', () => {
     const cart = TestBed.inject(CartService);
     cart.addItem(first, 2);
@@ -212,7 +227,7 @@ describe('CartService', () => {
 
   it.each([undefined, NaN, Infinity, -1])('does not present invalid catalogue prices as free: %s', price => {
     const product = { ...new ProductService().products[0], price };
-    TestBed.overrideProvider(ProductService, { useValue: { products: [product] } });
+    TestBed.overrideProvider(ProductService, { useValue: { activeProducts: [product] } });
     const cart = TestBed.inject(CartService);
     cart.addItem(product.id);
     expect(cart.subtotalCents()).toBeNull();
@@ -220,7 +235,7 @@ describe('CartService', () => {
 
   it('calculates decimal display prices in cents', () => {
     const products = new ProductService().products.slice(0, 2).map((product, index) => ({ ...product, price: index ? 0.2 : 0.1 }));
-    TestBed.overrideProvider(ProductService, { useValue: { products } });
+    TestBed.overrideProvider(ProductService, { useValue: { activeProducts: products } });
     const cart = TestBed.inject(CartService);
     cart.addItem(first);
     cart.addItem(second);

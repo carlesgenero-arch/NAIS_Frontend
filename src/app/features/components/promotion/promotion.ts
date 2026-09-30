@@ -1,6 +1,7 @@
 import { DOCUMENT } from '@angular/common';
-import { afterNextRender, ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { PromoSignupService } from '../../../services/promo-signup.service';
 import { Modal } from '../../../core/shared/modal/modal';
 
 export const PROMOTION_SESSION_KEY = 'nais.promotion.dismissed.v1';
@@ -15,7 +16,11 @@ export const PROMOTION_SESSION_KEY = 'nais.promotion.dismissed.v1';
 export class Promotion {
   private readonly document = inject(DOCUMENT);
   private readonly modal = viewChild.required(Modal);
-  protected readonly submitted = signal(false);
+  private readonly signup = inject(PromoSignupService);
+  private readonly destroyRef = inject(DestroyRef);
+  protected readonly result = signal<'registered' | 'already_registered' | null>(null);
+  protected readonly pending = signal(false);
+  protected readonly error = signal('');
   // Match the existing Newsletter's validation, without its console logging.
   protected readonly form = inject(FormBuilder).nonNullable.group({
     email: ['', [Validators.required, Validators.email,
@@ -37,13 +42,27 @@ export class Promotion {
     this.form.reset();
   }
 
-  protected submit(): void {
+  protected async submit(): Promise<void> {
+    if (this.pending()) return;
+    const email = this.form.controls.email.value.trim();
+    this.form.controls.email.setValue(email);
     this.form.markAllAsTouched();
+    this.error.set('');
     if (this.form.invalid) return;
-    this.modal().focusClose();
-    this.submitted.set(true);
-    this.form.reset();
-    this.remember();
+    this.pending.set(true);
+    const result = await this.signup.register(email);
+    if (this.destroyRef.destroyed) return;
+    this.pending.set(false);
+    if (result === 'registered' || result === 'already_registered') {
+      this.modal().focusClose();
+      this.result.set(result);
+      this.form.reset();
+      this.remember();
+    } else if (result === 'invalid_email') {
+      this.form.controls.email.setErrors({ email: true });
+    } else {
+      this.error.set('No hem pogut confirmar el registre. Torna-ho a provar més tard.');
+    }
   }
 
   private remember(): void {

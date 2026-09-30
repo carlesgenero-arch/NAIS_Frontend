@@ -65,7 +65,7 @@ describe('Cart page', () => {
 
   it('disables drawer checkout when catalogue pricing is unavailable', () => {
     const product = { ...new ProductService().products[0], price: undefined };
-    TestBed.overrideProvider(ProductService, { useValue: { products: [product] } });
+    TestBed.overrideProvider(ProductService, { useValue: { activeProducts: [product] } });
     TestBed.inject(CartService).addItem(product.id);
     const fixture = TestBed.createComponent(Cart);
     fixture.componentRef.setInput('presentation', 'drawer');
@@ -153,7 +153,7 @@ describe('Cart page', () => {
 
   it('handles a product with no image or price without displaying it as free', () => {
     const product = { ...new ProductService().products[0], price: undefined, imageUrl: undefined, cardImageUrl: undefined };
-    TestBed.overrideProvider(ProductService, { useValue: { products: [product] } });
+    TestBed.overrideProvider(ProductService, { useValue: { activeProducts: [product] } });
     TestBed.inject(CartService).addItem(product.id);
     const fixture = TestBed.createComponent(Cart);
     fixture.detectChanges();

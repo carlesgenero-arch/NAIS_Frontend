@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:promo": "node --test server/promo-signup.test.mjs",
+    "check:server": "tsc -p server/tsconfig.json"
   },
   "prettier": {
     "printWidth": 100,

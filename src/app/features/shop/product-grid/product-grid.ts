@@ -11,6 +11,6 @@ import { ProductService } from '../../../services/product.service';
   styleUrl: './product-grid.css',
 })
 export class ProductGrid {
-  protected readonly products = inject(ProductService).products;
+  protected readonly products = inject(ProductService).activeProducts;
   readonly addRequested = output<AddProductRequest>();
 }

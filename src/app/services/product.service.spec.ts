@@ -8,6 +8,7 @@ describe('ProductService seasonal products', () => {
     const harvest = products.find(product => product.slug === 'tropical-hops-harvest')!;
     expect(harvest).toEqual({
       ...original,
+      status: 'coming-soon',
       id: 'tropical-hops-harvest',
       slug: 'tropical-hops-harvest',
       name: 'Tropical Hops Harvest',
@@ -25,5 +26,27 @@ describe('ProductService seasonal products', () => {
     expect(original.name).toBe('TROPICAL HOPS');
     expect(new Set(products.map(product => product.slug)).size).toBe(products.length);
     expect(new Set(products.map(product => product.id)).size).toBe(products.length);
+  });
+});
+
+
+describe('Product availability', () => {
+  it('retains Harvest data but excludes it from the five active products', () => {
+    const service = new ProductService();
+    const harvest = service.products.find(product => product.id === 'tropical-hops-harvest')!;
+    expect(harvest.status).toBe('coming-soon');
+    expect(service.products.length).toBe(6);
+    expect(service.activeProducts.length).toBe(5);
+    expect(service.activeProducts).not.toContain(harvest);
+    expect(service.activeProducts.every(product => product.status === 'active')).toBe(true);
+  });
+
+  it.each(['coming-soon', 'draft', 'archived'] as const)('excludes %s and allows activation through status alone', status => {
+    const service = new ProductService();
+    const product = service.products[0];
+    product.status = status;
+    expect(service.activeProducts).not.toContain(product);
+    product.status = 'active';
+    expect(service.activeProducts).toContain(product);
   });
 });

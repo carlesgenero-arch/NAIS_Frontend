@@ -19,7 +19,7 @@ import { ProductSelectedDetail } from '../product-selected-detail/product-select
 export class ShopPage {
   private readonly cart = inject(CartService);
   private readonly cartDrawer = inject(CartDrawerService);
-  private readonly products = inject(ProductService).products;
+  private readonly products = inject(ProductService).activeProducts;
   private readonly routeParams = toSignal(inject(ActivatedRoute).paramMap);
   protected readonly selectedProduct = computed(() => {
     const slug = this.routeParams()?.get('slug');

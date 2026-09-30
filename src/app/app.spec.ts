@@ -41,7 +41,7 @@ describe('App routes', () => {
     expect(element.querySelector('app-home-page')).not.toBeNull();
     expect(element.querySelector('app-hero')).not.toBeNull();
     expect(element.querySelectorAll('app-info-card').length).toBe(3);
-    expect(element.querySelectorAll('a.button--buy').length).toBe(5);
+    expect(element.querySelectorAll('a.button--buy').length).toBe(4);
     expect(element.querySelector('app-prelaunch-landing')).toBeNull();
     expect(element.querySelector('app-header')).not.toBeNull();
     expect(element.querySelector('app-footer')).not.toBeNull();
@@ -53,7 +53,7 @@ describe('App routes', () => {
     expect(footer).not.toBeNull();
     expect(element.classList.contains('prelaunch')).toBe(false);
     expect(element.querySelector('app-prelaunch-landing')).toBeNull();
-    expect(element.querySelectorAll('app-product-shop-card').length).toBe(6);
+    expect(element.querySelectorAll('app-product-shop-card').length).toBe(5);
 
     await router.navigateByUrl('/products/passion-hugo');
     await fixture.whenStable();

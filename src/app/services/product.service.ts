@@ -7,6 +7,7 @@ import { Product } from '../models/product.interface';
 export class ProductService {
   private readonly tropicalHops: Product = {
     id: 'tropical-hops',
+    status: 'active',
     slug: 'tropical-hops',
     name: 'TROPICAL HOPS',
     nutrition: [
@@ -31,6 +32,7 @@ export class ProductService {
   readonly products: readonly Product[] = [
     {
       id: 'orange-spritz',
+      status: 'active',
       slug: 'orange-spritz',
       name: 'ORANGE SPRITZ',
       nutrition: [
@@ -53,6 +55,7 @@ export class ProductService {
     },
     {
       id: 'passion-hugo',
+      status: 'active',
       slug: 'passion-hugo',
       name: 'PASSION HUGO',
       nutrition: [
@@ -75,6 +78,7 @@ export class ProductService {
     },
     {
       id: 'ginger-crush',
+      status: 'active',
       slug: 'ginger-crush',
       name: 'GINGER CRUSH',
       nutrition: [
@@ -99,6 +103,7 @@ export class ProductService {
 
     {
       id: 'pack-variat',
+      status: 'active',
       slug: 'pack-variat',
       name: 'PACK VARIAT',
       variant: 'assorted',
@@ -113,6 +118,7 @@ export class ProductService {
     {
       ...this.tropicalHops,
       id: 'tropical-hops-harvest',
+      status: 'coming-soon',
       slug: 'tropical-hops-harvest',
       name: 'TROPICAL HOPS HARVEST',
       nutrition: [
@@ -133,4 +139,8 @@ export class ProductService {
       featureBackgroundImageUrl: 'images/products/hop2.jpg',
     },
   ];
+  /** Public listings and cart eligibility share the same availability rule. */
+  get activeProducts(): readonly Product[] {
+    return this.products.filter(product => product.status === 'active');
+  }
 }

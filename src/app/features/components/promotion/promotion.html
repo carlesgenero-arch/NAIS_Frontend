@@ -2,18 +2,26 @@
   <div class="promotion-layout">
     <div class="promotion-content">
       <p class="promotion-subtitle">AMB LES PRIMERES COMANDES</p>
-      @if (submitted()) {
-        <p role="status" class="promotion-success">Email validat. L’enviament del codi encara no està disponible; no s’ha enviat cap correu ni s’ha desat l’adreça.</p>
+      @if (result()) {
+        <p role="status" class="promotion-success">
+          @if (result() === 'registered') {
+            Registre confirmat per a la promoció. L’enviament del codi encara està pendent d’activació; no s’ha enviat cap correu. Quan l’activem, revisa el teu email per obtenir el codi de descompte.
+          } @else {
+            Aquest email ja s’ha utilitzat per a aquesta promoció.
+          }
+        </p>
       } @else {
-        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <form [attr.aria-busy]="pending()" [formGroup]="form" (ngSubmit)="submit()" novalidate>
           
-          <input id="promotion-email" type="email" formControlName="email" required autocomplete="email"
+          <label for="promotion-email">Correu electrònic</label>
+          <input [readOnly]="pending()" id="promotion-email" type="email" formControlName="email" required autocomplete="email"
             placeholder="Introdueix el teu email" aria-describedby="promotion-legal promotion-error"
             [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid" />
           <p id="promotion-error" class="promotion-error" aria-live="polite">
             @if (form.controls.email.touched && form.controls.email.invalid) { Introdueix un correu electrònic vàlid. }
+            @if (error()) { {{ error() }} }
           </p>
-          <button class="button--buy" type="submit">OBTÉN CODI</button>
+          <button class="button--buy" type="submit" [disabled]="pending()">{{ pending() ? 'ENVIANT…' : 'OBTÉN CODI' }}</button>
           <p id="promotion-legal" class="promotion-legal">*En proporcionar-nos el teu email, acceptes rebre comunicacions sobre nous llançaments, promocions i novetats exclusives.</p>
         </form>
       }
