@@ -66,9 +66,11 @@
         <div><dt>Subtotal</dt><dd class="drawer-subtotal">{{ formatCents(cart.subtotalCents()) }}</dd></div>
         <div class="drawer-total-row"><dt>Total</dt><dd class="drawer-total">{{ formatCents(cart.subtotalCents()) }}</dd></div>
       </dl>
-      <button class="button--buy checkout" type="button" [disabled]="cart.isEmpty() || cart.subtotalCents() === null"
-        aria-describedby="drawer-checkout-note" (click)="requestCheckout()">Checkout</button>
-      <p id="drawer-checkout-note">Pagament en línia pròximament.</p>
+      <button class="button--buy checkout" type="button" [disabled]="checkoutLoading() || cart.isEmpty() || cart.subtotalCents() === null"
+        [attr.aria-busy]="checkoutLoading()" aria-describedby="drawer-checkout-note" (click)="requestCheckout()">
+        {{ checkoutLoading() ? 'Preparant pagament…' : 'Checkout' }}
+      </button>
+      <p id="drawer-checkout-note">El pagament es completarà de manera segura a Stripe.</p>
       <p class="checkout-status" role="status">{{ checkoutMessage() }}</p>
     </footer>
   }
