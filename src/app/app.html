@@ -4,7 +4,10 @@
 <main>
   <router-outlet />
 </main>
-<app-promotion />
+@if (!isPrelaunch()) {
+  <app-promotion />
+}
+
 @if (!isPrelaunch()) {
   <app-footer />
 }
