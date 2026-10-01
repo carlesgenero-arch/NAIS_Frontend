@@ -6,13 +6,21 @@ import { Header } from '../../../core/shared/base/header/header';
 import { MAX_CART_QUANTITY } from '../../../models/cart.interface';
 import { CART_STORAGE_KEY, CartService } from '../../../services/cart.service';
 import { ProductService } from '../../../services/product.service';
-import { Cart } from './cart';
+import { Cart, CHECKOUT_REDIRECT } from './cart';
+import { CheckoutService, type CheckoutResponse } from '../../../services/checkout.service';
+import { Subject } from 'rxjs';
 
 describe('Cart page', () => {
+  let response: Subject<CheckoutResponse>;
+  let createCheckout: ReturnType<typeof vi.fn>;
+  let redirect: ReturnType<typeof vi.fn>;
   let stored: Map<string, string>;
   const euros = (value: number) => new Intl.NumberFormat('ca-ES', { style: 'currency', currency: 'EUR' }).format(value);
 
   beforeEach(() => {
+    response = new Subject<CheckoutResponse>();
+    createCheckout = vi.fn(() => response);
+    redirect = vi.fn();
     stored = new Map();
     const storage: Storage = {
       get length() { return stored.size; },
@@ -23,7 +31,10 @@ describe('Cart page', () => {
       removeItem: key => { stored.delete(key); },
     };
     vi.spyOn(window, 'localStorage', 'get').mockReturnValue(storage);
-    TestBed.configureTestingModule({ imports: [Cart, Header], providers: [provideRouter(routes)] });
+    TestBed.configureTestingModule({ imports: [Cart, Header], providers: [provideRouter(routes),
+      { provide: CheckoutService, useValue: { createCheckout } },
+      { provide: CHECKOUT_REDIRECT, useValue: redirect },
+    ] });
   });
 
   afterEach(() => {
@@ -31,7 +42,7 @@ describe('Cart page', () => {
     vi.restoreAllMocks();
   });
 
-  it('uses the same service subtotal for both footer amounts and keeps checkout non-paying', () => {
+  it('uses the same service subtotal for both footer amounts and preserves the cart while checkout is pending', () => {
     const cart = TestBed.inject(CartService);
     const product = TestBed.inject(ProductService).products[0];
     const fixture = TestBed.createComponent(Cart);
@@ -53,7 +64,8 @@ describe('Cart page', () => {
     const payload = cart.getPayload();
     checkout.click();
     fixture.detectChanges();
-    expect(element.querySelector('.checkout-status')?.textContent).toContain('No s’ha iniciat cap pagament');
+    expect(createCheckout).toHaveBeenCalledWith(payload.items);
+    expect(checkout.disabled).toBe(true);
     expect(TestBed.inject(Router).url).toBe(url);
     expect(cart.getPayload()).toEqual(payload);
     cart.increaseQuantity(product.id);
@@ -245,4 +257,76 @@ describe('Cart page', () => {
     expect(element.querySelector('.cart-items, .cart-summary, a')).toBeNull();
     expect(element.querySelector<HTMLButtonElement>('.checkout')?.disabled).toBe(true);
   });
+  function drawer() {
+    const fixture = TestBed.createComponent(Cart);
+    fixture.componentRef.setInput('presentation', 'drawer');
+    fixture.detectChanges();
+    const button = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.checkout')!;
+    return { fixture, button };
+  }
+
+  it('sends current minimal items, blocks duplicate clicks and redirects externally', async () => {
+    const cart = TestBed.inject(CartService);
+    cart.addItem('orange-spritz');
+    const { fixture, button } = drawer();
+    cart.setQuantity('orange-spritz', 2);
+    cart.addItem('ginger-crush');
+    button.click();
+    button.click(); // Before change detection: the handler itself must block duplicates.
+    fixture.detectChanges();
+    expect(createCheckout).toHaveBeenCalledExactlyOnceWith([
+      { productId: 'orange-spritz', quantity: 2 }, { productId: 'ginger-crush', quantity: 1 },
+    ]);
+    expect(button.disabled).toBe(true);
+    expect(button.getAttribute('aria-busy')).toBe('true');
+    const route = TestBed.inject(Router).url;
+    response.next({ url: 'https://checkout.stripe.com/c/pay/test' });
+    await fixture.whenStable();
+    expect(redirect).toHaveBeenCalledExactlyOnceWith('https://checkout.stripe.com/c/pay/test');
+    expect(TestBed.inject(Router).url).toBe(route);
+    expect(cart.totalQuantity()).toBe(3);
+    expect(button.disabled).toBe(true);
+  });
+
+  it('re-enables checkout after failure without clearing cart or persisted items', async () => {
+    const cart = TestBed.inject(CartService);
+    cart.addItem('orange-spritz', 2);
+    const saved = stored.get(CART_STORAGE_KEY);
+    const { fixture, button } = drawer();
+    button.click();
+    response.error(new Error('private backend detail'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(button.disabled).toBe(false);
+    expect(fixture.nativeElement.querySelector('.checkout-status').textContent).toContain('Torna-ho a provar');
+    expect(fixture.nativeElement.textContent).not.toContain('private backend detail');
+    expect(cart.totalQuantity()).toBe(2);
+    expect(stored.get(CART_STORAGE_KEY)).toBe(saved);
+    expect(redirect).not.toHaveBeenCalled();
+    response = new Subject<CheckoutResponse>();
+    button.click();
+    expect(createCheckout).toHaveBeenCalledTimes(2);
+  });
+
+  it('cannot submit an empty cart even before the button disabled state updates', () => {
+    const cart = TestBed.inject(CartService);
+    cart.addItem('orange-spritz');
+    const { fixture, button } = drawer();
+    cart.clearCart();
+    button.click();
+    fixture.detectChanges();
+    expect(createCheckout).not.toHaveBeenCalled();
+    expect(button.disabled).toBe(true);
+  });
+
+  it('cancels pending checkout on component destruction', async () => {
+    TestBed.inject(CartService).addItem('orange-spritz');
+    const { fixture, button } = drawer();
+    button.click();
+    fixture.destroy();
+    response.next({ url: 'https://checkout.stripe.com/c/pay/test' });
+    await Promise.resolve();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
 });

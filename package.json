@@ -9,7 +9,7 @@
     "test": "ng test",
     "test:promo": "node --test server/promo-signup.test.mjs",
     "check:server": "tsc -p server/tsconfig.json",
-    "test:checkout": "node --test server/checkout-infrastructure.test.mjs"
+    "test:checkout": "node --test server/checkout-infrastructure.test.mjs server/checkout-validation.test.mjs server/checkout-session.test.mjs"
   },
   "prettier": {
     "printWidth": 100,

@@ -1,19 +1,19 @@
-<app-modal title="OBTÉN UN 10% DESCOMPTE" variant="promotion" (closed)="dismiss()">
+<app-modal title="ACONSEGUEIX UN 10% DE DESCOMPTE" variant="promotion" (closed)="dismiss()">
   <div class="promotion-layout">
     <div class="promotion-content">
-      <p class="promotion-subtitle">AMB LES PRIMERES COMANDES</p>
+      <h2 class="promotion-subtitle">AMB LA PRIMERA COMANDA</h2>
       @if (result()) {
         <p role="status" class="promotion-success">
           @if (result() === 'registered') {
             Registre confirmat per a la promoció. L’enviament del codi encara està pendent d’activació; no s’ha enviat cap correu. Quan l’activem, revisa el teu email per obtenir el codi de descompte.
           } @else {
-            Aquest email ja s’ha utilitzat per a aquesta promoció.
+            Aquest email ja s’ha utilitzat per  aquesta promoció.
           }
         </p>
       } @else {
         <form [attr.aria-busy]="pending()" [formGroup]="form" (ngSubmit)="submit()" novalidate>
           
-          <label for="promotion-email">Correu electrònic</label>
+          <label for="promotion-email"></label>
           <input [readOnly]="pending()" id="promotion-email" type="email" formControlName="email" required autocomplete="email"
             placeholder="Introdueix el teu email" aria-describedby="promotion-legal promotion-error"
             [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid" />
@@ -21,8 +21,8 @@
             @if (form.controls.email.touched && form.controls.email.invalid) { Introdueix un correu electrònic vàlid. }
             @if (error()) { {{ error() }} }
           </p>
-          <button class="button--buy" type="submit" [disabled]="pending()">{{ pending() ? 'ENVIANT…' : 'OBTÉN CODI' }}</button>
-          <p id="promotion-legal" class="promotion-legal">*En proporcionar-nos el teu email, acceptes rebre comunicacions sobre nous llançaments, promocions i novetats exclusives.</p>
+          <button class="button--buy" type="submit" [disabled]="pending()">{{ pending() ? 'ENVIANT…' : 'OBTÉN EL CODI' }}</button>
+          <p id="promotion-legal" class="promotion-legal">*Proporcionant-nos el teu email, acceptes rebre comunicacions sobre nous llançaments, promocions i novetats exclusives.</p>
         </form>
       }
     </div>
