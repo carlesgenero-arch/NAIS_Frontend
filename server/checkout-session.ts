@@ -51,6 +51,11 @@ export async function checkout(
     try {
       const session = await client.checkout.sessions.create({
         ...HOSTED_CHECKOUT_OPTIONS,
+        // Stripe collects email directly; no customer data is accepted from Angular.
+        customer_creation: 'always',
+        shipping_address_collection: { allowed_countries: ['ES'] },
+        name_collection: { individual: { enabled: true, optional: false } },
+        phone_number_collection: { enabled: true },
         line_items: [...resolved.items],
         shipping_options: [...resolved.shippingOptions],
         success_url: `${site}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,

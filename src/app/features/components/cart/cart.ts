@@ -13,7 +13,22 @@ export const CHECKOUT_REDIRECT = new InjectionToken<(url: string) => void>('Chec
     const document = inject(DOCUMENT);
     return url => {
       if (!document.defaultView) throw new Error('Browser unavailable');
-      document.defaultView.location.assign(url);
+      // noopener in window.open returns null even on success. Open blank first
+      // to detect blockers, then isolate it before navigating to external content.
+      const tab = document.defaultView.open('', '_blank');
+      if (!tab) throw new Error('Popup blocked');
+      try {
+        tab.opener = null;
+        const link = tab.document.createElement('a');
+        link.href = url;
+        link.target = '_self';
+        link.rel = 'noopener noreferrer';
+        tab.document.body.append(link);
+        link.click();
+      } catch (error) {
+        tab.close();
+        throw error;
+      }
     };
   },
 });
@@ -47,7 +62,7 @@ export class Cart {
         takeUntilDestroyed(this.destroyRef),
       ));
       if (!this.destroyRef.destroyed) this.redirect(url);
-      // Keep submission locked until the external navigation completes.
+      if (!this.destroyRef.destroyed) this.checkoutLoading.set(false);
     } catch {
       if (this.destroyRef.destroyed) return;
       this.checkoutLoading.set(false);

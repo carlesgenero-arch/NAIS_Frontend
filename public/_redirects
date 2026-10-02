@@ -7,3 +7,9 @@
 /shop/ /index.html 200
 /products/:slug /index.html 200
 /products/:slug/ /index.html 200
+
+# Checkout return pages: preserve API and static asset routing.
+/checkout/success /index.html 200
+/checkout/success/ /index.html 200
+/checkout/cancel /index.html 200
+/checkout/cancel/ /index.html 200
