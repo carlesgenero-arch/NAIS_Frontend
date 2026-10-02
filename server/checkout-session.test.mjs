@@ -33,6 +33,12 @@ for (const [name, items, shipping] of [
     assert.equal(mock.calls.length, 1);
     const params = mock.calls[0];
     assert.equal(params.mode, 'payment');
+    assert.equal(params.customer_creation, 'always');
+    assert.deepEqual(params.shipping_address_collection, { allowed_countries: ['ES'] });
+    assert.equal(params.customer_email, undefined);
+    assert.equal(params.customer, undefined);
+    assert.deepEqual(params.name_collection, { individual: { enabled: true, optional: false } });
+    assert.deepEqual(params.phone_number_collection, { enabled: true });
     assert.equal(params.allow_promotion_codes, true);
     assert.equal(params.discounts, undefined);
     assert.deepEqual(params.line_items, items.map(({ productId, quantity }) => ({

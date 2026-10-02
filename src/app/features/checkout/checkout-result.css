@@ -1,0 +1,15 @@
+:host { display: block; min-width: 0; }
+.checkout-result {
+  max-width: 42rem;
+  margin: var(--space-section) auto;
+  padding: var(--surface-padding) var(--page-gutter);
+  color: var(--color-negro);
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-soft);
+  overflow-wrap: anywhere;
+}
+h1 { margin-top: 0; font-family: var(--font-display); }
+p { line-height: 1.6; }
+.button--buy { margin-top: var(--page-gutter); max-width: 100%; box-sizing: border-box; }

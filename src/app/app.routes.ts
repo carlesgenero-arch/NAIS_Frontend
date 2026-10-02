@@ -23,6 +23,16 @@ export const routes: Routes = [
     resolve: { product: productResolver },
     loadComponent: () => import('./features/shop/shop-page/shop-page').then(module => module.ShopPage),
   },
+  {
+    path: 'checkout/success',
+    title: 'Gràcies | NAIS',
+    loadComponent: () => import('./features/checkout/checkout-success').then(module => module.CheckoutSuccess),
+  },
+  {
+    path: 'checkout/cancel',
+    title: 'Checkout cancel·lat | NAIS',
+    loadComponent: () => import('./features/checkout/checkout-cancel').then(module => module.CheckoutCancel),
+  },
   { path: 'shop', pathMatch: 'full', redirectTo: 'products' },
   {
     path: 'cart',

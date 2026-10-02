@@ -285,7 +285,8 @@ describe('Cart page', () => {
     expect(redirect).toHaveBeenCalledExactlyOnceWith('https://checkout.stripe.com/c/pay/test');
     expect(TestBed.inject(Router).url).toBe(route);
     expect(cart.totalQuantity()).toBe(3);
-    expect(button.disabled).toBe(true);
+    fixture.detectChanges();
+    expect(button.disabled).toBe(false);
   });
 
   it('re-enables checkout after failure without clearing cart or persisted items', async () => {
@@ -329,4 +330,45 @@ describe('Cart page', () => {
     expect(redirect).not.toHaveBeenCalled();
   });
 
+  it('shows the existing safe error and preserves cart when opening is blocked', async () => {
+    TestBed.inject(CartService).addItem('orange-spritz');
+    const saved = stored.get(CART_STORAGE_KEY);
+    redirect.mockImplementation(() => { throw new Error('Popup blocked'); });
+    const { fixture, button } = drawer();
+    button.click();
+    response.next({ url: 'https://checkout.stripe.com/c/pay/test' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(button.disabled).toBe(false);
+    expect(fixture.nativeElement.querySelector('.checkout-status').textContent).toContain('Torna-ho a provar');
+    expect(stored.get(CART_STORAGE_KEY)).toBe(saved);
+  });
+
+});
+
+describe('Checkout new-tab browser boundary', () => {
+  afterEach(() => { TestBed.resetTestingModule(); vi.restoreAllMocks(); });
+
+  it('isolates the new tab and suppresses referrer before external navigation', () => {
+    const doc = document.implementation.createHTMLDocument();
+    const popup = { opener: window, document: doc, close: vi.fn() };
+    const open = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window);
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      expect(popup.opener).toBeNull();
+      expect(this.href).toBe('https://checkout.stripe.com/c/pay/test');
+      expect(this.rel).toBe('noopener noreferrer');
+      expect(this.target).toBe('_self');
+    });
+    const originalUrl = window.location.href;
+    TestBed.inject(CHECKOUT_REDIRECT)('https://checkout.stripe.com/c/pay/test');
+    expect(open).toHaveBeenCalledExactlyOnceWith('', '_blank');
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(window.location.href).toBe(originalUrl);
+    expect(popup.close).not.toHaveBeenCalled();
+  });
+
+  it('throws on null so the existing checkout catch handles blocked popups', () => {
+    vi.spyOn(window, 'open').mockReturnValue(null);
+    expect(() => TestBed.inject(CHECKOUT_REDIRECT)('https://checkout.stripe.com/c/pay/test')).toThrow('Popup blocked');
+  });
 });
