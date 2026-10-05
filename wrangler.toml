@@ -1,0 +1,10 @@
+# Local Pages development only. Production configuration stays in the Dashboard.
+# Deliberately omit pages_build_output_dir (do not opt into file-based deployment).
+name = "nais-frontend"
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "PROMO_DB"
+database_name = "nais-promo-production"
+database_id = "dad4fa15-507c-4164-aa37-fa468d75bfe0"
+preview_database_id = "PROMO_DB"
