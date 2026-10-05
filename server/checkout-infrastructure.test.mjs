@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CHECKOUT_CATALOGUE, isCheckoutProductId, resolveCheckoutPrice } from './checkout-catalogue.ts';
+import { CHECKOUT_CATALOGUE, isCheckoutProductId, resolveCheckoutPrice } from './checkout/checkout-catalogue.ts';
 import { BOX_PRICE_EUR, UNITS_PER_BOX, SHIPPING_PRICE_EUR, FREE_SHIPPING_MIN_BOXES,
-  EXPECTED_BOX_PRICE_CENTS, HOSTED_CHECKOUT_OPTIONS, checkoutShippingOption } from './checkout-rules.ts';
-import { createStripeClient } from './stripe-client.ts';
+  EXPECTED_BOX_PRICE_CENTS, HOSTED_CHECKOUT_OPTIONS, checkoutShippingOption } from './checkout/checkout-rules.ts';
+import { createStripeClient } from './stripe/stripe-client.ts';
 
 const mappings = {
   'orange-spritz': 'STRIPE_PRICE_ORANGE_SPRITZ',

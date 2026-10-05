@@ -1,17 +1,12 @@
 import Stripe from 'stripe';
 import { createStripeClient } from './stripe-client.ts';
-import { CHECKOUT_CATALOGUE } from './checkout-catalogue.ts';
-import type { CheckoutPriceBindings } from './checkout-env.ts';
+import { CHECKOUT_CATALOGUE } from '../checkout/checkout-catalogue.ts';
+import type { CheckoutPriceBindings } from '../checkout/checkout-env.ts';
+import { createPaidOrder, hasOrderForSession } from '../orders/order.service.ts';
+import type { OrderDatabase } from '../orders/order.repository.ts';
+import type { PaidOrderSnapshot } from '../orders/order.types.ts';
 
-type SqlValue = string | number | null;
-interface OrderStatement {
-  bind(...values: SqlValue[]): OrderStatement;
-  first<T>(): Promise<T | null>;
-}
-export interface OrderDatabase {
-  prepare(sql: string): OrderStatement;
-  batch(statements: OrderStatement[]): Promise<{ success: boolean }[]>;
-}
+export type { OrderDatabase } from '../orders/order.repository.ts';
 export interface WebhookEnvironment extends Partial<CheckoutPriceBindings> {
   PROMO_DB?: OrderDatabase;
   STRIPE_SECRET_KEY?: string;
@@ -79,8 +74,7 @@ async function savePaidSession(event: Stripe.Event, env: WebhookEnvironment, cli
     throw new Error('Invalid session');
   }
   const db = env.PROMO_DB!;
-  if (await db.prepare('SELECT id FROM orders WHERE stripe_checkout_session_id = ?1')
-    .bind(sessionRef.id).first<{ id: string }>()) return;
+  if (await hasOrderForSession(db, sessionRef.id)) return;
   // Fetch full authoritative data using the server key, never redirect/query data.
   const session = await client.checkout.sessions.retrieve(sessionRef.id);
   if (session.id !== sessionRef.id || session.livemode !== event.livemode) throw new Error('Session mismatch');
@@ -107,35 +101,39 @@ async function savePaidSession(event: Stripe.Event, env: WebhookEnvironment, cli
   const details = session.customer_details;
   const recipient = session.collected_information?.shipping_details;
   const address = recipient?.address;
-  const id = crypto.randomUUID();
   const paidAt = new Date(amount(event.created) * 1000).toISOString();
-  const columns = [
-    'id', 'order_number', 'stripe_checkout_session_id', 'stripe_event_id', 'stripe_payment_intent_id',
-    'stripe_customer_id', 'customer_name', 'customer_email', 'customer_phone', 'shipping_name',
-    'shipping_address_line1', 'shipping_address_line2', 'shipping_postal_code', 'shipping_city', 'shipping_country',
-    'subtotal_amount', 'shipping_amount', 'discount_amount', 'tax_amount', 'total_amount', 'currency',
-    'payment_status', 'fulfillment_status', 'paid_at',
-  ];
-  const values: SqlValue[] = [
-    id, `NAIS-${id.toUpperCase()}`, session.id, required(event.id), required(objectId(session.payment_intent)),
-    objectId(session.customer), required(details?.name ?? session.collected_information?.individual_name ?? recipient?.name),
-    required(details?.email), details?.phone ?? null, required(recipient?.name),
-    required(address?.line1), address?.line2 ?? null, required(address?.postal_code), required(address?.city), required(address?.country),
-    subtotal, shipping, discount, tax, total, currency, 'paid', 'pending', paidAt,
-  ];
-  const statements = [db.prepare(`INSERT INTO orders (${columns.join(',')}) VALUES (${values.map(() => '?').join(',')}) ON CONFLICT(stripe_checkout_session_id) DO NOTHING`).bind(...values)];
-  for (const line of lines) {
-    const quantity = amount(line.quantity);
-    if (!quantity || line.currency !== currency || line.price?.currency !== currency) throw new Error('Invalid line');
-    statements.push(db.prepare(`INSERT INTO order_items
-      (id, order_id, stripe_line_item_id, product_id, product_name, stripe_price_id, quantity, unit_amount, line_total_amount)
-      SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9 WHERE EXISTS (SELECT 1 FROM orders WHERE id = ?2)`)
-      .bind(crypto.randomUUID(), id, required(line.id), productId(line, env), required(line.description),
-        required(line.price?.id), quantity, amount(line.price?.unit_amount), amount(line.amount_total)));
-  }
-  // D1 batch is transactional. A racing duplicate inserts neither parent nor children.
-  const results = await db.batch(statements);
-  if (results.length !== statements.length || results.some(result => !result.success)) throw new Error('Persistence failed');
+  const snapshot: PaidOrderSnapshot = {
+    stripe_checkout_session_id: session.id,
+    stripe_event_id: required(event.id),
+    stripe_payment_intent_id: required(objectId(session.payment_intent)),
+    stripe_customer_id: objectId(session.customer),
+    customer_name: required(details?.name ?? session.collected_information?.individual_name ?? recipient?.name),
+    customer_email: required(details?.email),
+    customer_phone: details?.phone ?? null,
+    shipping_name: required(recipient?.name),
+    shipping_address_line1: required(address?.line1),
+    shipping_address_line2: address?.line2 ?? null,
+    shipping_postal_code: required(address?.postal_code),
+    shipping_city: required(address?.city),
+    shipping_country: required(address?.country),
+    subtotal_amount: subtotal,
+    shipping_amount: shipping,
+    discount_amount: discount,
+    tax_amount: tax,
+    total_amount: total,
+    currency,
+    paid_at: paidAt,
+    items: lines.map(line => {
+      const quantity = amount(line.quantity);
+      if (!quantity || line.currency !== currency || line.price?.currency !== currency) throw new Error('Invalid line');
+      return {
+        stripe_line_item_id: required(line.id), product_id: productId(line, env), product_name: required(line.description),
+        stripe_price_id: required(line.price?.id), quantity, unit_amount: amount(line.price?.unit_amount),
+        line_total_amount: amount(line.amount_total),
+      };
+    }),
+  };
+  await createPaidOrder(db, snapshot);
 }
 
 export async function stripeWebhook(request: Request, env: WebhookEnvironment, clientFactory: ClientFactory = createStripeClient): Promise<Response> {

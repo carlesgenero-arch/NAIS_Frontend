@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import Stripe from 'stripe';
-import { stripeWebhook } from './stripe-webhook.ts';
+import { stripeWebhook } from './stripe/stripe-webhook.ts';
 import { onRequest } from '../functions/api/stripe-webhook.ts';
+import { createPaidOrder, hasOrderForSession } from './orders/order.service.ts';
 
 const signingSecret = 'whsec_test_fixture_only';
 const fetch = globalThis.fetch;
@@ -102,6 +103,38 @@ test('duplicates including different event IDs and concurrent deliveries create 
   assert.equal(db.prepare('SELECT count(*) n FROM orders').get().n, 1);
   assert.equal(db.prepare('SELECT count(*) n FROM order_items').get().n, 1);
   assert.equal(db.prepare('SELECT product_name FROM order_items').get().product_name, 'Purchased name snapshot');
+});
+
+test('order service duplicate lookup preserves the early return without another Stripe fetch', async t => {
+  const { send, env, client, reads } = setup(t);
+  assert.equal(await hasOrderForSession(env.PROMO_DB, 'cs_test_fixture'), false);
+  assert.equal((await send()).status, 200);
+  assert.equal(await hasOrderForSession(env.PROMO_DB, 'cs_test_fixture'), true);
+  client.checkout.sessions.retrieve = async () => { throw new Error('Must not fetch a duplicate'); };
+  assert.equal((await send()).status, 200);
+  assert.equal(reads(), 1);
+});
+
+test('order service persists trusted snapshots without HTTP or Stripe dependencies', async t => {
+  const { send, env, db } = setup(t);
+  assert.equal((await send()).status, 200);
+  const { id, order_number, created_at, payment_status, fulfillment_status, ...snapshot } = db.prepare('SELECT * FROM orders').get();
+  snapshot.items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(id)
+    .map(({ id, order_id, ...item }) => item);
+  snapshot.stripe_checkout_session_id = 'cs_test_service';
+  snapshot.stripe_event_id = 'evt_service';
+  const before = structuredClone(snapshot);
+  await createPaidOrder(env.PROMO_DB, snapshot);
+  await createPaidOrder(env.PROMO_DB, snapshot);
+  assert.deepEqual(snapshot, before);
+  const order = db.prepare('SELECT * FROM orders WHERE stripe_checkout_session_id = ?').get(snapshot.stripe_checkout_session_id);
+  assert.notEqual(order.id, id);
+  assert.equal(order.order_number, `NAIS-${order.id.toUpperCase()}`);
+  assert.equal(order.payment_status, 'paid');
+  assert.equal(order.fulfillment_status, 'pending');
+  assert.equal(order.total_amount, snapshot.total_amount);
+  assert.equal(db.prepare('SELECT count(*) n FROM order_items WHERE order_id = ?').get(order.id).n, 1);
+  assert.equal(db.prepare('SELECT count(*) n FROM orders').get().n, 2);
 });
 
 for (const status of ['unpaid', 'no_payment_required']) {

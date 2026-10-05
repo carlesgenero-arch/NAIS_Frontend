@@ -2,7 +2,7 @@ import type Stripe from 'stripe';
 import type { CheckoutEnvironment } from './checkout-env.ts';
 import { validateCheckout } from './checkout-validation.ts';
 import { HOSTED_CHECKOUT_OPTIONS } from './checkout-rules.ts';
-import { createStripeClient } from './stripe-client.ts';
+import { createStripeClient } from '../stripe/stripe-client.ts';
 
 // Narrow SDK boundary permits tests without real API calls.
 export interface CheckoutClient {

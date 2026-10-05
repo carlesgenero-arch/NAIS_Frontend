@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateCheckout } from './checkout-validation.ts';
+import { validateCheckout } from './checkout/checkout-validation.ts';
 
 // Exercise validation independently of Session creation.
 async function onRequest({ request, env }) {
@@ -11,8 +11,8 @@ async function onRequest({ request, env }) {
   );
 }
 import { MAX_CART_QUANTITY } from '../src/app/models/cart.interface.ts';
-import { CHECKOUT_CATALOGUE } from './checkout-catalogue.ts';
-import { MAX_CHECKOUT_LINES } from './checkout-validation.ts';
+import { CHECKOUT_CATALOGUE } from './checkout/checkout-catalogue.ts';
+import { MAX_CHECKOUT_LINES } from './checkout/checkout-validation.ts';
 
 const bindings = Object.fromEntries(Object.values(CHECKOUT_CATALOGUE).map((key, index) => [key, `price_fixture${index}`]));
 
@@ -123,7 +123,7 @@ test('only bindings for products in this cart are required', async () => {
   assert.equal((await submit({ items: [line(1)] }, {}, { STRIPE_PRICE_ORANGE_SPRITZ: 'price_fixture' })).status, 200);
 });
 test('server resolution retains corresponding prices and quantities internally', async () => {
-  const { resolveCheckoutItems } = await import('./checkout-resolution.ts');
+  const { resolveCheckoutItems } = await import('./checkout/checkout-resolution.ts');
   const { items, totalBoxes } = resolveCheckoutItems(new Map([['orange-spritz', 2], ['ginger-crush', 1]]), bindings);
   assert.deepEqual({ items, totalBoxes }, {
     items: [{ price: bindings.STRIPE_PRICE_ORANGE_SPRITZ, quantity: 2 }, { price: bindings.STRIPE_PRICE_GINGER_CRUSH, quantity: 1 }],
@@ -140,7 +140,7 @@ for (const [name, quantities, expectedBoxes, expectedAmount] of [
 ]) {
   test(`server selects exactly one native shipping rate for ${name}`, async t => {
     t.mock.method(globalThis, 'fetch', () => { throw new Error('No Stripe request expected'); });
-    const { resolveCheckoutItems } = await import('./checkout-resolution.ts');
+    const { resolveCheckoutItems } = await import('./checkout/checkout-resolution.ts');
     const resolved = resolveCheckoutItems(new Map(quantities), bindings);
     assert.equal(resolved.totalBoxes, expectedBoxes);
     assert.equal(resolved.shippingOptions.length, 1);

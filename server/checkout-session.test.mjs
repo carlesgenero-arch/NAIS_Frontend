@@ -1,6 +1,6 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { checkout } from './checkout-session.ts';
+import { checkout } from './checkout/checkout-session.ts';
 import { onRequest } from '../functions/api/checkout.ts';
 
 beforeEach(t => t.mock.method(globalThis, 'fetch', () => { throw new Error('Real network forbidden'); }));
