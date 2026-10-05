@@ -10,6 +10,6 @@ export interface CheckoutPriceBindings {
 export interface CheckoutEnvironment extends CheckoutPriceBindings {
   STRIPE_SECRET_KEY: string;
   SITE_URL: string;
-  /** Reserved for the later webhook implementation; not required yet. */
+  /** Required only by the webhook endpoint, never by session creation. */
   STRIPE_WEBHOOK_SECRET?: string;
 }

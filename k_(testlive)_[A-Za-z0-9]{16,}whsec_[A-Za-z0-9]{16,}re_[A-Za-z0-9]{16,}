@@ -1,0 +1,23 @@
+Binary file [35mpublic/images/info-card/mango.png[m matches
+Binary file [35mpublic/images/products/mocktails_3.png[m matches
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.css[m[36m:[m.product-featu[1;31mre_[m_visual {
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.css[m[36m:[m.product-featu[1;31mre_[m_background {
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.css[m[36m:[m.product-featu[1;31mre_[m_image {
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.css[m[36m:[m.product-featu[1;31mre_[m_content {
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.css[m[36m:[m/**.product-featu[1;31mre_[m_badge {
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.css[m[36m:[m.product-featu[1;31mre_[m_cta {
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.css[m[36m:[m  .product-featu[1;31mre_[m_content {
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.css[m[36m:[m  .product-featu[1;31mre_[m_cta {
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.html[m[36m:[m  <div class="product-featu[1;31mre_[m_visual">
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.html[m[36m:[m      <img class="product-featu[1;31mre_[m_background" [src]="backgroundUrl" alt="" loading="lazy" />
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.html[m[36m:[m      <img class="product-featu[1;31mre_[m_image" [src]="image" [alt]="imageAlt()" loading="lazy" />
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.html[m[36m:[m  <div class="product-featu[1;31mre_[m_content">
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.html[m[36m:[m    <!--<span class="product-featu[1;31mre_[m_badge">{{ badge() }}</span>-->
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.html[m[36m:[m    <a class="button--buy product-featu[1;31mre_[m_cta" [routerLink]="['/products', product().slug]"
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.spec.ts[m[36m:[m    expect(element.querySelector('.product-featu[1;31mre_[m_badge')?.textContent).toBe('NOVA COLLITA');
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.spec.ts[m[36m:[m    expect(element.querySelector('.product-featu[1;31mre_[m_background')?.getAttribute('src')).toBe(harvest.featureBackgroundImageUrl);
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.spec.ts[m[36m:[m    expect(element.querySelector('.product-featu[1;31mre_[m_background')?.getAttribute('alt')).toBe('');
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.spec.ts[m[36m:[m    const image = element.querySelector('img.product-featu[1;31mre_[m_image')!;
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.spec.ts[m[36m:[m    expect(element.querySelector('.product-featu[1;31mre_[m_badge')?.textContent).toBe(limited.badge);
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.spec.ts[m[36m:[m    expect(element.querySelector('.product-featu[1;31mre_[m_background')).toBeNull();
+[35msrc/app/core/shared/page/product-feature-card/product-feature-card.spec.ts[m[36m:[m    expect(element.querySelector('.product-featu[1;31mre_[m_badge')?.textContent).toBe('DESTACAT');
