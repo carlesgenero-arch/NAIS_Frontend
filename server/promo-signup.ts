@@ -1,15 +1,29 @@
+import type Stripe from 'stripe';
+import { createStripeClient } from './stripe-client.ts';
+
 /** Minimal D1 contract: implemented by the Pages PROMO_DB binding. */
 export interface PromoDatabase {
   prepare(sql: string): {
-    bind(email: string): {
+    bind(...values: string[]): {
       run(): Promise<{ success: boolean; meta: { changes: number } }>;
+      first<T>(): Promise<T | null>;
     };
   };
 }
 
 export interface PromoEnvironment {
   PROMO_DB?: PromoDatabase;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_PROMO_COUPON_ID?: string;
 }
+
+export interface PromoStripeClient {
+  coupons: { retrieve(id: string): Promise<{ valid: boolean; percent_off: number | null }> };
+  promotionCodes: {
+    create(params: Stripe.PromotionCodeCreateParams, options: Stripe.RequestOptions): Promise<{ id: string; code: string }>;
+  };
+}
+type PromoClientFactory = (env: { STRIPE_SECRET_KEY: string }) => PromoStripeClient;
 
 const MAX_BODY_BYTES = 2048;
 
@@ -63,7 +77,9 @@ async function readPayload(request: Request): Promise<unknown> {
   }
 }
 
-export async function promoSignup(request: Request, env: PromoEnvironment): Promise<Response> {
+export async function promoSignup(
+  request: Request, env: PromoEnvironment, clientFactory: PromoClientFactory = createStripeClient,
+): Promise<Response> {
   if (request.method !== 'POST') return response(405, 'method_not_allowed');
   // No cross-origin browser submissions; no CORS permission is exposed.
   const origin = request.headers.get('Origin');
@@ -82,14 +98,43 @@ export async function promoSignup(request: Request, env: PromoEnvironment): Prom
   if (!email) return response(400, 'invalid_email');
   if (!env.PROMO_DB) return response(503, 'unavailable');
   try {
+    if (!env.STRIPE_SECRET_KEY?.trim() || !env.STRIPE_PROMO_COUPON_ID?.trim()) {
+      return response(503, 'unavailable');
+    }
+    const client = clientFactory({ STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY });
+    // Durable opaque correlation/idempotency key; never send the email to Stripe.
+    const requestId = crypto.randomUUID();
     // Uniqueness check and registration are one atomic write, never SELECT then INSERT.
     const result = await env.PROMO_DB.prepare(
-      "INSERT INTO promo_signups (email) VALUES (?1) ON CONFLICT(email) DO NOTHING",
-    ).bind(email).run();
+      'INSERT INTO promo_signups (email, promotion_request_id) VALUES (?1, ?2) ON CONFLICT(email) DO NOTHING',
+    ).bind(email, requestId).run();
     if (!result.success) return response(503, 'unavailable');
-    if (result.meta.changes === 0) return response(200, 'already_registered');
+    if (result.meta.changes === 0) {
+      const existing = await env.PROMO_DB.prepare(
+        'SELECT promotion_request_id, stripe_promotion_code_id, promotion_code FROM promo_signups WHERE email = ?1',
+      ).bind(email).first<{ promotion_request_id: string | null; stripe_promotion_code_id: string | null; promotion_code: string | null }>();
+      // Legacy registrations stay duplicates; unfinished new registrations never claim success.
+      if (existing && (!existing.promotion_request_id || (existing.stripe_promotion_code_id && existing.promotion_code))) {
+        return response(200, 'already_registered');
+      }
+      return response(503, 'unavailable');
+    }
     if (result.meta.changes !== 1) return response(503, 'unavailable');
-    // This durable pending row is the future delivery entitlement. No email/code is sent yet.
+    const coupon = await client.coupons.retrieve(env.STRIPE_PROMO_COUPON_ID);
+    if (!coupon.valid || coupon.percent_off !== 10) return response(503, 'unavailable');
+    const promotion = await client.promotionCodes.create({
+      promotion: { type: 'coupon', coupon: env.STRIPE_PROMO_COUPON_ID },
+      max_redemptions: 1,
+      restrictions: { first_time_transaction: true },
+      metadata: { nais_promo_request_id: requestId },
+    }, { idempotencyKey: `nais-promo-${requestId}` });
+    if (!promotion.id?.trim() || !promotion.code?.trim()) return response(503, 'unavailable');
+    const saved = await env.PROMO_DB.prepare(
+      'UPDATE promo_signups SET stripe_promotion_code_id = ?1, promotion_code = ?2 WHERE email = ?3 AND promotion_request_id = ?4 AND stripe_promotion_code_id IS NULL',
+    ).bind(promotion.id, promotion.code, email, requestId).run();
+    if (!saved.success || saved.meta.changes !== 1) return response(503, 'unavailable');
+    // delivery_status stays pending: code generation does not mean email delivery.
+    // Keep failed reservations for manual reconciliation; never blindly issue a replacement.
     return response(201, 'registered');
   } catch {
     // Never return SQL, binding details or email addresses to the client or logs.
