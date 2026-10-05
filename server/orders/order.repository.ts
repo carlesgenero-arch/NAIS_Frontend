@@ -1,4 +1,21 @@
 import type { NewPaidOrder } from './order.types.ts';
+import type { PublicOrderSummary } from '../../src/shared/order-summary.ts';
+
+export type PublicOrderRow = Omit<PublicOrderSummary, 'items'> & { itemsJson: string };
+
+/** One read returns a consistent minimal snapshot; no customer/Stripe IDs are selected. */
+export async function findPublicOrderBySession(db: OrderDatabase, sessionId: string): Promise<PublicOrderRow | null> {
+  return db.prepare(`SELECT
+    o.order_number AS orderNumber, o.payment_status AS paymentStatus,
+    o.fulfillment_status AS fulfillmentStatus, o.total_amount AS totalAmount,
+    o.currency, o.created_at AS createdAt,
+    (SELECT json_group_array(json_object(
+      'productName', i.product_name, 'quantity', i.quantity,
+      'unitAmount', i.unit_amount, 'lineTotalAmount', i.line_total_amount
+    )) FROM order_items i WHERE i.order_id = o.id) AS itemsJson
+    FROM orders o WHERE o.stripe_checkout_session_id = ?1`)
+    .bind(sessionId).first<PublicOrderRow>();
+}
 
 type SqlValue = string | number | null;
 interface OrderStatement {

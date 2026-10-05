@@ -10,7 +10,7 @@ async function onRequest({ request, env }) {
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }
-import { MAX_CART_QUANTITY } from '../src/app/models/cart.interface.ts';
+import { MAX_CART_QUANTITY } from '../src/shared/cart-limits.ts';
 import { CHECKOUT_CATALOGUE } from './checkout/checkout-catalogue.ts';
 import { MAX_CHECKOUT_LINES } from './checkout/checkout-validation.ts';
 

@@ -1,7 +1,30 @@
 <section class="checkout-result" aria-labelledby="checkout-heading" lang="ca">
   <h1 id="checkout-heading">Gràcies per triar NAIS!</h1>
-  <p>Gràcies pel teu interès en NAIS. Pots continuar explorant la nostra botiga.</p>
-  <p>Aquesta pàgina no confirma que el pagament s’hagi rebut. La verificació del pagament encara no està disponible.</p>
-  <p>Hem conservat la teva cistella.</p>
+  @let result = state();
+  <div aria-live="polite" aria-atomic="true" [attr.aria-busy]="result.status === 'loading'">
+    @switch (result.status) {
+      @case ('loading') { <p>Estem consultant la teva comanda…</p> }
+      @case ('pending') {
+        <p>Estem confirmant la teva comanda.</p>
+        <p>Encara no podem confirmar el pagament. Torna a carregar aquesta pàgina d’aquí a uns instants.</p>
+      }
+      @case ('verified') {
+        <p>Pagament confirmat. Gràcies per la teva comanda!</p>
+        <p>Comanda <strong>{{ result.order.orderNumber }}</strong></p>
+        <ul class="order-items">
+          @for (item of result.order.items; track $index) {
+            <li>
+              <span>{{ item.productName }} × {{ item.quantity }}</span>
+              <span>{{ item.lineTotalAmount / 100 | currency:result.order.currency.toUpperCase() }}</span>
+            </li>
+          }
+        </ul>
+        <p><strong>Total: {{ result.order.totalAmount / 100 | currency:result.order.currency.toUpperCase() }}</strong></p>
+      }
+      @case ('error') { <p>No hem pogut consultar la comanda. Torna a carregar la pàgina per provar-ho de nou.</p> }
+      @case ('not-paid') { <p>No podem mostrar aquesta comanda com a pagament confirmat. Hem conservat la teva cistella.</p> }
+      @default { <p>Aquesta pàgina no confirma cap pagament sense una comanda verificada. Hem conservat la teva cistella.</p> }
+    }
+  </div>
   <a class="button--buy" routerLink="/products">Tornar a la botiga</a>
 </section>

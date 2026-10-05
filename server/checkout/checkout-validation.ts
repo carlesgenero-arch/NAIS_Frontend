@@ -1,4 +1,4 @@
-import { MAX_CART_QUANTITY } from '../../src/app/models/cart.interface.ts';
+import { MAX_CART_QUANTITY } from '../../src/shared/cart-limits.ts';
 import { CHECKOUT_CATALOGUE, isCheckoutProductId, type CheckoutProductId } from './checkout-catalogue.ts';
 
 import type { CheckoutPriceBindings } from './checkout-env.ts';

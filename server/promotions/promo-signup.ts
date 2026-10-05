@@ -1,5 +1,5 @@
 import type Stripe from 'stripe';
-import { createStripeClient } from './stripe/stripe-client.ts';
+import { createStripeClient } from '../stripe/stripe-client.ts';
 
 /** Minimal D1 contract: implemented by the Pages PROMO_DB binding. */
 export interface PromoDatabase {

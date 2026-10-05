@@ -13,3 +13,5 @@
 h1 { margin-top: 0; font-family: var(--font-display); }
 p { line-height: 1.6; }
 .button--buy { margin-top: var(--page-gutter); max-width: 100%; box-sizing: border-box; }
+.order-items { list-style: none; padding: 0; }
+.order-items li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--page-gutter); padding-block: 0.5rem; border-bottom: 1px solid var(--surface-border); }
