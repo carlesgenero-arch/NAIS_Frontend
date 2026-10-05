@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import { onRequest } from '../functions/api/promo-signup.ts';
-import { promoSignup } from './promo-signup.ts';
+import { promoSignup } from './promotions/promo-signup.ts';
 
 const originalFetch = globalThis.fetch;
 beforeEach(() => { globalThis.fetch = async () => { throw new Error('Real network calls forbidden'); }; });
