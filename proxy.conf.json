@@ -1,9 +1,5 @@
 {
-  "/api/checkout": {
-    "target": "http://127.0.0.1:8788",
-    "changeOrigin": false
-  },
-  "/api/orders/**": {
+  "^/api(?:/|\\?|$)": {
     "target": "http://127.0.0.1:8788",
     "changeOrigin": false
   }
