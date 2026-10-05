@@ -1,1 +1,16 @@
-/* /index.html 200
+# Serve the Angular shell only for application routes.
+# Target / to avoid Cloudflare index.html loop detection.
+/home / 200
+/home/ / 200
+/products / 200
+/products/ / 200
+/shop / 200
+/shop/ / 200
+/cart / 200
+/cart/ / 200
+/checkout/success / 200
+/checkout/success/ / 200
+/checkout/cancel / 200
+/checkout/cancel/ / 200
+/products/:slug / 200
+/products/:slug/ / 200
