@@ -6,6 +6,11 @@
   margin-block: 1.5rem;
   border-radius: 12px;
   overflow: hidden;
+  cursor: pointer;
+}
+.tira-animada:focus-visible {
+  outline: 3px solid #000;
+  outline-offset: 3px;
 }
 
 .tira-animada__inner {
