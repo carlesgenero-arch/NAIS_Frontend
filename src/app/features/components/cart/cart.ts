@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, DOCUMENT, inject, InjectionToken, Injector, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, DOCUMENT, inject, InjectionToken, Injector, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { CheckoutService } from '../../../services/checkout.service';
 import { RouterLink } from '@angular/router';
 import { MAX_CART_QUANTITY } from '../../../models/cart.interface';
 import { CartService } from '../../../services/cart.service';
+import { Router } from '@angular/router';
 
 /** Injectable browser boundary so tests never leave the page. */
 export const CHECKOUT_REDIRECT = new InjectionToken<(url: string) => void>('Checkout redirect', {
@@ -47,10 +48,13 @@ export class Cart {
   protected readonly maxQuantity = MAX_CART_QUANTITY;
   protected readonly checkoutMessage = signal('');
   protected readonly checkoutLoading = signal(false);
+  readonly continueShoppingRequested = output<void>();
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private readonly redirect = inject(CHECKOUT_REDIRECT);
   private readonly currency = new Intl.NumberFormat('ca-ES', { style: 'currency', currency: 'EUR' });
+  private readonly router = inject(Router);
+  
 
   protected async requestCheckout(): Promise<void> {
     if (this.checkoutLoading() || this.cart.isEmpty() || this.cart.subtotalCents() === null) return;
@@ -86,4 +90,12 @@ export class Cart {
     const cents = Math.round(price * 100) * quantity;
     return this.formatCents(Number.isSafeInteger(cents) ? cents : null);
   }
+
+  protected continueShopping():void{
+    if (this.presentation() === 'drawer'){
+      this.continueShoppingRequested.emit();
+    }
+    void this.router.navigate(['/products']);
+  }
+
 }
