@@ -1,4 +1,5 @@
-import { test } from 'node:test';
+import { checkoutDb, priceIds } from './testing/checkout-db.mjs';
+import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { validateCheckout } from './checkout/checkout-validation.ts';
 
@@ -11,10 +12,15 @@ async function onRequest({ request, env }) {
   );
 }
 import { MAX_CART_QUANTITY } from '../src/shared/cart-limits.ts';
-import { CHECKOUT_CATALOGUE } from './checkout/checkout-catalogue.ts';
 import { MAX_CHECKOUT_LINES } from './checkout/checkout-validation.ts';
 
-const bindings = Object.fromEntries(Object.values(CHECKOUT_CATALOGUE).map((key, index) => [key, `price_fixture${index}`]));
+const bindings = {};
+let sqlite;
+beforeEach(t => {
+  const fixture = checkoutDb(t);
+  bindings.PROMO_DB = fixture.db;
+  sqlite = fixture.sqlite;
+});
 
 const line = (quantity = 2, productId = 'orange-spritz') => ({ productId, quantity });
 const submit = (payload, options = {}, env = bindings) => onRequest({ env, request: new Request('https://naisdrinks.com/api/checkout', {
@@ -23,7 +29,7 @@ const submit = (payload, options = {}, env = bindings) => onRequest({ env, reque
 
 test('validates every allowed product without Stripe secret or network access', async t => {
   t.mock.method(globalThis, 'fetch', () => { throw new Error('Network forbidden'); });
-  const response = await submit({ items: Object.keys(CHECKOUT_CATALOGUE).map(id => line(1, id)) });
+  const response = await submit({ items: Object.keys(priceIds).map(id => line(1, id)) });
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { status: 'validated_only', totalBoxes: 5 });
   assert.equal(response.headers.get('Cache-Control'), 'no-store');
@@ -83,7 +89,7 @@ test('duplicate quantities are combined before enforcing the maximum', async () 
   assert.equal((await submit({ items: [line(1), line(MAX_CART_QUANTITY)] })).status, 400);
 });
 test('rejects untrusted extra fields at both levels', async () => {
-  for (const field of ['price', 'subtotal', 'total', 'shipping', 'shipping_options', 'shipping_rate', 'shippingPrice', 'totalBoxes', 'currency', 'priceId', 'stripePriceId', 'discount', 'couponId', 'successUrl', 'cancelUrl', 'success_url', 'cancel_url', 'anything']) {
+  for (const field of ['price', 'subtotal', 'total', 'shipping', 'shipping_options', 'shipping_rate', 'shippingPrice', 'totalBoxes', 'currency', 'priceId', 'stripePriceId', 'stripe_price_id', 'price_cents', 'metadata', 'discount', 'couponId', 'successUrl', 'cancelUrl', 'success_url', 'cancel_url', 'anything']) {
     assert.equal((await submit({ items: [line()], [field]: 'untrusted' })).status, 400);
     assert.equal((await submit({ items: [{ ...line(), [field]: 'untrusted' }] })).status, 400);
   }
@@ -112,21 +118,26 @@ for (const [name, items, totalBoxes] of [
     assert.deepEqual(await response.json(), { status: 'validated_only', totalBoxes });
   });
 }
-test('missing or invalid required bindings fail safely without disclosing configuration', async () => {
-  for (const env of [{}, { ...bindings, STRIPE_PRICE_GINGER_CRUSH: undefined }, { ...bindings, STRIPE_PRICE_GINGER_CRUSH: 'private-invalid-value' }]) {
-    const response = await submit({ items: [line(1), line(1, 'ginger-crush')] }, {}, env);
-    assert.equal(response.status, 503);
+test('missing binding and missing required D1 prices fail safely', async () => {
+  assert.equal((await submit({ items: [line()] }, {}, {})).status, 503);
+  for (const price of [null, 'invalid']) {
+    sqlite.prepare('UPDATE products SET stripe_price_id=? WHERE id=?').run(price,'ginger-crush');
+    const response = await submit({ items: [line(1), line(1,'ginger-crush')] });
+    assert.equal(response.status,503);
     assert.deepEqual(await response.json(), { status: 'unavailable' });
   }
 });
-test('only bindings for products in this cart are required', async () => {
-  assert.equal((await submit({ items: [line(1)] }, {}, { STRIPE_PRICE_ORANGE_SPRITZ: 'price_fixture' })).status, 200);
+
+test('only D1 prices for products in this cart are required', async () => {
+  sqlite.exec("UPDATE products SET stripe_price_id=NULL WHERE id!='orange-spritz'");
+  assert.equal((await submit({ items: [line(1)] }, {}, { PROMO_DB: bindings.PROMO_DB })).status,200);
 });
+
 test('server resolution retains corresponding prices and quantities internally', async () => {
   const { resolveCheckoutItems } = await import('./checkout/checkout-resolution.ts');
-  const { items, totalBoxes } = resolveCheckoutItems(new Map([['orange-spritz', 2], ['ginger-crush', 1]]), bindings);
+  const { items, totalBoxes } = await resolveCheckoutItems(new Map([['orange-spritz', 2], ['ginger-crush', 1]]), bindings);
   assert.deepEqual({ items, totalBoxes }, {
-    items: [{ price: bindings.STRIPE_PRICE_ORANGE_SPRITZ, quantity: 2 }, { price: bindings.STRIPE_PRICE_GINGER_CRUSH, quantity: 1 }],
+    items: [{ price: priceIds['orange-spritz'], quantity: 2 }, { price: priceIds['ginger-crush'], quantity: 1 }],
     totalBoxes: 3,
   });
 });
@@ -141,7 +152,7 @@ for (const [name, quantities, expectedBoxes, expectedAmount] of [
   test(`server selects exactly one native shipping rate for ${name}`, async t => {
     t.mock.method(globalThis, 'fetch', () => { throw new Error('No Stripe request expected'); });
     const { resolveCheckoutItems } = await import('./checkout/checkout-resolution.ts');
-    const resolved = resolveCheckoutItems(new Map(quantities), bindings);
+    const resolved = await resolveCheckoutItems(new Map(quantities), bindings);
     assert.equal(resolved.totalBoxes, expectedBoxes);
     assert.equal(resolved.shippingOptions.length, 1);
     assert.deepEqual(resolved.shippingOptions[0], {

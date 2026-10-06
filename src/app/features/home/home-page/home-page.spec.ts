@@ -1,8 +1,11 @@
+import { MockProductService } from '../../../testing/product-fixture';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ProductService } from '../../../services/product.service';
 import { Product } from '../../../models/product.interface';
 import { HomePage } from './home-page';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('HomePage product placement', () => {
   it('shows the four active regular products without the coming-soon Harvest', async () => {
@@ -28,7 +31,7 @@ describe('HomePage product placement', () => {
       { ...base, id: 'both', slug: 'both', isFeatured: true, isSeasonal: true },
     ];
     await TestBed.configureTestingModule({
-      imports: [HomePage], providers: [provideRouter([]), { provide: ProductService, useValue: { activeProducts: products } }],
+      imports: [HomePage], providers: [provideRouter([]), { provide: ProductService, useValue: { ...new MockProductService(), activeProducts: products } }],
     }).compileComponents();
     const fixture = TestBed.createComponent(HomePage);
     await fixture.whenStable();

@@ -1,3 +1,4 @@
+import { MockProductService } from '../../../testing/product-fixture';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -9,6 +10,8 @@ import { ProductService } from '../../../services/product.service';
 import { Cart, CHECKOUT_REDIRECT } from './cart';
 import { CheckoutService, type CheckoutResponse } from '../../../services/checkout.service';
 import { Subject } from 'rxjs';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('Cart page', () => {
   let response: Subject<CheckoutResponse>;
@@ -76,8 +79,8 @@ describe('Cart page', () => {
   });
 
   it('disables drawer checkout when catalogue pricing is unavailable', () => {
-    const product = { ...new ProductService().products[0], price: undefined };
-    TestBed.overrideProvider(ProductService, { useValue: { activeProducts: [product] } });
+    const product = { ...new MockProductService().products[0], price: undefined };
+    TestBed.overrideProvider(ProductService, { useValue: { ...new MockProductService(), activeProducts: [product] } });
     TestBed.inject(CartService).addItem(product.id);
     const fixture = TestBed.createComponent(Cart);
     fixture.componentRef.setInput('presentation', 'drawer');
@@ -164,8 +167,8 @@ describe('Cart page', () => {
   );
 
   it('handles a product with no image or price without displaying it as free', () => {
-    const product = { ...new ProductService().products[0], price: undefined, imageUrl: undefined, cardImageUrl: undefined };
-    TestBed.overrideProvider(ProductService, { useValue: { activeProducts: [product] } });
+    const product = { ...new MockProductService().products[0], price: undefined, imageUrl: undefined, cardImageUrl: undefined };
+    TestBed.overrideProvider(ProductService, { useValue: { ...new MockProductService(), activeProducts: [product] } });
     TestBed.inject(CartService).addItem(product.id);
     const fixture = TestBed.createComponent(Cart);
     fixture.detectChanges();

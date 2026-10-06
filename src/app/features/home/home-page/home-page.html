@@ -13,10 +13,18 @@
   </section>
   <app-brand-message-card/>
   <app-animated-banner/>
-  @for (product of featuredProducts; track product.id) {
+  @if (catalogue.loading()) {
+    <p role="status">Estem carregant els productes.</p>
+  } @else if (catalogue.error()) {
+    <p role="alert">{{ catalogue.error() }}</p>
+    <button type="button" class="button--buy" (click)="catalogue.load()">Tornar-ho a provar</button>
+  } @else if (!catalogue.activeProducts.length) {
+    <p role="status">No hi ha productes disponibles ara mateix.</p>
+  }
+  @for (product of featuredProducts(); track product.id) {
     <app-product-feature-card [product]="product" />
   }
-  @for (product of products; track product.id; let index = $index; let first = $first; let last = $last) {
+  @for (product of products(); track product.id; let index = $index; let first = $first; let last = $last) {
     <app-product-card
       class="product-card--joined"
       [class.product-card--first]="first"

@@ -1,8 +1,11 @@
+import { MockProductService } from '../testing/product-fixture';
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MAX_CART_QUANTITY } from '../models/cart.interface';
 import { ProductService } from './product.service';
 import { CART_STORAGE_KEY, CartService } from './cart.service';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('CartService', () => {
   const first = 'orange-spritz';
@@ -226,16 +229,16 @@ describe('CartService', () => {
   });
 
   it.each([undefined, NaN, Infinity, -1])('does not present invalid catalogue prices as free: %s', price => {
-    const product = { ...new ProductService().products[0], price };
-    TestBed.overrideProvider(ProductService, { useValue: { activeProducts: [product] } });
+    const product = { ...new MockProductService().products[0], price };
+    TestBed.overrideProvider(ProductService, { useValue: { ...new MockProductService(), activeProducts: [product] } });
     const cart = TestBed.inject(CartService);
     cart.addItem(product.id);
     expect(cart.subtotalCents()).toBeNull();
   });
 
   it('calculates decimal display prices in cents', () => {
-    const products = new ProductService().products.slice(0, 2).map((product, index) => ({ ...product, price: index ? 0.2 : 0.1 }));
-    TestBed.overrideProvider(ProductService, { useValue: { activeProducts: products } });
+    const products = new MockProductService().products.slice(0, 2).map((product, index) => ({ ...product, price: index ? 0.2 : 0.1 }));
+    TestBed.overrideProvider(ProductService, { useValue: { ...new MockProductService(), activeProducts: products } });
     const cart = TestBed.inject(CartService);
     cart.addItem(first);
     cart.addItem(second);

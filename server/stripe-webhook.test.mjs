@@ -301,3 +301,41 @@ test('session uniqueness is independent of event ID; updated indexes require no 
     }
   }
 });
+
+test('server Session mapping preserves D1 product identity without current catalogue or legacy bindings', async t => {
+  const { session, line, env, send, db } = setup(t);
+  delete env.STRIPE_PRICE_ORANGE_SPRITZ;
+  session.metadata = { nais_catalogue: 'd1-v1', nais_product_0: 'new-product', nais_price_0: 'price_fixture' };
+  line.price.product.metadata = { nais_product_id: 'changed-later' };
+  assert.equal((await send()).status, 200);
+  const item = db.prepare('SELECT * FROM order_items').get();
+  assert.equal(item.product_id, 'new-product');
+  assert.equal(item.product_name, 'Purchased name snapshot');
+  assert.equal(item.unit_amount, 3600);
+  assert.equal(item.line_total_amount, 6480);
+});
+
+test('incomplete server Session product mapping fails safely without using legacy fallback', async t => {
+  const { session, send, db } = setup(t);
+  session.metadata = { nais_catalogue: 'd1-v1', nais_price_0: 'price_fixture' };
+  assert.equal((await send()).status, 503);
+  assert.equal(db.prepare('SELECT count(*) n FROM orders').get().n, 0);
+});
+
+for (const [id, binding] of Object.entries({
+  'orange-spritz': 'STRIPE_PRICE_ORANGE_SPRITZ', 'passion-hugo': 'STRIPE_PRICE_PASSION_HUGO',
+  'ginger-crush': 'STRIPE_PRICE_GINGER_CRUSH', 'tropical-hops': 'STRIPE_PRICE_TROPICAL_HOPS',
+  'pack-variat': 'STRIPE_PRICE_PACK_VARIAT',
+})) {
+  test(`legacy Session without metadata retains ${id} identity`, async t => {
+    const { line, env, send, db } = setup(t);
+    delete env.STRIPE_PRICE_ORANGE_SPRITZ;
+    env[binding] = 'price_fixture';
+    line.price.product.metadata = {};
+    assert.equal((await send()).status, 200);
+    const item = db.prepare('SELECT * FROM order_items').get();
+    assert.equal(item.product_id, id);
+    assert.equal(item.product_name, 'Purchased name snapshot');
+    assert.equal(item.unit_amount, 3600);
+  });
+}

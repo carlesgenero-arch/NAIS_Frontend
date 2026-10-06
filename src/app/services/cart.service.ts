@@ -1,4 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { take } from 'rxjs';
 import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { CartEntry, MAX_CART_QUANTITY } from '../models/cart.interface';
 import { CartItem } from '../models/product.interface';
@@ -11,7 +13,8 @@ const MAX_STORED_CART_LENGTH = 64 * 1024;
   providedIn: 'root',
 })
 export class CartService {
-  private readonly catalogue = inject(ProductService).activeProducts;
+  private readonly products = inject(ProductService);
+  private get catalogue() { return this.products.activeProducts; }
   private readonly storage = this.getStorage(inject(PLATFORM_ID));
   private readonly state = signal<readonly CartEntry[]>(Object.freeze([]));
 
@@ -37,7 +40,8 @@ export class CartService {
   });
 
   constructor() {
-    this.restore();
+    if (this.products.loaded()) this.restore();
+    else this.products.ready$.pipe(take(1), takeUntilDestroyed()).subscribe(() => this.restore());
   }
 
   /** False means validation failed; state is unchanged. */

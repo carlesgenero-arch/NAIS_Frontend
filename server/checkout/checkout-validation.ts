@@ -1,11 +1,11 @@
 import { MAX_CART_QUANTITY } from '../../src/shared/cart-limits.ts';
-import { CHECKOUT_CATALOGUE, isCheckoutProductId, type CheckoutProductId } from './checkout-catalogue.ts';
+import { isProductSlug, UnavailableCheckoutProductError } from '../catalogue/product.service.ts';
 
-import type { CheckoutPriceBindings } from './checkout-env.ts';
+import type { CheckoutEnvironment } from './checkout-env.ts';
 import { resolveCheckoutItems, type ResolvedCheckout } from './checkout-resolution.ts';
 
-// A normal cart has at most one line per allowed product.
-export const MAX_CHECKOUT_LINES = Object.keys(CHECKOUT_CATALOGUE).length;
+// Preserve the existing request-size limit independently of catalogue contents.
+export const MAX_CHECKOUT_LINES = 5;
 const MAX_BODY_BYTES = 4096;
 
 function response(status: number, result: string): Response {
@@ -46,7 +46,7 @@ async function readPayload(request: Request): Promise<unknown> {
   }
 }
 
-export async function validateCheckout(request: Request, env: Partial<CheckoutPriceBindings> = {}): Promise<Response | ResolvedCheckout> {
+export async function validateCheckout(request: Request, env: Partial<CheckoutEnvironment> = {}): Promise<Response | ResolvedCheckout> {
   if (request.method !== 'POST') return response(405, 'method_not_allowed');
   if (request.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() !== 'application/json') {
     return response(415, 'invalid_payload');
@@ -61,7 +61,7 @@ export async function validateCheckout(request: Request, env: Partial<CheckoutPr
   if (!Array.isArray(items) || items.length === 0 || items.length > MAX_CHECKOUT_LINES) {
     return response(400, 'invalid_items');
   }
-  const quantities = new Map<CheckoutProductId, number>();
+  const quantities = new Map<string, number>();
   for (const item of items) {
     if (!isRecord(item) || Object.keys(item).length !== 2
       || !Object.hasOwn(item, 'productId') || !Object.hasOwn(item, 'quantity')) {
@@ -69,7 +69,7 @@ export async function validateCheckout(request: Request, env: Partial<CheckoutPr
     }
     const productId = item['productId'];
     const quantity = item['quantity'];
-    if (!isCheckoutProductId(productId)) return response(400, 'invalid_product');
+    if (!isProductSlug(productId)) return response(400, 'invalid_product');
     if (typeof quantity !== 'number' || !Number.isFinite(quantity) || !Number.isInteger(quantity)
       || quantity < 1 || quantity > MAX_CART_QUANTITY) {
       return response(400, 'invalid_quantity');
@@ -80,8 +80,9 @@ export async function validateCheckout(request: Request, env: Partial<CheckoutPr
     quantities.set(productId, combined);
   }
   try {
-    return resolveCheckoutItems(quantities, env);
-  } catch {
+    return await resolveCheckoutItems(quantities, env);
+  } catch (error) {
+    if (error instanceof UnavailableCheckoutProductError) return response(400, 'invalid_product');
     return response(503, 'unavailable');
   }
 }

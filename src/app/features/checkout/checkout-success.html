@@ -3,7 +3,7 @@
   @let result = state();
   <div aria-live="polite" aria-atomic="true" [attr.aria-busy]="result.status === 'loading'">
     @switch (result.status) {
-      @case ('loading') { <p>Estem consultant la teva comanda…</p> }
+      @case ('loading') { <p>Estem confirmant la teva comanda.</p> }
       @case ('pending') {
         <p>Estem confirmant la teva comanda.</p>
         <p>Encara no podem confirmar el pagament. Torna a carregar aquesta pàgina d’aquí a uns instants.</p>

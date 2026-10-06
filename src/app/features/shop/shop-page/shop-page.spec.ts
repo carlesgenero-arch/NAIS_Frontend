@@ -1,3 +1,4 @@
+import { MockProductService } from '../../../testing/product-fixture';
 import { Location } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -7,6 +8,8 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../../app.routes';
 import { ProductGrid } from '../product-grid/product-grid';
 import { ProductService } from '../../../services/product.service';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('Product routes', () => {
   beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter(routes)] }));

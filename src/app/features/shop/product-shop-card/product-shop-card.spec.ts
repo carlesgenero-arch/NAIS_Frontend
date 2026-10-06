@@ -1,8 +1,11 @@
+import { MockProductService } from '../../../testing/product-fixture';
 import { provideRouter, Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { ProductShopCard } from './product-shop-card';
 import { ProductService } from '../../../services/product.service';
 import { AddProductRequest } from '../../../models/product.interface';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('ProductShopCard', () => {
   it('keeps quantity at least one, emits the chosen quantity, and never selects through its controls', async () => {

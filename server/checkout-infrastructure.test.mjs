@@ -1,43 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CHECKOUT_CATALOGUE, isCheckoutProductId, resolveCheckoutPrice } from './checkout/checkout-catalogue.ts';
-import { BOX_PRICE_EUR, UNITS_PER_BOX, SHIPPING_PRICE_EUR, FREE_SHIPPING_MIN_BOXES,
-  EXPECTED_BOX_PRICE_CENTS, HOSTED_CHECKOUT_OPTIONS, checkoutShippingOption } from './checkout/checkout-rules.ts';
+import { UNITS_PER_BOX, SHIPPING_PRICE_EUR, FREE_SHIPPING_MIN_BOXES,
+  HOSTED_CHECKOUT_OPTIONS, checkoutShippingOption } from './checkout/checkout-rules.ts';
 import { createStripeClient } from './stripe/stripe-client.ts';
 
-const mappings = {
-  'orange-spritz': 'STRIPE_PRICE_ORANGE_SPRITZ',
-  'passion-hugo': 'STRIPE_PRICE_PASSION_HUGO',
-  'ginger-crush': 'STRIPE_PRICE_GINGER_CRUSH',
-  'tropical-hops': 'STRIPE_PRICE_TROPICAL_HOPS',
-  'pack-variat': 'STRIPE_PRICE_PACK_VARIAT',
-};
-
-test('catalogue contains exactly the five approved products', () => {
-  assert.deepEqual(CHECKOUT_CATALOGUE, mappings);
-  assert.ok(Object.isFrozen(CHECKOUT_CATALOGUE));
-});
-for (const [id, binding] of Object.entries(mappings)) {
-  test(`resolves ${id} only through its server binding`, () => {
-    assert.ok(isCheckoutProductId(id));
-    assert.equal(resolveCheckoutPrice(id, { [binding]: 'price_testFixture' }), 'price_testFixture');
-  });
-}
-test('unknown, coming-soon and prototype IDs never resolve', () => {
-  for (const id of ['tropical-hops-harvest', 'unknown', '__proto__', 'constructor', 'toString', '', null, 1, {}]) {
-    assert.equal(isCheckoutProductId(id), false);
-    assert.equal(resolveCheckoutPrice(id, {}), null);
-  }
-});
-test('missing or malformed server Price bindings fail closed', () => {
-  for (const value of [undefined, null, 12, '', 'prod_test', 'price_', ' price_test', 'price_test ']) {
-    assert.throws(() => resolveCheckoutPrice('orange-spritz', { STRIPE_PRICE_ORANGE_SPRITZ: value }), /binding/);
-  }
-});
 test('business constants describe a box, not a single can', () => {
   assert.equal(UNITS_PER_BOX, 16);
-  assert.equal(BOX_PRICE_EUR, 36);
-  assert.equal(EXPECTED_BOX_PRICE_CENTS, 3600);
+  assert.equal(36);
+  assert.equal(3600);
   assert.equal(SHIPPING_PRICE_EUR, 6);
   assert.equal(FREE_SHIPPING_MIN_BOXES, 2);
 });

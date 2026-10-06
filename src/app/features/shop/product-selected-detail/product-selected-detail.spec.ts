@@ -1,7 +1,10 @@
+import { MockProductService } from '../../../testing/product-fixture';
 import { TestBed } from '@angular/core/testing';
 import { ProductSelectedDetail } from './product-selected-detail';
 import { ProductService } from '../../../services/product.service';
 import { Product } from '../../../models/product.interface';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('ProductSelectedDetail', () => {
   it('provides the exact ordered nutrition data for each product and opens its named dialog', async () => {
