@@ -2,14 +2,10 @@ import type Stripe from 'stripe';
 
 /** Quantities represent boxes, never individual cans. */
 export const UNITS_PER_BOX = 16;
-export const BOX_PRICE_EUR = 36;
 export const SHIPPING_PRICE_EUR = 6;
 export const FREE_SHIPPING_MIN_BOXES = 2;
 export const CHECKOUT_CURRENCY = 'eur';
 const EUR_MINOR_UNITS = 100;
-
-/** Product prices are charged via Stripe Price IDs, never these numeric constants. */
-export const EXPECTED_BOX_PRICE_CENTS = BOX_PRICE_EUR * EUR_MINOR_UNITS;
 
 /** For the future hosted Session: let Stripe validate codes; no client coupon config. */
 export const HOSTED_CHECKOUT_OPTIONS = Object.freeze({

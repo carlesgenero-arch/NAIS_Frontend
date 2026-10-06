@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { catchError, distinctUntilChanged, map, of, startWith, switchMap, tap } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProductGrid } from '../product-grid/product-grid';
 import { AddProductRequest, Product } from '../../../models/product.interface';
 import { ProductService } from '../../../services/product.service';
@@ -19,14 +20,22 @@ import { ProductSelectedDetail } from '../product-selected-detail/product-select
 export class ShopPage {
   private readonly cart = inject(CartService);
   private readonly cartDrawer = inject(CartDrawerService);
-  private readonly products = inject(ProductService).activeProducts;
-  private readonly routeParams = toSignal(inject(ActivatedRoute).paramMap);
-  protected readonly selectedProduct = computed(() => {
-    const slug = this.routeParams()?.get('slug');
-    return slug === null || slug === undefined
-      ? this.products[0]
-      : this.products.find(product => product.slug === slug);
-  });
+  protected readonly catalogue = inject(ProductService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  protected readonly detail = toSignal(this.route.paramMap.pipe(
+    map(params => params.get('slug')),
+    distinctUntilChanged(),
+    switchMap(slug => !slug ? of({ status: 'catalogue' as const, product: null })
+      : this.catalogue.findBySlug(slug).pipe(
+        tap(product => { if (!product) void this.router.navigateByUrl('/products', { replaceUrl: true }); }),
+        map(product => ({ status: 'ready' as const, product })),
+        catchError(() => of({ status: 'error' as const, product: null })),
+        startWith({ status: 'loading' as const, product: null }),
+      )),
+  ), { initialValue: { status: 'loading' as const, product: null } });
+  protected readonly selectedProduct = computed(() => this.detail().status === 'catalogue'
+    ? this.catalogue.activeProducts[0] : this.detail().product);
   protected readonly cartMessage = signal('');
 
   protected requestAdd({ product, quantity }: AddProductRequest): void {

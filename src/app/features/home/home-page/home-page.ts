@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { BrandMessageCard } from '../../../core/shared/page/brand-message-card/brand-message-card';
 import { Hero } from '../../../core/shared/page/hero/hero';
 import { InfoCard, type InfoCardContent } from '../../../core/shared/page/info-card/info-card';
@@ -17,11 +17,11 @@ import { AnimatedBanner } from '../../../core/shared/page/animated-banner/animat
 })
 export class HomePage {
   protected readonly carouselImages = homeCarouselImages;
-  private readonly catalogue = inject(ProductService).activeProducts;
-  protected readonly featuredProducts = this.catalogue.filter(
-    product => product.isFeatured || product.isSeasonal);
-  protected readonly products = this.catalogue.filter(
-    product => product.variant !== 'assorted' && !product.isFeatured && !product.isSeasonal);
+  protected readonly catalogue = inject(ProductService);
+  protected readonly featuredProducts = computed(() => this.catalogue.activeProducts.filter(
+    product => product.isFeatured || product.isSeasonal));
+  protected readonly products = computed(() => this.catalogue.activeProducts.filter(
+    product => product.variant !== 'assorted' && !product.isFeatured && !product.isSeasonal));
   protected readonly infoCards: readonly InfoCardContent[] = [
     {
       text: 'Sense sucres afegits ni edulcorants',

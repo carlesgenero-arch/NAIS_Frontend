@@ -1,3 +1,5 @@
+import { MockProductService } from '../../testing/product-fixture';
+import { ProductService } from '../../services/product.service';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -16,6 +18,8 @@ const summary = {
   items: [{ productName: 'Orange Spritz', quantity: 1, unitAmount: 3600, lineTotalAmount: 3600 }],
 };
 
+beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
+
 describe('Checkout return pages', () => {
   beforeEach(() => {
     const stored = new Map<string, string>();
@@ -29,7 +33,7 @@ describe('Checkout return pages', () => {
     });
     TestBed.configureTestingModule({ providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()] });
   });
-  afterEach(() => { TestBed.inject(HttpTestingController).verify(); vi.restoreAllMocks(); });
+  afterEach(() => { TestBed.inject(HttpTestingController).verify(); TestBed.resetTestingModule(); vi.useRealTimers(); vi.restoreAllMocks(); });
 
   it.each(['/checkout/success', '/checkout/success?session_id=untrusted_reference'])(
     'reads an optional reference without claiming verified payment: %s', async path => {
@@ -109,7 +113,7 @@ describe('Checkout return pages', () => {
     const page = await harness.navigateByUrl(`/checkout/success?session_id=${sessionId}`, CheckoutSuccess);
     TestBed.inject(HttpTestingController).expectOne(endpoint).flush({ status: 'pending' }, { status, statusText: 'Unavailable' });
     harness.detectChanges();
-    expect(page.state().status).toBe(status === 404 ? 'pending' : 'error');
+    expect(page.state().status).toBe(status === 404 ? 'loading' : 'error');
     expect(harness.routeNativeElement?.textContent).not.toContain('Pagament confirmat');
     expect(localStorage.getItem(CART_STORAGE_KEY)).toBe(saved);
   });
@@ -145,6 +149,76 @@ describe('Checkout return pages', () => {
     TestBed.inject(HttpTestingController).expectOne(endpoint).flush(summary);
     expect(page.state().status).toBe('verified');
     expect(cart.totalQuantity()).toBe(1);
+  });
+
+  it('retries pending then stops when paid and only then clears the cart', async () => {
+    const cart = TestBed.inject(CartService);
+    cart.addItem('orange-spritz');
+    const clear = vi.spyOn(cart, 'clearCart');
+    const harness = await RouterTestingHarness.create();
+    const page = await harness.navigateByUrl(`/checkout/success?session_id=${sessionId}`, CheckoutSuccess);
+    vi.useFakeTimers();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne(endpoint).flush({ status: 'pending' }, { status: 404, statusText: 'Not Found' });
+    harness.detectChanges();
+    expect(page.state().status).toBe('loading');
+    expect(harness.routeNativeElement?.textContent).toContain('Estem confirmant la teva comanda.');
+    expect(harness.routeNativeElement?.textContent).not.toContain('Torna a carregar');
+    expect(clear).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(999);
+    http.expectNone(endpoint);
+    vi.advanceTimersByTime(1);
+    http.expectOne(endpoint).flush(summary);
+    expect(page.state().status).toBe('verified');
+    expect(clear).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(20000);
+    http.expectNone(endpoint);
+  });
+
+  it('shows manual reload only after all five pending attempts', async () => {
+    const cart = TestBed.inject(CartService);
+    cart.addItem('orange-spritz');
+    const saved = localStorage.getItem(CART_STORAGE_KEY);
+    const harness = await RouterTestingHarness.create();
+    const page = await harness.navigateByUrl(`/checkout/success?session_id=${sessionId}`, CheckoutSuccess);
+    vi.useFakeTimers();
+    const http = TestBed.inject(HttpTestingController);
+    for (const delay of [1000, 2000, 4000, 6000]) {
+      http.expectOne(endpoint).flush({ status: 'pending' }, { status: 404, statusText: 'Not Found' });
+      expect(page.state().status).toBe('loading');
+      vi.advanceTimersByTime(delay - 1);
+      http.expectNone(endpoint);
+      vi.advanceTimersByTime(1);
+    }
+    http.expectOne(endpoint).flush({ status: 'pending' }, { status: 404, statusText: 'Not Found' });
+    harness.detectChanges();
+    expect(page.state().status).toBe('pending');
+    expect(harness.routeNativeElement?.textContent).toContain('Torna a carregar');
+    expect(localStorage.getItem(CART_STORAGE_KEY)).toBe(saved);
+    vi.advanceTimersByTime(20000);
+    http.expectNone(endpoint);
+  });
+
+  it.each([200, 503])('does not retry immediate paid or hard error response %s', async status => {
+    const harness = await RouterTestingHarness.create();
+    const page = await harness.navigateByUrl(`/checkout/success?session_id=${sessionId}`, CheckoutSuccess);
+    vi.useFakeTimers();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne(endpoint).flush(status === 200 ? summary : {}, { status, statusText: 'Response' });
+    expect(page.state().status).toBe(status === 200 ? 'verified' : 'error');
+    vi.advanceTimersByTime(20000);
+    http.expectNone(endpoint);
+  });
+
+  it('cancels pending retries when the component is destroyed', async () => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(`/checkout/success?session_id=${sessionId}`, CheckoutSuccess);
+    vi.useFakeTimers();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne(endpoint).flush({ status: 'pending' }, { status: 404, statusText: 'Not Found' });
+    harness.fixture.destroy();
+    vi.advanceTimersByTime(20000);
+    http.expectNone(endpoint);
   });
 
 });

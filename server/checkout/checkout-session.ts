@@ -6,6 +6,7 @@ import { createStripeClient } from '../stripe/stripe-client.ts';
 
 // Narrow SDK boundary permits tests without real API calls.
 export interface CheckoutClient {
+  prices: { retrieve(id: string): Promise<Pick<Stripe.Price, 'id' | 'active' | 'type' | 'billing_scheme' | 'unit_amount' | 'currency'>> };
   checkout: { sessions: {
     create(params: Stripe.Checkout.SessionCreateParams): Promise<{ url: string | null }>;
   } };
@@ -49,7 +50,18 @@ export async function checkout(
       return json(503, { status: 'unavailable' });
     }
     try {
+      // Stripe remains authoritative for charging; reject D1/Stripe price mismatches.
+      const metadata: Record<string, string> = { nais_catalogue: 'd1-v1' };
+      for (const [index, product] of resolved.products.entries()) {
+        const price = await client.prices.retrieve(product.stripePriceId);
+        if (price.id !== product.stripePriceId || !price.active || price.type !== 'one_time'
+          || price.billing_scheme !== 'per_unit' || price.unit_amount !== product.priceCents
+          || price.currency !== product.currency) return json(503, { status: 'unavailable' });
+        metadata[`nais_product_${index}`] = product.id;
+        metadata[`nais_price_${index}`] = product.stripePriceId;
+      }
       const session = await client.checkout.sessions.create({
+        metadata,
         ...HOSTED_CHECKOUT_OPTIONS,
         // Stripe collects email directly; no customer data is accepted from Angular.
         customer_creation: 'always',

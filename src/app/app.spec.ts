@@ -1,7 +1,11 @@
+import { MockProductService } from './testing/product-fixture';
+import { ProductService } from './services/product.service';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { App } from './app';
 import { routes } from './app.routes';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('App routes', () => {
   beforeEach(async () => {

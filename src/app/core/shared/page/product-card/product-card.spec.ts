@@ -1,8 +1,11 @@
+import { MockProductService } from '../../../../testing/product-fixture';
 import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { Product } from '../../../../models/product.interface';
 import { ProductService } from '../../../../services/product.service';
 import { ProductCard } from './product-card';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('ProductCard', () => {
   it('emits the current product from its optional catalogue action', async () => {
@@ -115,7 +118,7 @@ describe('ProductCard scroll reveal', () => {
 
   async function setup(enabled = true, presentation: 'editorial' | 'catalogue' = 'editorial') {
     const fixture = TestBed.createComponent(ProductCard);
-    fixture.componentRef.setInput('product', new ProductService().products[0]);
+    fixture.componentRef.setInput('product', new MockProductService().products[0]);
     fixture.componentRef.setInput('scrollReveal', enabled);
     fixture.componentRef.setInput('presentation', presentation);
     await fixture.whenStable();

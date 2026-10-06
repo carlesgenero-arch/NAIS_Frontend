@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, output } from '@angular/core';
 import { ProductShopCard } from '../product-shop-card/product-shop-card';
 import { AddProductRequest } from '../../../models/product.interface';
 import { ProductService } from '../../../services/product.service';
@@ -11,6 +11,7 @@ import { ProductService } from '../../../services/product.service';
   styleUrl: './product-grid.css',
 })
 export class ProductGrid {
-  protected readonly products = inject(ProductService).activeProducts;
+  private readonly catalogue = inject(ProductService);
+  protected readonly products = computed(() => this.catalogue.activeProducts);
   readonly addRequested = output<AddProductRequest>();
 }

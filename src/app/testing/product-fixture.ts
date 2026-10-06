@@ -1,0 +1,268 @@
+import { signal } from '@angular/core';
+import { of } from 'rxjs';
+import type { Product } from '../models/product.interface';
+
+/** Test-only snapshots for presentational and cart unit tests. */
+export class MockProductService {
+ readonly products: readonly Product[] = [
+  {
+    "id": "orange-spritz",
+    "status": "active",
+    "slug": "orange-spritz",
+    "name": "ORANGE SPRITZ",
+    "nutrition": [
+      {
+        "label": "Valor energètic",
+        "value": "98 kJ / 23 kcal"
+      },
+      {
+        "label": "Greixos",
+        "value": "0,0 g"
+      },
+      {
+        "label": "dels quals saturats",
+        "value": "0,0 g"
+      },
+      {
+        "label": "Hidrats de carboni",
+        "value": "5,2 g"
+      },
+      {
+        "label": "dels quals sucres",
+        "value": "4,8 g"
+      },
+      {
+        "label": "Proteïnes",
+        "value": "0,1 g"
+      },
+      {
+        "label": "Sal",
+        "value": "<0,01 g"
+      }
+    ],
+    "format": "pack 16 llaunes x 250ml",
+    "price": 36,
+    "description": "Cítrica amb un toc amarg i àcid. Caràcter i puresa a cada glop",
+    "ingredients": "TARONJA, LLIMONA, GERDS, GENCIANA",
+    "imageUrl": "images/products/mocktails_3.png",
+    "imageAlt": "NAIS Orange Spritz can with blue fruit artwork",
+    "fruitImage": {
+      "url": "images/info-card/orange.png",
+      "alt": "Orange fruit on a blue background"
+    },
+    "variant": "citrus"
+  },
+  {
+    "id": "passion-hugo",
+    "status": "active",
+    "slug": "passion-hugo",
+    "name": "PASSION HUGO",
+    "nutrition": [
+      {
+        "label": "Valor energètic",
+        "value": "99 kJ / 23 kcal"
+      },
+      {
+        "label": "Greixos",
+        "value": "0,0 g"
+      },
+      {
+        "label": "dels quals saturats",
+        "value": "0,0 g"
+      },
+      {
+        "label": "Hidrats de carboni",
+        "value": "5,1 g"
+      },
+      {
+        "label": "dels quals sucres",
+        "value": "4,9 g"
+      },
+      {
+        "label": "Proteïnes",
+        "value": "0,1 g"
+      },
+      {
+        "label": "Sal",
+        "value": "<0,01 g"
+      }
+    ],
+    "format": "pack 16 llaunes x 250ml",
+    "price": 36,
+    "description": "Àcida, silvestre i apassionada. Explosió floral",
+    "ingredients": "LLIMONA, MENTA, FLOR DE SAÜC, POMA, FRUITA DE LA PASSIÓ",
+    "imageUrl": "images/products/mocktails_1.png",
+    "imageAlt": "NAIS Passion Hugo can with green fruit artwork",
+    "fruitImage": {
+      "url": "images/info-card/lemon.jpg",
+      "alt": "Lemon fruit on a green background"
+    },
+    "variant": "botanical"
+  },
+  {
+    "id": "ginger-crush",
+    "status": "active",
+    "slug": "ginger-crush",
+    "name": "GINGER CRUSH",
+    "nutrition": [
+      {
+        "label": "Valor energètic",
+        "value": "102 kJ / 24 kcal"
+      },
+      {
+        "label": "Greixos",
+        "value": "0,0 g"
+      },
+      {
+        "label": "dels quals saturats",
+        "value": "0,0 g"
+      },
+      {
+        "label": "Hidrats de carboni",
+        "value": "5,3 g"
+      },
+      {
+        "label": "dels quals sucres",
+        "value": "5,1 g"
+      },
+      {
+        "label": "Proteïnes",
+        "value": "0,1 g"
+      },
+      {
+        "label": "Sal",
+        "value": "<0,01 g"
+      }
+    ],
+    "format": "pack 16 llaunes x 250ml",
+    "price": 36,
+    "description": "Afruitada, tropical i lleugerament especiada. Vibrant i recomfortant",
+    "ingredients": "LLIMONA, POMA, GINGEBRE, MANGO",
+    "imageUrl": "images/products/mocktails_2.png",
+    "imageAlt": "NAIS can with pink fruit artwork and a Ginger Crush label",
+    "fruitImage": {
+      "url": "images/info-card/mango.png",
+      "alt": "Mango fruit on a pink background"
+    },
+    "variant": "ginger"
+  },
+  {
+    "id": "tropical-hops",
+    "status": "active",
+    "slug": "tropical-hops",
+    "name": "TROPICAL HOPS",
+    "nutrition": [
+      {
+        "label": "Valor energètic",
+        "value": "103 kJ / 24 kcal"
+      },
+      {
+        "label": "Greixos",
+        "value": "0,2 g"
+      },
+      {
+        "label": "dels quals saturats",
+        "value": "0,0 g"
+      },
+      {
+        "label": "Hidrats de carboni",
+        "value": "5,3 g"
+      },
+      {
+        "label": "dels quals sucres",
+        "value": "4,9 g"
+      },
+      {
+        "label": "Proteïnes",
+        "value": "0,2 g"
+      },
+      {
+        "label": "Sal",
+        "value": "<0,01 g"
+      }
+    ],
+    "format": "pack 16 llaunes x 250 ml",
+    "price": 36,
+    "description": "Tot el caràcter de la fruita i la personalitat del llúpol. Bomba de sabor",
+    "ingredients": "PINYA, RAÏM, MANGO, MANDARINA, CIVADA SENSE GLUTEN, LLIMONA, LLÚPOL CITRA",
+    "imageUrl": "images/products/hops_1.png",
+    "imageAlt": "NAIS can with purple artwork and a tropical hops label",
+    "fruitImage": {
+      "url": "images/info-card/s_hop (2).jpg",
+      "alt": "hop on a purple background"
+    },
+    "variant": "tropical"
+  },
+  {
+    "id": "pack-variat",
+    "status": "active",
+    "slug": "pack-variat",
+    "name": "PACK VARIAT",
+    "variant": "assorted",
+    "format": "Pack variat de 4 sabors (16 x 250ml)",
+    "price": 36,
+    "description": "Un pack amb Orange Spritz, Passion Hugo, Ginger Crush i Tropical Hops.",
+    "imageUrl": "images/products/pack_sf.png",
+    "cardImageUrl": "images/products/pack_sf.png",
+    "imageAlt": "Pack variat de NAIS Drinks amb Orange Spritz, Passion Hugo, Ginger Crush i Tropical Hops",
+    "detailsPending": true
+  },
+  {
+    "id": "tropical-hops-harvest",
+    "status": "coming-soon",
+    "slug": "tropical-hops-harvest",
+    "name": "TROPICAL HOPS HARVEST",
+    "nutrition": [
+      {
+        "label": "Valor energètic",
+        "value": "103 kJ / 24 kcal"
+      },
+      {
+        "label": "Greixos",
+        "value": "0,2 g"
+      },
+      {
+        "label": "dels quals saturats",
+        "value": "0,0 g"
+      },
+      {
+        "label": "Hidrats de carboni",
+        "value": "5,3 g"
+      },
+      {
+        "label": "dels quals sucres",
+        "value": "4,9 g"
+      },
+      {
+        "label": "Proteïnes",
+        "value": "0,2 g"
+      },
+      {
+        "label": "Sal",
+        "value": "<0,01 g"
+      }
+    ],
+    "format": "pack 16 llaunes x 250 ml",
+    "price": 36,
+    "description": "Tot el caràcter de la fruita i la personalitat del llúpol. Bomba de sabor",
+    "ingredients": "TROPICAL HOPS + FRESH HOPS CHINOOK DELS CAMPS DE BIOLUPULUS-GIRONA",
+    "imageUrl": "images/products/hops_2.png",
+    "imageAlt": "Llauna de Tropical Hops Harvest amb il·lustracions blaves i verdes de llúpol",
+    "fruitImage": {
+      "url": "images/info-card/s_hop (2).jpg",
+      "alt": "hop on a purple background"
+    },
+    "variant": "tropical",
+    "isSeasonal": true,
+    "badge": "NOVA COLLITA",
+    "featureDescription": "Tot el caràcter de la TROPICAL HOPS amb llúpol CHINOOK fresc. Visca el verd!",
+    "featureBackgroundImageUrl": "images/products/hop2.jpg"
+  }
+];
+ readonly loaded = signal(true);
+ readonly loading = signal(false);
+ readonly error = signal<string | null>(null);
+ get activeProducts() { return this.products.filter(product => product.status === 'active'); }
+ load(): void {}
+ findBySlug(slug: string) { return of(this.activeProducts.find(product => product.slug === slug) ?? null); }
+}

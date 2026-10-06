@@ -1,13 +1,12 @@
 import Stripe from 'stripe';
 import { createStripeClient } from './stripe-client.ts';
-import { CHECKOUT_CATALOGUE } from '../checkout/checkout-catalogue.ts';
-import type { CheckoutPriceBindings } from '../checkout/checkout-env.ts';
+import { LEGACY_PRODUCT_PRICE_BINDINGS, type LegacyProductPriceBindings } from './legacy-product-bindings.ts';
 import { createPaidOrder, hasOrderForSession } from '../orders/order.service.ts';
 import type { OrderDatabase } from '../orders/order.repository.ts';
 import type { PaidOrderSnapshot } from '../orders/order.types.ts';
 
 export type { OrderDatabase } from '../orders/order.repository.ts';
-export interface WebhookEnvironment extends Partial<CheckoutPriceBindings> {
+export interface WebhookEnvironment extends Partial<LegacyProductPriceBindings> {
   PROMO_DB?: OrderDatabase;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
@@ -55,15 +54,23 @@ async function rawBody(request: Request): Promise<string> {
   } finally { reader.releaseLock(); }
 }
 
-/** IDs only may use the current binding map; historical names/prices never do. */
-function productId(line: Stripe.LineItem, env: WebhookEnvironment): string {
+/** New Sessions use their server-written mapping; old Sessions retain the legacy ID fallback. */
+function productId(line: Stripe.LineItem, env: WebhookEnvironment, metadata: Stripe.Metadata | null): string {
   const price = line.price;
   if (!price) throw new Error('Missing price');
+  // New Sessions contain a server-written mapping. Never reconstruct historical IDs/prices from current D1.
+  if (metadata?.['nais_catalogue'] === 'd1-v1') {
+    const matches = Object.entries(metadata).filter(([key, value]) => /^nais_price_\d+$/.test(key) && value === price.id);
+    if (matches.length !== 1) throw new Error('Unmapped product');
+    const id = metadata[matches[0][0].replace('nais_price_', 'nais_product_')];
+    if (typeof id !== 'string' || id.length > 200 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new Error('Invalid product mapping');
+    return id;
+  }
   const product = price.product;
   const metadataId = typeof product === 'object' && !('deleted' in product && product.deleted)
     ? product.metadata['nais_product_id'] : undefined;
   if (metadataId) return required(metadataId);
-  const matches = Object.entries(CHECKOUT_CATALOGUE).filter(([, binding]) => env[binding] === price.id);
+  const matches = Object.entries(LEGACY_PRODUCT_PRICE_BINDINGS).filter(([, binding]) => env[binding] === price.id);
   if (matches.length !== 1) throw new Error('Unmapped product');
   return matches[0][0];
 }
@@ -127,7 +134,7 @@ async function savePaidSession(event: Stripe.Event, env: WebhookEnvironment, cli
       const quantity = amount(line.quantity);
       if (!quantity || line.currency !== currency || line.price?.currency !== currency) throw new Error('Invalid line');
       return {
-        stripe_line_item_id: required(line.id), product_id: productId(line, env), product_name: required(line.description),
+        stripe_line_item_id: required(line.id), product_id: productId(line, env, session.metadata), product_name: required(line.description),
         stripe_price_id: required(line.price?.id), quantity, unit_amount: amount(line.price?.unit_amount),
         line_total_amount: amount(line.amount_total),
       };

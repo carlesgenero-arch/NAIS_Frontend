@@ -1,12 +1,18 @@
+import { checkoutDb, stripePrice, priceIds } from './testing/checkout-db.mjs';
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { checkout } from './checkout/checkout-session.ts';
 import { onRequest } from '../functions/api/checkout.ts';
 
-beforeEach(t => t.mock.method(globalThis, 'fetch', () => { throw new Error('Real network forbidden'); }));
+beforeEach(t => {
+  t.mock.method(globalThis, 'fetch', () => { throw new Error('Real network forbidden'); });
+  const fixture = checkoutDb(t);
+  env.PROMO_DB = fixture.db;
+  sqlite = fixture.sqlite;
+});
+let sqlite;
 const env = {
   STRIPE_SECRET_KEY: 'sk_test_placeholder', SITE_URL: 'https://naisdrinks.com/',
-  STRIPE_PRICE_ORANGE_SPRITZ: 'price_orangeFixture', STRIPE_PRICE_GINGER_CRUSH: 'price_gingerFixture',
 };
 const item = (quantity, productId = 'orange-spritz') => ({ productId, quantity });
 const request = (items = [item(1)], extra = {}, headers = {}) => new Request('https://naisdrinks.com/api/checkout', {
@@ -15,7 +21,7 @@ const request = (items = [item(1)], extra = {}, headers = {}) => new Request('ht
 const checkoutUrl = 'https://checkout.stripe.com/c/pay/cs_test_fixture';
 function mockClient(url = checkoutUrl) {
   const calls = [];
-  return { calls, factory: () => ({ checkout: { sessions: { async create(params) {
+  return { calls, factory: () => ({ prices: { async retrieve(id) { return stripePrice(id); } }, checkout: { sessions: { async create(params) {
     calls.push(params); return { url };
   } } } }) };
 }
@@ -42,7 +48,7 @@ for (const [name, items, shipping] of [
     assert.equal(params.allow_promotion_codes, true);
     assert.equal(params.discounts, undefined);
     assert.deepEqual(params.line_items, items.map(({ productId, quantity }) => ({
-      price: productId === 'orange-spritz' ? env.STRIPE_PRICE_ORANGE_SPRITZ : env.STRIPE_PRICE_GINGER_CRUSH, quantity,
+      price: priceIds[productId], quantity,
     })));
     assert.equal(params.shipping_options.length, 1);
     assert.deepEqual(params.shipping_options[0].shipping_rate_data.fixed_amount, { amount: shipping, currency: 'eur' });
@@ -53,10 +59,10 @@ for (const [name, items, shipping] of [
 test('merges duplicate items before creating line_items', async () => {
   const mock = mockClient();
   assert.equal((await checkout(request([item(1), item(1)]), env, mock.factory)).status, 200);
-  assert.deepEqual(mock.calls[0].line_items, [{ price: env.STRIPE_PRICE_ORANGE_SPRITZ, quantity: 2 }]);
+  assert.deepEqual(mock.calls[0].line_items, [{ price: priceIds['orange-spritz'], quantity: 2 }]);
 });
 test('missing configuration fails before Stripe API call', async () => {
-  for (const key of ['STRIPE_SECRET_KEY', 'SITE_URL', 'STRIPE_PRICE_ORANGE_SPRITZ']) {
+  for (const key of ['STRIPE_SECRET_KEY', 'SITE_URL', 'PROMO_DB']) {
     for (const value of [undefined, '']) {
       const mock = mockClient();
       const response = await checkout(request(), { ...env, [key]: value }, mock.factory);
@@ -99,7 +105,7 @@ test('rejects client discount, prices and return URLs before calling Stripe', as
   assert.equal(mock.calls.length, 0);
 });
 test('Stripe API failure returns no sensitive details', async () => {
-  const factory = () => ({ checkout: { sessions: { async create() { throw new Error('private Stripe detail sk_test_placeholder'); } } } });
+  const factory = () => ({ prices: { async retrieve(id) { return stripePrice(id); } }, checkout: { sessions: { async create() { throw new Error('private Stripe detail sk_test_placeholder'); } } } });
   const response = await checkout(request(), env, factory);
   assert.equal(response.status, 502);
   assert.deepEqual(await response.json(), { status: 'checkout_unavailable' });
@@ -110,7 +116,7 @@ test('missing and unsafe Session URLs fail safely', async () => {
     assert.equal(response.status, 502);
     assert.deepEqual(await response.json(), { status: 'checkout_unavailable' });
   }
-  const response = await checkout(request(), env, () => ({ checkout: { sessions: { async create() { return {}; } } } }));
+  const response = await checkout(request(), env, () => ({ prices: { async retrieve(id) { return stripePrice(id); } }, checkout: { sessions: { async create() { return {}; } } } }));
   assert.equal(response.status, 502);
 });
 test('unexpected errors are contained', async () => {
@@ -122,11 +128,100 @@ test('Pages endpoint invokes official SDK with mocked transport only', async t =
   const calls = [];
   t.mock.method(globalThis, 'fetch', async (url, init) => {
     calls.push({ url: String(url), init });
+    if (String(url).includes('/v1/prices/')) return Response.json({ ...stripePrice('price_orangeFixture'), object: 'price' });
     return Response.json({ id: 'cs_test_fixture', object: 'checkout.session', url: checkoutUrl });
   });
   const response = await onRequest({ request: request(), env });
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { url: checkoutUrl });
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, 'https://api.stripe.com/v1/checkout/sessions');
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].url, 'https://api.stripe.com/v1/prices/price_orangeFixture');
+  assert.equal(calls[1].url, 'https://api.stripe.com/v1/checkout/sessions');
+});
+
+for (const status of ['coming-soon', 'draft', 'archived']) {
+  test(`D1 ${status} products cannot create a Checkout Session`, async () => {
+    sqlite.prepare('UPDATE products SET status=? WHERE id=?').run(status, 'orange-spritz');
+    const mock = mockClient();
+    const response = await checkout(request(), env, mock.factory);
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), { status: 'invalid_product' });
+    assert.equal(mock.calls.length, 0);
+  });
+}
+
+test('unknown product fails before Stripe', async () => {
+  const mock = mockClient();
+  assert.equal((await checkout(request([item(1, 'unknown-product')]), env, mock.factory)).status, 400);
+  assert.equal(mock.calls.length, 0);
+});
+
+test('new D1 active product works without the old allowlist or any Price binding', async () => {
+  sqlite.exec("INSERT INTO products (id,slug,name,status,price_cents,stripe_price_id) VALUES ('new-product','new-product','New product','active',3600,'price_newFixture')");
+  const mock = mockClient();
+  const response = await checkout(request([item(2, 'new-product')]), {
+    PROMO_DB: env.PROMO_DB, STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY, SITE_URL: env.SITE_URL,
+  }, mock.factory);
+  assert.equal(response.status, 200);
+  assert.deepEqual(mock.calls[0].line_items, [{ price: 'price_newFixture', quantity: 2 }]);
+  assert.deepEqual(mock.calls[0].metadata, { nais_catalogue: 'd1-v1', nais_product_0: 'new-product', nais_price_0: 'price_newFixture' });
+  assert.equal(mock.calls[0].shipping_options[0].shipping_rate_data.fixed_amount.amount, 0);
+});
+
+test('D1 overrides legacy bindings and does not fall back when price ID is absent', async () => {
+  const legacyEnv = { ...env, STRIPE_PRICE_ORANGE_SPRITZ: 'price_legacyIgnored' };
+  sqlite.exec("UPDATE products SET stripe_price_id='price_databaseOnly' WHERE id='orange-spritz'");
+  const mock = mockClient();
+  assert.equal((await checkout(request(), legacyEnv, mock.factory)).status, 200);
+  assert.equal(mock.calls[0].line_items[0].price, 'price_databaseOnly');
+  for (const value of [null, '', 'not-a-price', 'price_']) {
+    sqlite.prepare('UPDATE products SET stripe_price_id=? WHERE id=?').run(value, 'orange-spritz');
+    const failed = mockClient();
+    const response = await checkout(request(), legacyEnv, failed.factory);
+    assert.equal(response.status, 503);
+    assert.deepEqual(await response.json(), { status: 'unavailable' });
+    assert.equal(failed.calls.length, 0);
+  }
+});
+
+test('invalid stored status, fractional/negative cents and unsupported currency fail closed', async () => {
+  sqlite.exec('PRAGMA ignore_check_constraints=ON');
+  for (const [column, value] of [['status','invalid'], ['price_cents', -1], ['price_cents', 1.5], ['currency','usd']]) {
+    sqlite.exec("UPDATE products SET status='active', price_cents=3600,currency='eur' WHERE id='orange-spritz'");
+    sqlite.prepare(`UPDATE products SET ${column}=? WHERE id=?`).run(value, 'orange-spritz');
+    const mock = mockClient();
+    assert.equal((await checkout(request(), env, mock.factory)).status, 503);
+    assert.equal(mock.calls.length, 0);
+  }
+});
+
+test('Stripe price must match D1 cents, currency and one-time active configuration', async () => {
+  for (const patch of [{ unit_amount: 1 }, { currency: 'usd' }, { active: false }, { type: 'recurring' }, { billing_scheme: 'tiered' }, { id: 'price_other' }]) {
+    const mock = mockClient();
+    const client = mock.factory();
+    client.prices.retrieve = async id => ({ ...stripePrice(id), ...patch });
+    const response = await checkout(request(), env, () => client);
+    assert.equal(response.status, 503);
+    assert.equal(mock.calls.length, 0);
+  }
+});
+
+test('D1 and Stripe price lookup failures return safe errors without creating a session', async () => {
+  const mock = mockClient();
+  const response = await checkout(request(), { ...env, PROMO_DB: { prepare() { throw new Error('private SQL'); } } }, mock.factory);
+  assert.equal(response.status, 503);
+  assert.deepEqual(await response.json(), { status: 'unavailable' });
+  const client = mock.factory();
+  client.prices.retrieve = async () => { throw new Error('private Stripe details'); };
+  const failed = await checkout(request(), env, () => client);
+  assert.equal(failed.status, 502);
+  assert.deepEqual(await failed.json(), { status: 'checkout_unavailable' });
+  assert.equal(mock.calls.length, 0);
+});
+
+test('ambiguous D1 Price mappings fail before Session creation', async () => {
+  sqlite.exec("UPDATE products SET stripe_price_id='price_orangeFixture' WHERE id='ginger-crush'");
+  const mock = mockClient();
+  assert.equal((await checkout(request([item(1), item(1,'ginger-crush')]), env, mock.factory)).status, 503);
+  assert.equal(mock.calls.length, 0);
 });

@@ -1,7 +1,11 @@
+import { MockProductService } from '../../../../testing/product-fixture';
+import { ProductService } from '../../../../services/product.service';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { Header } from './header';
 import { routes } from '../../../../app.routes';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('Header cart drawer', () => {
   beforeEach(() => {

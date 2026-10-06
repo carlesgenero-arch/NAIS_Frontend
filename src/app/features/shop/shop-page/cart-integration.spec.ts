@@ -1,3 +1,4 @@
+import { MockProductService } from '../../../testing/product-fixture';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -6,6 +7,8 @@ import { Header } from '../../../core/shared/base/header/header';
 import { MAX_CART_QUANTITY } from '../../../models/cart.interface';
 import { CART_STORAGE_KEY, CartService } from '../../../services/cart.service';
 import { ProductService } from '../../../services/product.service';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('Shop cart integration', () => {
   beforeEach(() => {

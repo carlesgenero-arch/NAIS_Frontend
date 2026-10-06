@@ -1,9 +1,9 @@
 import { inject } from '@angular/core';
 import { RedirectCommand, ResolveFn, Router } from '@angular/router';
-import { Product } from '../../models/product.interface';
-import { ProductService } from '../../services/product.service';
 
-export const productResolver: ResolveFn<Product> = route => {
-  const product = inject(ProductService).activeProducts.find(product => product.slug === route.paramMap.get('slug'));
-  return product ?? new RedirectCommand(inject(Router).parseUrl('/products'));
+/** Fetching belongs to the page so a direct navigation can display loading/error states. */
+export const productResolver: ResolveFn<boolean> = route => {
+  const slug = route.paramMap.get('slug');
+  return slug && slug.length <= 200 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
+    ? true : new RedirectCommand(inject(Router).parseUrl('/products'));
 };

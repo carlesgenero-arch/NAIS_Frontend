@@ -1,8 +1,11 @@
+import { MockProductService } from '../../../../testing/product-fixture';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { Product } from '../../../../models/product.interface';
 import { ProductService } from '../../../../services/product.service';
 import { ProductFeatureCard } from './product-feature-card';
+
+beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('ProductFeatureCard', () => {
   async function setup() {
