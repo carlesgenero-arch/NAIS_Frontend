@@ -82,7 +82,14 @@ button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow
 .drawer-footer dl > div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--button-padding-block); }
 .drawer-footer dd { margin: 0; font-variant-numeric: tabular-nums; }
 .drawer-total-row { font-weight: 700; }
-.drawer-footer .checkout { width: 100%; min-height: var(--control-min-size); }
+.drawer-footer .continue-shopping, 
+.drawer-footer .checkout{
+  width: 100%;
+  min-height: var(--control-min-size);
+}
+.drawer-footer .continue-shopping{ 
+  margin-bottom: var(--button-padding-block);
+}
 .drawer-footer p { margin-bottom: 0; }
 .checkout-status:empty { display: none; }
 .cart-page--drawer .cart-items { gap: var(--button-padding-block); margin-block: 0; }

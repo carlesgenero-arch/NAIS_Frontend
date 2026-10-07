@@ -66,7 +66,7 @@
         <div><dt>Subtotal</dt><dd class="drawer-subtotal">{{ formatCents(cart.subtotalCents()) }}</dd></div>
         <div class="drawer-total-row"><dt>Total</dt><dd class="drawer-total">{{ formatCents(cart.subtotalCents()) }}</dd></div>
       </dl>
-      <button class="button--buy checkout"type="button"(click)="continueShopping()">
+      <button class="button--buy continue-shopping"type="button"(click)="continueShopping()">
       Seguir comprant
       </button>
       <button class="button--buy checkout" type="button" [disabled]="checkoutLoading() || cart.isEmpty() || cart.subtotalCents() === null"
