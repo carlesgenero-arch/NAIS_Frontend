@@ -38,7 +38,7 @@ export class Modal implements OnDestroy {
     this.dialog().nativeElement.querySelector<HTMLButtonElement>('.modal-close')?.focus({ preventScroll: true });
   }
 
-  protected close(): void {
+  close(): void {
     this.dialog().nativeElement.close();
     this.restoreFocus();
   }

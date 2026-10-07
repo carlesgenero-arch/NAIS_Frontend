@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { PromotionModal } from '../../../../services/promotion-modal';
 
 @Component({
   selector: 'app-animated-banner',
@@ -8,5 +9,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnimatedBanner {
+  private readonly promotionModal = inject(PromotionModal);
+
+  protected openPromotion():void{
+    this.promotionModal.open();
+  }
 
 }

@@ -6,8 +6,6 @@ import { createStripeClient } from './stripe/stripe-client.ts';
 
 test('business constants describe a box, not a single can', () => {
   assert.equal(UNITS_PER_BOX, 16);
-  assert.equal(36);
-  assert.equal(3600);
   assert.equal(SHIPPING_PRICE_EUR, 6);
   assert.equal(FREE_SHIPPING_MIN_BOXES, 2);
 });

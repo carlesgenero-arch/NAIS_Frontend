@@ -3,6 +3,7 @@ import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PromoSignupService } from '../../../services/promo-signup.service';
 import { Modal } from '../../../core/shared/modal/modal';
+import { PromotionModal } from '../../../services/promotion-modal';
 
 export const PROMOTION_SESSION_KEY = 'nais.promotion.dismissed.v1';
 
@@ -18,6 +19,7 @@ export class Promotion {
   private readonly modal = viewChild.required(Modal);
   private readonly signup = inject(PromoSignupService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly promotionModal = inject(PromotionModal)
   protected readonly result = signal<'registered' | 'already_registered' | null>(null);
   protected readonly pending = signal(false);
   protected readonly error = signal('');
@@ -28,6 +30,7 @@ export class Promotion {
   });
 
   constructor() {
+    this.promotionModal.register(()=> this.open())
     afterNextRender(() => {
       let dismissed = false;
       try {
@@ -36,6 +39,12 @@ export class Promotion {
       if (!dismissed) this.modal().open();
     });
   }
+  open(): void {
+    this.result.set(null);
+    this.error.set('');
+    this.modal().open();
+  }
+
 
   protected dismiss(): void {
     this.remember();
