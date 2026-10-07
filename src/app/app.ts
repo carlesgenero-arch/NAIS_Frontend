@@ -15,6 +15,13 @@ import { Promotion } from './features/components/promotion/promotion';
 })
 export class App {
   private readonly router = inject(Router);
+  protected readonly isAdmin = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(event => /^\/admin(?:\/|$)/.test(event.urlAfterRedirects.split(/[?#]/)[0])),
+    ),
+    { initialValue: /^\/admin(?:\/|$)/.test(this.router.url.split(/[?#]/)[0]) },
+  );
   protected readonly isPrelaunch = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),

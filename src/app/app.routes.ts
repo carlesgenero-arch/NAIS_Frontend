@@ -1,7 +1,11 @@
+import { adminGuard } from './features/admin/admin.guard';
 import { Routes } from '@angular/router';
 import { productResolver } from './features/shop/product.resolver';
 
 export const routes: Routes = [
+  { path: 'admin/login', title: 'Accés | NAIS', loadComponent: () => import('./features/admin/admin-login').then(m => m.AdminLogin) },
+  { path: 'admin', title: 'Backoffice | NAIS', canActivate: [adminGuard], canActivateChild: [adminGuard],
+    loadComponent: () => import('./features/admin/admin-shell').then(m => m.AdminShell), children: [] },
   {
     path: '',
     pathMatch: 'full',

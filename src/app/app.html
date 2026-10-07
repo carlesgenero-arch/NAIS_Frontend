@@ -1,13 +1,13 @@
-@if (!isPrelaunch()) {
+@if (!isPrelaunch() && !isAdmin()) {
   <app-header />
 }
 <main>
   <router-outlet />
 </main>
-@if (!isPrelaunch()) {
+@if (!isPrelaunch() && !isAdmin()) {
   <app-promotion />
 }
 
-@if (!isPrelaunch()) {
+@if (!isPrelaunch() && !isAdmin()) {
   <app-footer />
 }
