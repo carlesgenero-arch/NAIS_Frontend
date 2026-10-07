@@ -14,3 +14,7 @@
 /checkout/cancel/ / 200
 /products/:slug / 200
 /products/:slug/ / 200
+/admin / 200
+/admin/ / 200
+/admin/login / 200
+/admin/login/ / 200

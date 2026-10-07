@@ -1,0 +1,5 @@
+:host { display: block; min-width: 0; }
+section { max-width: var(--page-max-width); margin-inline: auto; padding: var(--surface-padding) var(--page-gutter); overflow-wrap: anywhere; }
+p { max-width: 65ch; margin-block: var(--space-group); }
+a { display: inline-flex; align-items: center; min-height: var(--control-min-size); color: var(--color-negro); }
+a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
