@@ -18,10 +18,11 @@ export class AdminProducts {
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
   protected readonly archiving = signal<string | null>(null);
+  protected readonly deleting = signal<string | null>(null);
   protected readonly feedback = signal('');
   protected readonly mutationError = signal('');
   protected archive(product: AdminProductSummary): void {
-    if (this.archiving() || product.status === 'archived') return;
+    if (this.archiving() || this.deleting() || product.status === 'archived') return;
     if (!this.document.defaultView?.confirm('Vols arxivar ' + product.name + '? Deixarà de ser comprable.')) return;
     this.archiving.set(product.id); this.feedback.set(''); this.mutationError.set('');
     this.service.archiveProduct(product.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -31,6 +32,20 @@ export class AdminProducts {
         this.archiving.set(null); this.feedback.set('Producte arxivat.');
       },
       error: error => { this.archiving.set(null); this.mutationError.set(adminProductError(error)); },
+    });
+  }
+  protected deletePermanently(product: AdminProductSummary): void {
+    if (this.archiving() || this.deleting() || !['draft', 'archived'].includes(product.status)) return;
+    if (!this.document.defaultView?.confirm('Eliminar definitivament «' + product.name
+      + '»? Aquesta acció no es pot desfer. Per als productes de producció, utilitza Arxivar.')) return;
+    this.deleting.set(product.id); this.feedback.set(''); this.mutationError.set('');
+    this.service.deleteProduct(product.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.state.update(current => current.kind === 'ready'
+          ? { kind: 'ready', products: current.products.filter(p => p.id !== product.id) } : current);
+        this.deleting.set(null); this.feedback.set('Producte eliminat definitivament.');
+      },
+      error: error => { this.deleting.set(null); this.mutationError.set(adminProductError(error)); },
     });
   }
   protected readonly state = signal<ProductsState>({ kind: 'loading' });

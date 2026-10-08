@@ -38,8 +38,14 @@
               <td><time [attr.datetime]="product.updatedAt">{{ product.updatedAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></td>
               <td>
                 <a [routerLink]="['/admin/products', product.id, 'edit']" [attr.aria-label]="'Editar ' + product.name">Editar</a>
-                <button type="button" (click)="archive(product)" [disabled]="archiving() !== null || product.status === 'archived'"
+                <button type="button" (click)="archive(product)" [disabled]="archiving() !== null || deleting() !== null || product.status === 'archived'"
                   [attr.aria-label]="'Arxivar ' + product.name">{{ archiving() === product.id ? 'Arxivant…' : 'Arxivar' }}</button>
+                @if (product.status === 'draft' || product.status === 'archived') {
+                  <button type="button" (click)="deletePermanently(product)" [disabled]="archiving() !== null || deleting() !== null"
+                    [attr.aria-label]="'Eliminar definitivament ' + product.name">
+                    {{ deleting() === product.id ? 'Eliminant…' : 'Eliminar definitivament' }}
+                  </button>
+                }
               </td>
             </tr>
           }

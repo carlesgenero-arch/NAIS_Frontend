@@ -115,7 +115,7 @@ test('unknown valid IDs return 404; invalid IDs/queries return 400', async t => 
     assert.equal((await send(orders, undefined, query)).status, 400);
   }
 });
-test('all adapters reject deletes and safely handle missing/failing D1', async t => {
+test('read adapters handle missing/failing D1 and reject unsupported deletes', async t => {
   const { send, ids, db } = await setup(t);
   for (const [handler, id] of [[products, undefined], [product, 'orange-spritz'], [orders, undefined], [order, ids[0]]]) {
     for (const database of [null, { prepare() { throw Error('private SQL'); } }]) {
@@ -123,7 +123,12 @@ test('all adapters reject deletes and safely handle missing/failing D1', async t
       assert.equal(response.status, 503); assert.deepEqual(await response.json(), { status: 'unavailable' });
     }
     const response = await send(handler, id, '', await jwt(), db, 'DELETE');
-    assert.equal(response.status, 405); assert.equal(response.headers.get('Allow'), 'GET');
+    if (handler === product) {
+      // Product detail now supports DELETE, but this active fixture cannot be deleted.
+      assert.equal(response.status, 409);
+    } else {
+      assert.equal(response.status, 405); assert.equal(response.headers.get('Allow'), 'GET');
+    }
   }
 });
 test('refunded and later fulfillment states remain readable without catalogue reconstruction', async t => {

@@ -1,7 +1,7 @@
 import type { AdminReadContext } from './admin-read.ts';
-import { createAdminProduct, updateAdminProduct, archiveAdminProduct, ProductMutationError } from '../catalogue/product-write.service.ts';
+import { createAdminProduct, updateAdminProduct, archiveAdminProduct, deleteAdminProduct, ProductMutationError } from '../catalogue/product-write.service.ts';
 import { createStripeClient } from '../stripe/stripe-client.ts';
-import type { CheckoutClient } from '../checkout/checkout-session.ts';
+import type { StripeCatalogueClient } from '../stripe/stripe-catalogue.ts';
 export interface AdminProductWriteContext extends AdminReadContext {
   env: AdminReadContext['env'] & { STRIPE_SECRET_KEY?: string };
 }
@@ -28,18 +28,19 @@ async function body(request: Request, allowEmpty = false): Promise<unknown> {
   } catch { throw new ProductMutationError(400, 'invalid_payload'); }
   finally { reader.releaseLock(); }
 }
-export async function adminProductWrite(context: AdminProductWriteContext, action: 'create' | 'update' | 'archive',
-  clientFactory: (env: { STRIPE_SECRET_KEY: string }) => Pick<CheckoutClient, 'prices'> = createStripeClient): Promise<Response> {
+export async function adminProductWrite(context: AdminProductWriteContext, action: 'create' | 'update' | 'archive' | 'delete',
+  clientFactory: (env: { STRIPE_SECRET_KEY: string }) => StripeCatalogueClient = createStripeClient): Promise<Response> {
   const reply = (status: number, value: unknown, headers = {}) => Response.json(value, { status,
     headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', ...headers } });
   if (!context.data.admin) return reply(401, { status: 'unauthenticated' });
-  const method = action === 'update' ? 'PATCH' : 'POST';
+  const method = action === 'delete' ? 'DELETE' : action === 'update' ? 'PATCH' : 'POST';
   if (context.request.method !== method) return reply(405, { status: 'method_not_allowed' }, { Allow: method });
   if (!context.env.PROMO_DB) return reply(503, { status: 'unavailable' });
   try {
     const id = context.params?.id;
     if (action !== 'create' && typeof id !== 'string') throw new ProductMutationError(400, 'invalid_payload');
     const productId = typeof id === 'string' ? id : '';
+    if (action === 'delete') return reply(200, await deleteAdminProduct(context.env.PROMO_DB, productId));
     if (action === 'archive') {
       // Archive takes no fields: accept an empty body or an empty JSON object.
       if (context.request.body) {
