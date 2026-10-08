@@ -20,3 +20,7 @@
 /admin/login/ / 200
 /admin/products / 200
 /admin/products/ / 200
+/admin/products/new / 200
+/admin/products/new/ / 200
+/admin/products/:id/edit / 200
+/admin/products/:id/edit/ / 200

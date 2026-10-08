@@ -128,3 +128,36 @@ test('concurrent edit detected after Stripe lookup does not overwrite archived s
   assert.equal((await send('update',{name:'Stale'})).status,409);
   assert.equal(sqlite.prepare('SELECT status FROM products WHERE id=?').get('orange-spritz').status,'archived');
 });
+
+test('archive accepts absent body and a non-null zero-byte POST stream without JSON content type', async t => {
+  const { send } = await setup(t);
+  assert.notEqual(new Request('https://nais.example', { method: 'POST', body: '' }).body, null);
+  for (const options of [{}, { raw: '', contentType: '' }]) {
+    const response = await send('archive', undefined, 'orange-spritz', { ...options, adapter: archiveRoute });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).status, 'archived');
+  }
+});
+test('archive accepts an empty JSON object', async t => {
+  const { send } = await setup(t);
+  const response = await send('archive', {}, 'orange-spritz', { adapter: archiveRoute });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).status, 'archived');
+});
+test('archive rejects non-empty or malformed payloads without mutating the product', async t => {
+  const { send, sqlite } = await setup(t);
+  for (const raw of ['{"status":"archived"}', '[]', 'null', '""', 'false', '1', ' ', '{', 'x'.repeat(32769)]) {
+    const response = await send('archive', undefined, 'orange-spritz', { raw, adapter: archiveRoute });
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), { status: 'invalid_payload' });
+  }
+  assert.equal((await send('archive', {}, 'orange-spritz', { contentType: 'text/plain', adapter: archiveRoute })).status, 400);
+  assert.equal(sqlite.prepare('SELECT status FROM products WHERE id=?').get('orange-spritz').status, 'active');
+});
+test('empty streams remain invalid for create and update', async t => {
+  const { send } = await setup(t);
+  for (const action of ['create', 'update']) {
+    const response = await send(action, undefined, 'orange-spritz', { raw: '' });
+    assert.equal(response.status, 400);
+  }
+});

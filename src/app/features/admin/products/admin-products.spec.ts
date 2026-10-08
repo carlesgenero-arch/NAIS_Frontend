@@ -14,13 +14,13 @@ const products: AdminProductSummary[] = (['active', 'coming-soon', 'draft', 'arc
   priceCents: 3600, currency: 'eur', stripeProductId: index ? null : 'prod_fixture',
   stripePriceId: index ? null : 'price_fixture', updatedAt: '2026-01-01T10:00:00.000Z',
 }));
-describe('read-only admin products', () => {
+describe('admin products', () => {
   let http: HttpTestingController;
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
     http = TestBed.inject(HttpTestingController);
   });
-  afterEach(() => { http.verify(); });
+  afterEach(() => { http.verify(); vi.restoreAllMocks(); });
   function render() {
     const fixture = TestBed.createComponent(AdminProducts);
     fixture.detectChanges();
@@ -35,12 +35,12 @@ describe('read-only admin products', () => {
     expect(request.request.body).toBeNull();
     request.flush([]);
   });
-  it('renders all operational columns and all statuses without mutation actions', () => {
+  it('renders all operational columns, statuses and admin actions', () => {
     const fixture = render();
     http.expectOne('/api/admin/products').flush(products);
     fixture.detectChanges();
     const root: HTMLElement = fixture.nativeElement;
-    expect(root.querySelectorAll('thead th')).toHaveLength(9);
+    expect(root.querySelectorAll('thead th')).toHaveLength(10);
     expect(root.querySelectorAll('tbody tr')).toHaveLength(4);
     expect(Array.from(root.querySelectorAll('.status-badge')).map(node => node.textContent?.trim()))
       .toEqual(['Actiu', 'Properament', 'Esborrany', 'Arxivat']);
@@ -53,12 +53,36 @@ describe('read-only admin products', () => {
     expect(root.textContent).toContain('No assignat');
     expect(root.textContent).toContain('2026-01-01 10:00');
     expect(root.querySelector('[role="region"]')?.getAttribute('tabindex')).toBe('0');
-    expect(root.querySelector('button')).toBeNull();
+    expect(root.querySelectorAll('tbody button')).toHaveLength(4);
   });
   it('shows an empty state', () => {
     const fixture = render(); http.expectOne('/api/admin/products').flush([]); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('No hi ha productes');
     expect(fixture.nativeElement.querySelector('table')).toBeNull();
+  });
+  it('requires confirmation and keeps archived products visible', () => {
+    const fixture = render(); http.expectOne('/api/admin/products').flush(products); fixture.detectChanges();
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    fixture.nativeElement.querySelector('tbody button').click();
+    http.expectNone('/api/admin/products/test-0/archive');
+    confirm.mockReturnValue(true); fixture.nativeElement.querySelector('tbody button').click();
+    const request = http.expectOne('/api/admin/products/test-0/archive');
+    expect(request.request.method).toBe('POST'); expect(request.request.body).toEqual({});
+    request.flush({ ...products[0], status: 'archived', description: null, imageUrl: null, featureImageUrl: null });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('tbody tr')).toHaveLength(4);
+    expect(fixture.nativeElement.querySelector('tbody .status-badge').textContent).toContain('Arxivat');
+    expect(fixture.nativeElement.querySelector('tbody button').disabled).toBe(true);
+  });
+  it('preserves the row when archive fails', () => {
+    const fixture = render(); http.expectOne('/api/admin/products').flush(products); fixture.detectChanges();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    fixture.nativeElement.querySelector('tbody button').click();
+    http.expectOne('/api/admin/products/test-0/archive').flush({}, { status: 503, statusText: 'Unavailable' });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('tbody .status-badge').textContent).toContain('Actiu');
+    expect(fixture.nativeElement.querySelector('tbody button').disabled).toBe(false);
   });
   it('shows a safe error and allows retry', () => {
     const fixture = render();
@@ -74,7 +98,7 @@ describe('read-only admin products', () => {
   for (const status of [401, 403]) it('handles access denial ' + status, () => {
     const fixture = render();
     http.expectOne('/api/admin/products').flush({}, { status, statusText: 'Denied' }); fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('a').getAttribute('href')).toBe('/admin/login');
+    expect(fixture.nativeElement.querySelector('[role="alert"] a').getAttribute('href')).toBe('/admin/login');
     expect(fixture.nativeElement.querySelector('table')).toBeNull();
   });
   it('rejects invalid API responses rather than treating them as an empty catalogue', () => {
@@ -98,6 +122,8 @@ describe('read-only admin products', () => {
     expect(admin?.canActivate).toContain(adminGuard);
     expect(admin?.canActivateChild).toContain(adminGuard);
     expect(admin?.children?.find(route => route.path === 'products')?.loadComponent).toBeDefined();
+    expect(admin?.children?.find(route => route.path === 'products/new')?.loadComponent).toBeDefined();
+    expect(admin?.children?.find(route => route.path === 'products/:id/edit')?.loadComponent).toBeDefined();
     const fixture = TestBed.createComponent(AdminShell); fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('nav a').getAttribute('href')).toBe('/admin/products');
   });

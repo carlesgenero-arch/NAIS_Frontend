@@ -6,6 +6,8 @@ export const routes: Routes = [
   { path: 'admin/login', title: 'Accés | NAIS', loadComponent: () => import('./features/admin/admin-login').then(m => m.AdminLogin) },
   { path: 'admin', title: 'Backoffice | NAIS', canActivate: [adminGuard], canActivateChild: [adminGuard],
     loadComponent: () => import('./features/admin/admin-shell').then(m => m.AdminShell), children: [
+      { path: 'products/new', title: 'Crear producte | NAIS Admin', loadComponent: () => import('./features/admin/products/admin-product-form').then(m => m.AdminProductForm) },
+      { path: 'products/:id/edit', title: 'Editar producte | NAIS Admin', loadComponent: () => import('./features/admin/products/admin-product-form').then(m => m.AdminProductForm) },
       { path: 'products', title: 'Productes | NAIS Admin', loadComponent: () => import('./features/admin/products/admin-products').then(m => m.AdminProducts) },
     ] },
   {

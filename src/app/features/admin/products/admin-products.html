@@ -1,5 +1,7 @@
 <section aria-labelledby="products-heading">
-  <header><h2 id="products-heading">Productes</h2><p>Catàleg complet · Només lectura</p></header>
+  <header><h2 id="products-heading">Productes</h2><a routerLink="/admin/products/new">Crear producte</a></header>
+  @if (feedback()) { <p role="status">{{ feedback() }}</p> }
+  @if (mutationError()) { <p role="alert">{{ mutationError() }}</p> }
   @let current = state();
   @if (current.kind === 'loading') {
     <p role="status">Carregant productes…</p>
@@ -22,7 +24,7 @@
         <thead><tr>
           <th scope="col">Nom</th><th scope="col">ID</th><th scope="col">Slug</th>
           <th scope="col">Estat</th><th scope="col">Preu</th><th scope="col">Moneda</th>
-          <th scope="col">Stripe Product ID</th><th scope="col">Stripe Price ID</th><th scope="col">Actualitzat (UTC)</th>
+          <th scope="col">Stripe Product ID</th><th scope="col">Stripe Price ID</th><th scope="col">Actualitzat (UTC)</th><th scope="col">Accions</th>
         </tr></thead>
         <tbody>
           @for (product of current.products; track product.id) {
@@ -34,6 +36,11 @@
               <td><code>{{ product.stripeProductId ?? 'No assignat' }}</code></td>
               <td><code>{{ product.stripePriceId ?? 'No assignat' }}</code></td>
               <td><time [attr.datetime]="product.updatedAt">{{ product.updatedAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></td>
+              <td>
+                <a [routerLink]="['/admin/products', product.id, 'edit']" [attr.aria-label]="'Editar ' + product.name">Editar</a>
+                <button type="button" (click)="archive(product)" [disabled]="archiving() !== null || product.status === 'archived'"
+                  [attr.aria-label]="'Arxivar ' + product.name">{{ archiving() === product.id ? 'Arxivant…' : 'Arxivar' }}</button>
+              </td>
             </tr>
           }
         </tbody>

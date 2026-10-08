@@ -5,8 +5,9 @@ import type { CheckoutClient } from '../checkout/checkout-session.ts';
 export interface AdminProductWriteContext extends AdminReadContext {
   env: AdminReadContext['env'] & { STRIPE_SECRET_KEY?: string };
 }
-async function body(request: Request): Promise<unknown> {
-  if (request.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() !== 'application/json' || !request.body) {
+async function body(request: Request, allowEmpty = false): Promise<unknown> {
+  const isJson = request.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() === 'application/json';
+  if ((!allowEmpty && !isJson) || !request.body) {
     throw new ProductMutationError(400, 'invalid_payload');
   }
   const reader = request.body.getReader();
@@ -20,6 +21,9 @@ async function body(request: Request): Promise<unknown> {
       if (size > 32768) { await reader.cancel(); throw new Error(); }
       text += decoder.decode(part.value, { stream: true });
     }
+    // Cloudflare may expose a non-null stream even when the POST contains zero bytes.
+    if (allowEmpty && size === 0) return {};
+    if (!isJson) throw new Error();
     return JSON.parse(text + decoder.decode());
   } catch { throw new ProductMutationError(400, 'invalid_payload'); }
   finally { reader.releaseLock(); }
@@ -39,7 +43,7 @@ export async function adminProductWrite(context: AdminProductWriteContext, actio
     if (action === 'archive') {
       // Archive takes no fields: accept an empty body or an empty JSON object.
       if (context.request.body) {
-        const value = await body(context.request);
+        const value = await body(context.request, true);
         if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length) {
           throw new ProductMutationError(400, 'invalid_payload');
         }

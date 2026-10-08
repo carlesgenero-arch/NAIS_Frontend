@@ -1,0 +1,50 @@
+<section aria-labelledby="form-title">
+  <h2 id="form-title">{{ product() ? 'Editar producte' : 'Crear producte' }}</h2>
+  <a routerLink="/admin/products">Tornar als productes</a>
+  @if (loading()) { <p role="status">Carregant producte…</p> }
+  @else if (loadError()) { <p role="alert">{{ loadError() }}</p> }
+  @else {
+    @if (success()) { <p role="status">{{ success() }}</p> }
+    @if (created()) {
+      <a [routerLink]="['/admin/products', product()!.id, 'edit']">Editar el producte creat</a>
+    } @else {
+      <p>Els productes nous no es poden activar fins que tinguin una configuració Stripe vàlida.</p>
+      @if (error()) { <p id="form-error" role="alert">{{ error() }}</p> }
+      <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting()" novalidate>
+        <fieldset [disabled]="submitting()">
+          <legend>Dades del producte</legend>
+          <label for="product-name">Nom</label>
+          <input id="product-name" formControlName="name" maxlength="200" required [attr.aria-invalid]="invalid('name')" aria-describedby="name-error">
+          <span id="name-error">@if (invalid('name')) { Escriu un nom (màxim 200 caràcters). }</span>
+          <label for="product-slug">Slug</label>
+          <input id="product-slug" formControlName="slug" maxlength="200" required [attr.aria-invalid]="invalid('slug')" aria-describedby="slug-error">
+          <span id="slug-error">@if (invalid('slug')) { Utilitza lletres, números i guions, sense espais. }</span>
+          <label for="product-description">Descripció</label>
+          <textarea id="product-description" formControlName="description" maxlength="10000" rows="4"></textarea>
+          <label for="product-status">Estat</label>
+          <select id="product-status" formControlName="status">
+            <option value="draft">Esborrany</option><option value="coming-soon">Properament</option>
+            <option value="active">Actiu</option><option value="archived">Arxivat</option>
+          </select>
+          <label for="product-price">Preu en EUR</label>
+          <input id="product-price" type="text" inputmode="decimal" formControlName="price" required
+            [attr.aria-invalid]="invalid('price')" aria-describedby="price-help">
+          <span id="price-help">@if (invalid('price')) { Introdueix un import vàlid; per activar-lo ha de ser superior a zero. } @else { Exemple: 36,00. Màxim dos decimals. }</span>
+          <label for="product-currency">Moneda</label>
+          <select id="product-currency" formControlName="currency"><option value="eur">EUR</option></select>
+          <label for="product-image">URL de la imatge</label>
+          <input id="product-image" formControlName="imageUrl" maxlength="2048" aria-describedby="image-help">
+          <label for="product-feature-image">URL de la imatge destacada</label>
+          <input id="product-feature-image" formControlName="featureImageUrl" maxlength="2048" aria-describedby="image-help">
+          <span id="image-help">Opcional: ruta images/… o URL HTTPS. No es pugen fitxers.</span>
+          <label for="stripe-product">Stripe Product ID · només lectura</label>
+          <input id="stripe-product" readonly [value]="product()?.stripeProductId ?? 'No assignat'">
+          <label for="stripe-price">Stripe Price ID · només lectura</label>
+          <input id="stripe-price" readonly [value]="product()?.stripePriceId ?? 'No assignat'">
+          <button type="submit" [disabled]="submitting()">{{ submitting() ? 'Desant…' : 'Desar producte' }}</button>
+        </fieldset>
+        <a routerLink="/admin/products">Cancel·lar</a>
+      </form>
+    }
+  }
+</section>
