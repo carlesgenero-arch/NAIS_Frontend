@@ -33,13 +33,6 @@ export async function requireAdmin(context: AdminContext, getKeys = keys): Promi
   const { ACCESS_TEAM_DOMAIN: domain, ACCESS_AUD: audience, ADMIN_EMAILS: emails } = context.env;
   if (!domain || !/^https:\/\/[a-z0-9-]+\.cloudflareaccess\.com$/.test(domain)
     || !audience?.trim() || !emails?.trim()) {
-    // Temporary configuration diagnostic: booleans only, never binding or token values.
-    console.warn('admin_configuration_unavailable', {
-      ACCESS_TEAM_DOMAIN_present: Boolean(domain),
-      ACCESS_TEAM_DOMAIN_format_valid: Boolean(domain && /^https:\/\/[a-z0-9-]+\.cloudflareaccess\.com$/.test(domain)),
-      ACCESS_AUD_present: Boolean(audience?.trim()),
-      ADMIN_EMAILS_present: Boolean(emails?.trim()),
-    });
     return reply(503, 'unavailable');
   }
   let email: string;
