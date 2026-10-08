@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, of, switchMap, tap } from 'rxjs';
 import { AdminProductsService, adminProductError } from '../../../services/admin-products.service';
@@ -16,6 +16,7 @@ import { centsToEuro, euroToCents } from './product-price';
 export class AdminProductForm {
   private readonly service = inject(AdminProductsService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
   private readonly fb = inject(FormBuilder);
@@ -69,8 +70,11 @@ export class AdminProductForm {
     this.submitting.set(true);
     const request = existing ? this.service.updateProduct(existing.id, input) : this.service.createProduct(input);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: product => { this.product.set(product); this.reset(product); this.submitting.set(false);
-        this.created.set(!existing); this.success.set(existing ? 'Producte desat.' : 'Producte creat.'); },
+      next: product => { this.product.set(product); this.reset(product);
+        this.created.set(!existing); this.success.set(existing ? 'Producte desat.' : 'Producte creat.');
+        void this.router.navigate(['/admin/products'])
+          .catch(() => { this.error.set('Producte desat. No s’ha pogut tornar al llistat. Utilitza l’enllaç Tornar als productes.'); })
+          .finally(() => this.submitting.set(false)); },
       error: error => { this.submitting.set(false); this.error.set(adminProductError(error)); },
     });
   }

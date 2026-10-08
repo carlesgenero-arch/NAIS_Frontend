@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { AdminProductForm } from './admin-product-form';
 import { AdminProductsService } from '../../../services/admin-products.service';
@@ -17,6 +17,7 @@ describe('admin product form', () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
       { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap(id ? { id } : {})) } }] });
     http = TestBed.inject(HttpTestingController);
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const fixture = TestBed.createComponent(AdminProductForm);
     fixture.detectChanges();
     return fixture;
@@ -40,6 +41,7 @@ describe('admin product form', () => {
     expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(true);
     request.flush(product); fixture.detectChanges();
     expect(root.textContent).toContain('Producte creat'); expect(root.querySelector('form')).toBeNull();
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledExactlyOnceWith(['/admin/products']);
   });
   it('loads and edits an existing product with read-only Stripe identifiers', () => {
     const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
@@ -51,12 +53,16 @@ describe('admin product form', () => {
     expect(request.request.body.name).toBe('Updated fixture'); expect(request.request.body.stripePriceId).toBeUndefined();
     request.flush({ ...product, name: 'Updated fixture' }); fixture.detectChanges();
     expect(root.textContent).toContain('Producte desat');
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledExactlyOnceWith(['/admin/products']);
+    // Saving stays locked until navigation settles, including after the HTTP response.
+    submit(root); http.expectNone('/api/admin/products/fixture');
   });
   it('rejects missing fields and fractional cents before making a request', () => {
     const fixture = render(); const root: HTMLElement = fixture.nativeElement;
     submit(root); fixture.detectChanges(); expect(root.textContent).toContain('Revisa els camps');
     fillNew(root); fill(root, '#product-price', '36.001'); submit(root);
     http.expectNone('/api/admin/products');
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
   });
   for (const [status, code, text] of [[409, 'slug_conflict', 'Aquest slug ja existeix'],
     [400, 'product_not_purchasable', 'No es pot activar'], [503, 'unavailable', 'No s’ha pogut completar']] as const) {
@@ -67,6 +73,7 @@ describe('admin product form', () => {
       expect(root.textContent).toContain(text);
       expect(root.querySelector<HTMLInputElement>('#product-name')!.value).toBe('Fixture product');
       expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
+      expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
     });
   }
   it('never offers a create form when loading an existing product fails', () => {
