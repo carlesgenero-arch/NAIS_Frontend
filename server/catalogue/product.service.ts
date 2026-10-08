@@ -1,3 +1,5 @@
+import { findAdminProducts, findAdminProductById } from './product.repository.ts';
+import type { AdminProduct } from './product.types.ts';
 import { findProductBySlug, findProductsByStatus, findCheckoutProductsByIds, type ProductDatabase } from './product.repository.ts';
 import type { CatalogueProduct, PublicCatalogueProduct, PurchasableProduct } from './product.types.ts';
 
@@ -81,4 +83,24 @@ export async function getPurchasableProducts(db: ProductDatabase, ids: readonly 
     if (!product) throw new UnavailableCheckoutProductError();
     return product;
   });
+}
+
+function readAdminProduct(value: unknown): AdminProduct {
+  const product = readProduct(value);
+  const row = value as Record<string, unknown>;
+  if (!nullableText(row['stripeProductId']) || !nullableText(row['stripePriceId'])
+    || typeof row['createdAt'] !== 'string' || !Number.isFinite(Date.parse(row['createdAt']))
+    || typeof row['updatedAt'] !== 'string' || !Number.isFinite(Date.parse(row['updatedAt']))) {
+    throw new Error('Invalid catalogue data');
+  }
+  return { ...product, stripeProductId: row['stripeProductId'], stripePriceId: row['stripePriceId'],
+    createdAt: row['createdAt'], updatedAt: row['updatedAt'] };
+}
+export async function listAdminProducts(db: ProductDatabase): Promise<readonly AdminProduct[]> {
+  return (await findAdminProducts(db)).map(readAdminProduct);
+}
+export async function getAdminProduct(db: ProductDatabase, id: string): Promise<AdminProduct | null> {
+  if (!isProductSlug(id)) throw new Error('Invalid product ID');
+  const row = await findAdminProductById(db, id);
+  return row === null ? null : readAdminProduct(row);
 }

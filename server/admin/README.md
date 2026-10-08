@@ -24,3 +24,18 @@ Missing/invalid session -> 401. Valid identity not allowlisted -> 403. Missing c
 Reference: https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/
 
 No D1 migration, secrets, CRUD, Stripe writes or uploads are included.
+
+## Phase 8.2: read-only operational APIs
+
+All routes below inherit `functions/api/admin/_middleware.ts`; authentication and authorization remain unchanged. Only GET is supported (other authenticated same-origin methods return 405). No mutation, Angular page, migration or extra binding is introduced.
+
+- `GET /api/admin/products`: array of all products, sorted by slug, including active/coming-soon/draft/archived.
+- `GET /api/admin/products/:id`: one product by its internal catalogue ID, not slug lookup.
+- Product fields: id, slug, name, description, status, priceCents, currency, stripeProductId, stripePriceId, imageUrl, featureImageUrl, createdAt, updatedAt. Nullable fields remain null. Public product responses are unchanged.
+- `GET /api/admin/orders?limit=25&cursor=...`: `{ items: AdminOrder[], nextCursor: string | null }`. Limit is an integer 1–100, default 25. Omit cursor for the first page; pass nextCursor URL-encoded for the next. Unknown/repeated query parameters and malformed cursors return 400.
+- Orders sort by `(createdAt DESC, id DESC)` using keyset pagination, including deterministic ties. Cursor is an opaque base64-encoded timestamp/ID pair, not a secret or authorization token. SQL values are bound parameters. Newer orders do not shift subsequent pages; refresh the first page to see them.
+- `GET /api/admin/orders/:id`: one order by UUID.
+- Order fields: id, orderNumber, paymentStatus, fulfillmentStatus, totalAmount, currency, createdAt, paidAt, customer `{ name, email, phone }`, shippingAddress `{ name, line1, line2, postalCode, city, country }`, items `[{ productId, productName, quantity, unitAmount, lineTotalAmount }]`. Money is integer minor units. Items retain purchased snapshots. Stripe session/payment/customer/event identifiers are not returned.
+- Unknown valid IDs return 404; malformed IDs return 400; D1/configuration/data errors return generic 503. Responses are no-store. No customer data is logged.
+
+Before Phase 8.3, deploy normally and verify the existing Access application covers these paths, its allowlist is correct, and the production Pages environment has PROMO_DB. No new schema or Cloudflare binding is needed. Verify an allowed user can GET these routes and another identity cannot, on every supported hostname/preview. Use synthetic fixtures for development; do not place customer responses in source control.

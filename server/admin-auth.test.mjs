@@ -82,24 +82,18 @@ test('Pages middleware denies unauthenticated requests before calling next', asy
   const response = await onRequest({ request: new Request('https://nais.example/api/admin/future'), env, data: {}, next: async () => { throw Error('unprotected'); } });
   assert.equal(response.status, 401);
 });
-test('configuration diagnostic contains only four booleans and preserves generic 503', async t => {
+test('invalid configuration preserves generic 503 without diagnostic logging', async t => {
   const logs = [];
   t.mock.method(console, 'warn', (...args) => logs.push(args));
-  for (const [bindings, expected] of [
-    [{}, [false, false, false, false]],
-    [{ ...env, ACCESS_TEAM_DOMAIN: 'invalid' }, [true, false, true, true]],
-    [{ ...env, ACCESS_AUD: '   ' }, [true, true, false, true]],
-    [{ ...env, ADMIN_EMAILS: '' }, [true, true, true, false]],
+  for (const bindings of [
+    {},
+    { ...env, ACCESS_TEAM_DOMAIN: 'invalid' },
+    { ...env, ACCESS_AUD: '   ' },
+    { ...env, ADMIN_EMAILS: '' },
   ]) {
     const { response, calls } = await run(await token(), bindings);
     assert.equal(response.status, 503); assert.equal(calls, 0);
     assert.deepEqual(await response.json(), { status: 'unavailable' });
-    assert.deepEqual(logs.pop(), ['admin_configuration_unavailable', {
-      ACCESS_TEAM_DOMAIN_present: expected[0], ACCESS_TEAM_DOMAIN_format_valid: expected[1],
-      ACCESS_AUD_present: expected[2], ADMIN_EMAILS_present: expected[3],
-    }]);
   }
-  await run(await token());
-  await run(null);
   assert.equal(logs.length, 0);
 });
