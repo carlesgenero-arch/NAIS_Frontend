@@ -18,3 +18,5 @@
 /admin/ / 200
 /admin/login / 200
 /admin/login/ / 200
+/admin/products / 200
+/admin/products/ / 200
