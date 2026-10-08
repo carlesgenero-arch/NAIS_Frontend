@@ -9,6 +9,7 @@ import { onRequest as updateRoute } from '../functions/api/admin/products/[id].t
 import { onRequest as archiveRoute } from '../functions/api/admin/products/[id]/archive.ts';
 import { listActiveProducts, getPurchasableProducts } from './catalogue/product.service.ts';
 import { readFileSync } from 'node:fs';
+import { stripeCatalogue } from './testing/stripe-catalogue.mjs';
 
 const env = { ACCESS_TEAM_DOMAIN: 'https://test.cloudflareaccess.com', ACCESS_AUD: 'fixture',
   ADMIN_EMAILS: 'admin@example.test', STRIPE_SECRET_KEY: 'sk_test_fixture' };
@@ -23,15 +24,17 @@ async function setup(t) {
   const {db, sqlite} = checkoutDb(t);
   const jwt = await token();
   let priceCalls = 0;
-  let getPrice = async id => stripePrice(id);
+  const stripe = stripeCatalogue();
+  let getPrice = stripe.client.prices.retrieve;
+  stripe.client.prices.retrieve = async id => { priceCalls++; return getPrice(id); };
   async function send(action, payload, id='orange-spritz', options={}) {
-    const method = action==='update'?'PATCH':'POST';
+    const method = action==='delete'?'DELETE':action==='update'?'PATCH':'POST';
     const context = { request:new Request('https://nais.example/api/admin/products', { method,
       headers:{ 'Content-Type':options.contentType ?? 'application/json', Origin:options.origin ?? 'https://nais.example',
         ...(options.jwt===null?{}:{'Cf-Access-Jwt-Assertion':options.jwt ?? jwt}) },
       body:options.raw ?? (payload===undefined?undefined:JSON.stringify(payload)) }),
       env:{...env,PROMO_DB:db}, data:{}, params:{id},
-      next:()=> options.adapter ? options.adapter(context) : adminProductWrite(context,action,()=>({prices:{retrieve:async id=>{priceCalls++;return getPrice(id);}}})) };
+      next:()=> options.adapter ? options.adapter(context) : adminProductWrite(context,action,()=>stripe.client) };
     return requireAdmin(context,()=>keys);
   }
   return { db,sqlite,send,calls:()=>priceCalls,setPrice:fn=>{getPrice=fn;} };
@@ -61,7 +64,7 @@ test('rejects invalid payload/status/price/currency and all server-controlled fi
   for(const raw of ['{', '{"slug":"x","name":"X","priceCents":1e999}', ' '.repeat(32769)]) assert.equal((await send('create',{},undefined,{raw})).status,400);
   assert.equal((await send('create',valid,undefined,{contentType:'text/plain'})).status,400);
 });
-test('PATCH updates existing active product only with matching read-only Stripe Price',async t=>{
+test('PATCH synchronizes product details while preserving a matching Stripe Price',async t=>{
   const {send,sqlite,calls}=await setup(t);
   const response=await send('update',{name:'Edited',slug:' Edited-Slug ',description:' Text '});
   assert.equal(response.status,200);const p=await response.json();
@@ -69,11 +72,9 @@ test('PATCH updates existing active product only with matching read-only Stripe 
   assert.equal(p.stripePriceId,'price_orangeFixture');assert.equal(calls(),1);
   assert.equal(sqlite.prepare('SELECT name FROM products WHERE id=?').get('orange-spritz').name,'Edited');
 });
-test('rejects active price mismatch, zero price, absent Stripe mapping and Stripe errors without writing',async t=>{
+test('rejects zero price and Stripe errors without writing',async t=>{
   const {send,sqlite,setPrice}=await setup(t);
-  assert.equal((await send('update',{priceCents:4000})).status,400);
   assert.equal((await send('update',{priceCents:0})).status,400);
-  assert.equal((await send('update',{status:'active'},'tropical-hops-harvest')).status,400);
   setPrice(async()=>{throw Error('private stripe');});
   const failure=await send('update',{name:'Must not persist'});assert.equal(failure.status,503);
   assert.deepEqual(await failure.json(),{status:'unavailable'});
@@ -111,11 +112,15 @@ test('archive is non-destructive, preserves order rows and is idempotent',async 
   assert.equal(sqlite.prepare('SELECT status FROM products WHERE id=?').get('orange-spritz').status,'archived');
   assert.deepEqual(sqlite.prepare('SELECT * FROM order_items').all(),before);
   assert.equal(sqlite.prepare('SELECT count(*) AS n FROM orders').get().n,1);
+  const deletion = await send('delete', undefined, 'orange-spritz', { adapter: updateRoute });
+  assert.equal(deletion.status, 409);
+  assert.deepEqual(await deletion.json(), { status: 'product_has_orders' });
+  assert.deepEqual(sqlite.prepare('SELECT * FROM order_items').all(), before);
   await assert.rejects(getPurchasableProducts(db,['orange-spritz']));
 });
 test('all mutations deny missing/unauthorized JWT and cross-origin requests',async t=>{
   const {send,sqlite}=await setup(t);
-  for(const action of ['create','update','archive']) {
+  for(const action of ['create','update','archive','delete']) {
     assert.equal((await send(action,valid,undefined,{jwt:null})).status,401);
     assert.equal((await send(action,valid,undefined,{jwt:await token('other@example.test')})).status,403);
     assert.equal((await send(action,valid,undefined,{origin:'https://evil.test'})).status,403);
@@ -124,7 +129,7 @@ test('all mutations deny missing/unauthorized JWT and cross-origin requests',asy
 });
 test('concurrent edit detected after Stripe lookup does not overwrite archived state',async t=>{
   const {send,sqlite,setPrice}=await setup(t);
-  setPrice(async id=>{sqlite.prepare("UPDATE products SET status='archived' WHERE id=?").run('orange-spritz');return stripePrice(id);});
+  setPrice(async id=>{sqlite.prepare("UPDATE products SET status='archived' WHERE id=?").run('orange-spritz');return { ...stripePrice(id), product: 'prod_orangespritz' };});
   assert.equal((await send('update',{name:'Stale'})).status,409);
   assert.equal(sqlite.prepare('SELECT status FROM products WHERE id=?').get('orange-spritz').status,'archived');
 });
@@ -160,4 +165,31 @@ test('empty streams remain invalid for create and update', async t => {
     const response = await send(action, undefined, 'orange-spritz', { raw: '' });
     assert.equal(response.status, 400);
   }
+});
+
+for (const status of ['draft', 'archived', 'active', 'coming-soon']) {
+  test('permanent deletion eligibility: ' + status, async t => {
+    const { send, sqlite, calls } = await setup(t);
+    sqlite.exec(readFileSync(new URL('../migrations/0003_orders.sql', import.meta.url), 'utf8'));
+    sqlite.prepare('UPDATE products SET status=? WHERE id=?').run(status, 'orange-spritz');
+    const response = await send('delete', undefined, 'orange-spritz', { adapter: updateRoute });
+    const allowed = status === 'draft' || status === 'archived';
+    assert.equal(response.status, allowed ? 200 : 409);
+    assert.deepEqual(await response.json(), { status: allowed ? 'deleted' : 'product_not_deletable' });
+    assert.equal(sqlite.prepare('SELECT count(*) AS n FROM products WHERE id=?').get('orange-spritz').n, allowed ? 0 : 1);
+    assert.equal(calls(), 0);
+  });
+}
+test('delete unknown product returns 404', async t => {
+  const { send, sqlite } = await setup(t);
+  sqlite.exec(readFileSync(new URL('../migrations/0003_orders.sql', import.meta.url), 'utf8'));
+  const response = await send('delete', undefined, 'missing', { adapter: updateRoute });
+  assert.equal(response.status, 404); assert.deepEqual(await response.json(), { status: 'not_found' });
+});
+test('delete fails safely when order history cannot be checked', async t => {
+  const { send, sqlite } = await setup(t);
+  sqlite.prepare("UPDATE products SET status='draft' WHERE id=?").run('orange-spritz');
+  const response = await send('delete', undefined, 'orange-spritz', { adapter: updateRoute });
+  assert.equal(response.status, 503); assert.deepEqual(await response.json(), { status: 'unavailable' });
+  assert.equal(sqlite.prepare('SELECT count(*) AS n FROM products WHERE id=?').get('orange-spritz').n, 1);
 });

@@ -3,6 +3,7 @@ import { getAdminProduct, isProductSlug } from '../../../../server/catalogue/pro
 import { adminProductWrite, type AdminProductWriteContext } from '../../../../server/admin/admin-product-write.ts';
 
 export const onRequest = (context: AdminProductWriteContext): Promise<Response> =>
+  context.request.method === 'DELETE' ? adminProductWrite(context, 'delete') :
   context.request.method === 'PATCH' ? adminProductWrite(context, 'update') : adminRead(context, db => {
   const id = context.params?.id;
   if (!isProductSlug(id)) throw new InvalidAdminReadRequest();

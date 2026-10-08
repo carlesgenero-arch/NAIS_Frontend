@@ -53,12 +53,36 @@ describe('admin products', () => {
     expect(root.textContent).toContain('No assignat');
     expect(root.textContent).toContain('2026-01-01 10:00');
     expect(root.querySelector('[role="region"]')?.getAttribute('tabindex')).toBe('0');
-    expect(root.querySelectorAll('tbody button')).toHaveLength(4);
+    expect(root.querySelectorAll('tbody button')).toHaveLength(6);
+    expect(root.querySelectorAll('button[aria-label^="Eliminar definitivament"]')).toHaveLength(2);
   });
   it('shows an empty state', () => {
     const fixture = render(); http.expectOne('/api/admin/products').flush([]); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('No hi ha productes');
     expect(fixture.nativeElement.querySelector('table')).toBeNull();
+  });
+  it('confirms permanent deletion and removes only the successfully deleted row', () => {
+    const fixture = render(); http.expectOne('/api/admin/products').flush(products); fixture.detectChanges();
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('button[aria-label="Eliminar definitivament Synthetic product 2"]');
+    button.click(); http.expectNone('/api/admin/products/test-2');
+    confirm.mockReturnValue(true); button.click(); button.click();
+    expect(confirm.mock.calls.at(-1)?.[0]).toContain('no es pot desfer');
+    const request = http.expectOne('/api/admin/products/test-2');
+    expect(request.request.method).toBe('DELETE'); expect(request.request.body).toBeNull();
+    request.flush({ status: 'deleted' }); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('tbody tr')).toHaveLength(3);
+    expect(fixture.nativeElement.textContent).not.toContain('Synthetic product 2');
+    expect(fixture.nativeElement.textContent).toContain('Producte eliminat definitivament');
+  });
+  it('keeps products with order history and shows a clear conflict message', () => {
+    const fixture = render(); http.expectOne('/api/admin/products').flush(products); fixture.detectChanges();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    fixture.nativeElement.querySelector('button[aria-label="Eliminar definitivament Synthetic product 3"]').click();
+    http.expectOne('/api/admin/products/test-3').flush({ status: 'product_has_orders' }, { status: 409, statusText: 'Conflict' });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('tbody tr')).toHaveLength(4);
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('comandes associades');
   });
   it('requires confirmation and keeps archived products visible', () => {
     const fixture = render(); http.expectOne('/api/admin/products').flush(products); fixture.detectChanges();
