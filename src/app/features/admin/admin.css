@@ -3,3 +3,6 @@ section { max-width: var(--page-max-width); margin-inline: auto; padding: var(--
 p { max-width: 65ch; margin-block: var(--space-group); }
 a { display: inline-flex; align-items: center; min-height: var(--control-min-size); color: var(--color-negro); }
 a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+nav { margin-block: var(--space-group); border-block-end: 1px solid var(--surface-border); }
+nav a { padding: 0.5rem 1rem; text-decoration: none; }
+nav a.current { font-weight: 700; border-block-end: 2px solid currentColor; }

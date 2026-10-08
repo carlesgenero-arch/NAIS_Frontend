@@ -1,0 +1,43 @@
+<section aria-labelledby="products-heading">
+  <header><h2 id="products-heading">Productes</h2><p>Catàleg complet · Només lectura</p></header>
+  @let current = state();
+  @if (current.kind === 'loading') {
+    <p role="status">Carregant productes…</p>
+  } @else if (current.kind === 'error') {
+    <div role="alert">
+      @if (current.accessDenied) {
+        <p>No tens accés o la sessió ha caducat.</p><a routerLink="/admin/login">Tornar a l’accés</a>
+      } @else {
+        <p>No hem pogut carregar els productes. Torna-ho a provar.</p>
+        <button type="button" (click)="load()">Tornar-ho a provar</button>
+      }
+    </div>
+  } @else if (current.products.length === 0) {
+    <p role="status">No hi ha productes al catàleg.</p>
+  } @else {
+    <p id="products-scroll-hint">{{ current.products.length }} productes. Desplaça la taula horitzontalment per veure totes les columnes.</p>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Taula de productes" aria-describedby="products-scroll-hint">
+      <table>
+        <caption>Catàleg de productes — tots els estats</caption>
+        <thead><tr>
+          <th scope="col">Nom</th><th scope="col">ID</th><th scope="col">Slug</th>
+          <th scope="col">Estat</th><th scope="col">Preu</th><th scope="col">Moneda</th>
+          <th scope="col">Stripe Product ID</th><th scope="col">Stripe Price ID</th><th scope="col">Actualitzat (UTC)</th>
+        </tr></thead>
+        <tbody>
+          @for (product of current.products; track product.id) {
+            <tr>
+              <th scope="row">{{ product.name }}</th>
+              <td><code>{{ product.id }}</code></td><td><code>{{ product.slug }}</code></td>
+              <td><span class="status-badge" [attr.data-status]="product.status">{{ statusLabels[product.status] }}</span></td>
+              <td class="amount">{{ product.priceCents / 100 | number:'1.2-2' }}</td><td>{{ product.currency | uppercase }}</td>
+              <td><code>{{ product.stripeProductId ?? 'No assignat' }}</code></td>
+              <td><code>{{ product.stripePriceId ?? 'No assignat' }}</code></td>
+              <td><time [attr.datetime]="product.updatedAt">{{ product.updatedAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

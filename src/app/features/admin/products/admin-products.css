@@ -1,0 +1,20 @@
+:host { display: block; min-width: 0; color: var(--color-negro); }
+header { margin-block-end: var(--space-group); }
+h2 { margin-block: 0 0.5rem; font-size: 1.5rem; }
+p { margin-block: 0.75rem; }
+.table-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--surface-border); border-radius: var(--radius-sm); }
+table { width: 100%; border-collapse: collapse; background: var(--surface-card); font-size: 0.875rem; }
+caption { text-align: left; padding: 1rem; font-weight: 700; }
+th, td { padding: 0.85rem 1rem; text-align: left; vertical-align: top; border-block-start: 1px solid var(--surface-border); }
+thead { background: var(--color-crudo); }
+th[scope='row'] { min-width: 10rem; }
+code { font-size: 0.8rem; overflow-wrap: anywhere; display: block; min-width: 8rem; max-width: 16rem; }
+.amount, time { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.status-badge { display: inline-block; padding: 0.25rem 0.6rem; border: 1px solid currentColor; border-radius: var(--radius-pill); white-space: nowrap; font-weight: 700; }
+.status-badge[data-status='active'] { background: var(--surface-product-botanical); }
+.status-badge[data-status='coming-soon'] { background: var(--surface-product-citrus); }
+.status-badge[data-status='draft'] { background: var(--color-crudo); }
+.status-badge[data-status='archived'] { background: var(--surface-card); }
+button, a { min-height: var(--control-min-size); display: inline-flex; align-items: center; padding: 0.5rem 1rem; color: var(--color-negro); }
+button { font: inherit; background: var(--surface-card); border: 1px solid currentColor; border-radius: var(--radius-sm); cursor: pointer; }
+:focus-visible { outline: 2px solid var(--color-negro); outline-offset: 3px; }

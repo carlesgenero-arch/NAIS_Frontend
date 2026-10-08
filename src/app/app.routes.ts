@@ -5,7 +5,9 @@ import { productResolver } from './features/shop/product.resolver';
 export const routes: Routes = [
   { path: 'admin/login', title: 'Accés | NAIS', loadComponent: () => import('./features/admin/admin-login').then(m => m.AdminLogin) },
   { path: 'admin', title: 'Backoffice | NAIS', canActivate: [adminGuard], canActivateChild: [adminGuard],
-    loadComponent: () => import('./features/admin/admin-shell').then(m => m.AdminShell), children: [] },
+    loadComponent: () => import('./features/admin/admin-shell').then(m => m.AdminShell), children: [
+      { path: 'products', title: 'Productes | NAIS Admin', loadComponent: () => import('./features/admin/products/admin-products').then(m => m.AdminProducts) },
+    ] },
   {
     path: '',
     pathMatch: 'full',
