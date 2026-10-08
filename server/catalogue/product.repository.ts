@@ -1,7 +1,7 @@
 import type { ProductStatus } from './product.types.ts';
 
 interface ProductStatement {
-  bind(...values: string[]): ProductStatement;
+  bind(...values: (string | number | null)[]): ProductStatement;
   first<T>(): Promise<T | null>;
   all<T>(): Promise<{ success: boolean; results: T[] }>;
 }

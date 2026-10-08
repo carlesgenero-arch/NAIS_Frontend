@@ -39,3 +39,17 @@ All routes below inherit `functions/api/admin/_middleware.ts`; authentication an
 - Unknown valid IDs return 404; malformed IDs return 400; D1/configuration/data errors return generic 503. Responses are no-store. No customer data is logged.
 
 Before Phase 8.3, deploy normally and verify the existing Access application covers these paths, its allowlist is correct, and the production Pages environment has PROMO_DB. No new schema or Cloudflare binding is needed. Verify an allowed user can GET these routes and another identity cannot, on every supported hostname/preview. Use synthetic fixtures for development; do not place customer responses in source control.
+
+## Phase 8.4A: protected product mutations
+
+The existing parent Access middleware (including same-origin Origin checks for writes) is unchanged. All existing GET contracts remain available.
+
+- POST /api/admin/products: JSON with required slug, name, priceCents. Defaults: status draft, currency eur, description/imageUrl/featureImageUrl null. Returns 201 with the admin product. ID is a generated UUID and remains stable across slug edits. Stripe columns start null, so creating active products is rejected in this phase.
+- PATCH /api/admin/products/:id: nonempty JSON with only supplied editable fields; omitted fields are preserved. Returns 200 with the admin product.
+- POST /api/admin/products/:id/archive: no body or empty JSON object. Sets archived, updates updatedAt, returns 200 with product; repeating is safe. No deletes or order changes.
+- Only slug, name, description, status, priceCents, currency, imageUrl, featureImageUrl are accepted. Extra fields (including either Stripe ID, id, timestamps) are rejected.
+- Slug is trimmed/lowercased and must contain lowercase alphanumeric hyphen-separated words, max 200 characters; name trimmed, required, max 200; nullable description max 10000. Currency must be exactly eur. Price is a nonnegative safe integer for non-active products and strictly positive for active products. Status must be active/coming-soon/draft/archived. Images may be null, safe images/ or /images/ paths, or HTTPS URLs without credentials; no uploads/fetches are performed.
+- JSON requests are bounded to 32 KiB. Invalid payload/content type/ID -> 400; absent product -> 404; conflicting slug -> 409. SQLite UNIQUE enforces concurrent slug conflicts. Concurrent updates detected against the full previous snapshot return 409 product_changed instead of overwriting changes.
+- Any update leaving a product active requires an existing server-controlled Stripe Price ID. The server reads that Price with the existing STRIPE_SECRET_KEY and verifies active, one_time, per_unit, currency and exact amount against the proposed product. This is read-only, with no Stripe product/price writes. Invalid configuration/mismatch -> 400 product_not_purchasable; unavailable Stripe/D1/configuration -> generic 503. All responses remain no-store, with no provider details/logging.
+
+Before Phase 8.4B: verify the existing production STRIPE_SECRET_KEY can read the stored Prices and uses the same Stripe mode, and verify authenticated same-origin mutations in a safe preview/local D1 environment. New products remain draft/coming-soon until server-side Stripe provisioning exists. No new migrations or bindings are required. No production data was changed during implementation.
