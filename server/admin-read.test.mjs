@@ -115,14 +115,14 @@ test('unknown valid IDs return 404; invalid IDs/queries return 400', async t => 
     assert.equal((await send(orders, undefined, query)).status, 400);
   }
 });
-test('all adapters reject writes and safely handle missing/failing D1', async t => {
+test('all adapters reject deletes and safely handle missing/failing D1', async t => {
   const { send, ids, db } = await setup(t);
   for (const [handler, id] of [[products, undefined], [product, 'orange-spritz'], [orders, undefined], [order, ids[0]]]) {
     for (const database of [null, { prepare() { throw Error('private SQL'); } }]) {
       const response = await send(handler, id, '', await jwt(), database);
       assert.equal(response.status, 503); assert.deepEqual(await response.json(), { status: 'unavailable' });
     }
-    const response = await send(handler, id, '', await jwt(), db, 'POST');
+    const response = await send(handler, id, '', await jwt(), db, 'DELETE');
     assert.equal(response.status, 405); assert.equal(response.headers.get('Allow'), 'GET');
   }
 });
