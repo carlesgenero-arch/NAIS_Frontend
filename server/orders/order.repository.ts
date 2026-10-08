@@ -53,3 +53,34 @@ export async function insertPaidOrder(db: OrderDatabase, order: NewPaidOrder): P
   const results = await db.batch(statements);
   if (results.length !== statements.length || results.some(result => !result.success)) throw new Error('Persistence failed');
 }
+
+/** Read-only D1 contract for paginated admin queries; no changes to the write contract. */
+export interface AdminOrderDatabase {
+  prepare(sql: string): {
+    bind(...values: SqlValue[]): ReturnType<AdminOrderDatabase['prepare']>;
+    first<T>(): Promise<T | null>;
+    all<T>(): Promise<{ success: boolean; results: T[] }>;
+  };
+}
+const ADMIN_ORDER_COLUMNS = `o.id, o.order_number AS orderNumber,
+  o.payment_status AS paymentStatus, o.fulfillment_status AS fulfillmentStatus,
+  o.total_amount AS totalAmount, o.currency, o.created_at AS createdAt, o.paid_at AS paidAt,
+  o.customer_name AS customerName, o.customer_email AS customerEmail, o.customer_phone AS customerPhone,
+  o.shipping_name AS shippingName, o.shipping_address_line1 AS shippingLine1,
+  o.shipping_address_line2 AS shippingLine2, o.shipping_postal_code AS shippingPostalCode,
+  o.shipping_city AS shippingCity, o.shipping_country AS shippingCountry,
+  (SELECT json_group_array(json_object('productId', i.product_id,
+    'productName', i.product_name, 'quantity', i.quantity, 'unitAmount', i.unit_amount,
+    'lineTotalAmount', i.line_total_amount)) FROM order_items i WHERE i.order_id = o.id) AS itemsJson`;
+export async function findAdminOrderById(db: AdminOrderDatabase, id: string): Promise<unknown | null> {
+  return db.prepare(`SELECT ${ADMIN_ORDER_COLUMNS} FROM orders o WHERE o.id = ?1`).bind(id).first<unknown>();
+}
+export async function findAdminOrders(db: AdminOrderDatabase, limit: number,
+  cursor: { createdAt: string; id: string } | null): Promise<unknown[]> {
+  const where = cursor ? 'WHERE (o.created_at < ?1 OR (o.created_at = ?1 AND o.id < ?2))' : '';
+  const statement = db.prepare(`SELECT ${ADMIN_ORDER_COLUMNS} FROM orders o ${where}
+    ORDER BY o.created_at DESC, o.id DESC LIMIT ${cursor ? '?3' : '?1'}`);
+  const result = await (cursor ? statement.bind(cursor.createdAt, cursor.id, limit) : statement.bind(limit)).all<unknown>();
+  if (!result.success || !Array.isArray(result.results)) throw new Error('Order query failed');
+  return result.results;
+}

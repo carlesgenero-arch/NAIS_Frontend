@@ -37,3 +37,15 @@ export async function findCheckoutProductsByIds(db: ProductDatabase, ids: readon
   if (!result.success || !Array.isArray(result.results)) throw new Error('Catalogue query failed');
   return result.results;
 }
+
+/** Admin-only projection; public queries deliberately never select these columns. */
+const ADMIN_PRODUCT_COLUMNS = `${PRODUCT_COLUMNS}, stripe_product_id AS stripeProductId,
+  stripe_price_id AS stripePriceId, created_at AS createdAt, updated_at AS updatedAt`;
+export async function findAdminProducts(db: ProductDatabase): Promise<unknown[]> {
+  const result = await db.prepare(`SELECT ${ADMIN_PRODUCT_COLUMNS} FROM products ORDER BY slug`).all<unknown>();
+  if (!result.success || !Array.isArray(result.results)) throw new Error('Catalogue query failed');
+  return result.results;
+}
+export async function findAdminProductById(db: ProductDatabase, id: string): Promise<unknown | null> {
+  return db.prepare(`SELECT ${ADMIN_PRODUCT_COLUMNS} FROM products WHERE id = ?1`).bind(id).first<unknown>();
+}

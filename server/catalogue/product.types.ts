@@ -24,3 +24,11 @@ export interface PurchasableProduct {
   readonly priceCents: number;
   readonly currency: 'eur';
 }
+
+/** Protected admin API only. Never return this from the public catalogue. */
+export interface AdminProduct extends CatalogueProduct {
+  readonly stripeProductId: string | null;
+  readonly stripePriceId: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
