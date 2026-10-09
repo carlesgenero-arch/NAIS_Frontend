@@ -20,4 +20,7 @@ export type EmailResult = { readonly ok: true; readonly status: 'accepted' }
   | { readonly ok: false; readonly status: 'not_configured' | 'invalid_message' | 'unavailable' };
 export type EmailDiagnostic = 'not_configured' | 'invalid_message' | 'network_error'
   | 'timeout' | 'provider_http_error' | 'unexpected_error';
-export type EmailTransport = (message: EmailMessage, config: EmailConfiguration) => Promise<EmailResult & { readonly diagnostic?: EmailDiagnostic }>;
+export type EmailException = 'TypeError' | 'AbortError' | 'TimeoutError' | 'OtherError';
+export type EmailTransport = (message: EmailMessage, config: EmailConfiguration) => Promise<EmailResult & {
+  readonly diagnostic?: EmailDiagnostic; readonly exception?: EmailException;
+}>;

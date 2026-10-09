@@ -1,15 +1,16 @@
-import type { EmailConfiguration, EmailDiagnostic, EmailMessage, EmailResult } from './email.types.ts';
+import type { EmailConfiguration, EmailDiagnostic, EmailException, EmailMessage, EmailResult } from './email.types.ts';
 
 /** The only module that knows Resend's URL, authorization and wire format. No automatic retries. */
 export async function resendTransport(message: EmailMessage, config: EmailConfiguration,
-  request: typeof fetch = fetch): Promise<EmailResult & { readonly diagnostic?: EmailDiagnostic }> {
+  request: typeof fetch = fetch): Promise<EmailResult & { readonly diagnostic?: EmailDiagnostic; readonly exception?: EmailException }> {
   let fetching = false;
   let signal: AbortSignal | undefined;
   try {
     signal = AbortSignal.timeout(10000);
     fetching = true;
     const response = await request('https://api.resend.com/emails', {
-      method: 'POST', redirect: 'error', signal,
+      // workerd supports manual/follow, not error. Never forward credentials on redirects.
+      method: 'POST', redirect: 'manual', signal,
       headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: config.from, to: [message.to], subject: message.subject, html: message.html,
         ...(message.text !== undefined ? { text: message.text } : {}),
@@ -28,6 +29,8 @@ export async function resendTransport(message: EmailMessage, config: EmailConfig
   } catch (error) {
     // Includes timeout, network errors, redirects and malformed provider responses.
     const timeout = signal?.aborted || (error instanceof Error && error.name === 'TimeoutError');
-    return { ok: false, status: 'unavailable', diagnostic: timeout ? 'timeout' : fetching ? 'network_error' : 'unexpected_error' };
+    const name = error instanceof Error ? error.name : '';
+    const exception: EmailException = name === 'TypeError' || name === 'AbortError' || name === 'TimeoutError' ? name : 'OtherError';
+    return { ok: false, status: 'unavailable', diagnostic: timeout ? 'timeout' : fetching ? 'network_error' : 'unexpected_error', exception };
   }
 }

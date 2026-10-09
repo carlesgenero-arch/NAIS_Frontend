@@ -79,16 +79,18 @@ test('provider unavailable returns only safe generic status without logging', as
 
 test('admin diagnostic distinguishes network, timeout and unexpected provider results without details', async t => {
   const jwt = await token();
-  for (const [diagnostic, request] of [
-    ['network_error', async () => { throw new TypeError(`${env.RESEND_API_KEY} ${env.EMAIL_TEST_TO}`); }],
-    ['timeout', async () => { throw new DOMException('private', 'TimeoutError'); }],
-    ['unexpected_error', async () => new Response('private invalid JSON')],
+  for (const [diagnostic, request, exception] of [
+    ['network_error', async () => { throw new TypeError(`${env.RESEND_API_KEY} ${env.EMAIL_TEST_TO}`); }, 'TypeError'],
+    ['network_error', async () => { throw new DOMException('private', 'AbortError'); }, 'AbortError'],
+    ['network_error', async () => { throw Object.assign(Error('private'), { name: 'private name' }); }, 'OtherError'],
+    ['timeout', async () => { throw new DOMException('private', 'TimeoutError'); }, 'TimeoutError'],
+    ['unexpected_error', async () => new Response('private invalid JSON'), 'OtherError'],
     ['unexpected_error', async () => Response.json({ id: '' })],
   ]) {
     const fetch = t.mock.method(globalThis, 'fetch', request);
     const response = await run({ jwt });
     assert.equal(response.status, 503);
-    assert.deepEqual(await response.json(), { status: 'unavailable', diagnostic });
+    assert.deepEqual(await response.json(), { status: 'unavailable', diagnostic, ...(exception ? { exception } : {}) });
     fetch.mock.restore();
   }
 });

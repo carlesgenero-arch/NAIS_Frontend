@@ -1,4 +1,4 @@
-import type { EmailDiagnostic, EmailEnvironment, EmailMessage, EmailResult, EmailTransport } from './email.types.ts';
+import type { EmailDiagnostic, EmailEnvironment, EmailException, EmailMessage, EmailResult, EmailTransport } from './email.types.ts';
 import { resendTransport } from './resend.transport.ts';
 
 function address(value: unknown): string | null {
@@ -16,7 +16,7 @@ function sender(value: unknown): string | null {
 /** Future business services call this function; never import Resend or its transport directly. */
 export async function sendEmail(message: EmailMessage, env: EmailEnvironment,
   transport: EmailTransport = resendTransport,
-  diagnose?: (category: EmailDiagnostic) => void): Promise<EmailResult> {
+  diagnose?: (category: EmailDiagnostic, exception?: EmailException) => void): Promise<EmailResult> {
   const key = env.RESEND_API_KEY;
   const from = sender(env.EMAIL_FROM);
   const defaultReplyTo = env.EMAIL_REPLY_TO === undefined ? undefined : address(env.EMAIL_REPLY_TO);
@@ -43,8 +43,10 @@ export async function sendEmail(message: EmailMessage, env: EmailEnvironment,
     // Project the result so provider metadata never escapes through this boundary.
     if (!result.ok) {
       const category = result.diagnostic;
+      const name = result.exception;
+      const exception = name === 'TypeError' || name === 'AbortError' || name === 'TimeoutError' || name === 'OtherError' ? name : undefined;
       diagnose?.(category === 'network_error' || category === 'timeout' || category === 'provider_http_error'
-        ? category : 'unexpected_error');
+        ? category : 'unexpected_error', exception);
     }
     return result.ok === true && result.status === 'accepted'
       ? { ok: true, status: 'accepted' } : { ok: false, status: 'unavailable' };

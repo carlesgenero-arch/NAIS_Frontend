@@ -25,7 +25,8 @@ test('invalid sender, reply-to and credential headers fail safely', async () => 
 test('successful Resend response is accepted, not a delivery claim', async () => {
   const request = mock.fn(async (url, options) => {
     assert.equal(url, 'https://api.resend.com/emails'); assert.equal(options.method, 'POST');
-    assert.equal(options.redirect, 'error'); assert.ok(options.signal instanceof AbortSignal);
+    assert.equal(options.redirect, 'manual'); assert.ok(options.signal instanceof AbortSignal);
+    assert.equal(options.signal.aborted, false);
     assert.equal(options.headers.Authorization, 'Bearer ' + env.RESEND_API_KEY);
     assert.equal(options.headers['Content-Type'], 'application/json');
     assert.deepEqual(JSON.parse(options.body), { from: env.EMAIL_FROM, to: [message.to], subject: message.subject, html: message.html });

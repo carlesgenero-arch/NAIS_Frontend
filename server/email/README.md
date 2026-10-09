@@ -87,6 +87,8 @@ supported test recipients). It is not a production sender for arbitrary customer
    - `timeout`: the outbound request timed out.
    - `provider_http_error`: Resend returned a non-2xx response; no body is exposed.
    - `unexpected_error`: unexpected exception or malformed successful provider response.
+   Exceptions additionally include only `exception`: `TypeError`, `AbortError`,
+   `TimeoutError` or `OtherError` (arbitrary exception names are never exposed).
    No diagnostic logs are written. The provider URL is `https://api.resend.com/emails`,
    with `Authorization: Bearer <RESEND_API_KEY>` and `Content-Type: application/json`.
    After deploying these diagnostics, run step 8 once and inspect only status/category.
@@ -101,6 +103,15 @@ supported test recipients). It is not a production sender for arbitrary customer
 Remove the temporary `functions/api/admin/email/test.ts` route and
 `server/admin-email.test.mjs` when the smoke test is no longer needed; the reusable
 email infrastructure is independent of this endpoint.
+
+Cloudflare transport regression: `redirect: 'error'` is rejected with TypeError
+by workerd before outbound dispatch. Use `redirect: 'manual'`; all 3xx responses
+fail safely without forwarding credentials. The 10-second AbortSignal timeout is
+supported and retained. `email-runtime.test.mjs` executes the actual transpiled
+transport in Wrangler's installed Miniflare/workerd with synthetic outbound replies.
+It reproduces the old failure, verifies the fixed request, and checks redirects
+are not followed. Production compatibility settings remain dashboard-managed;
+the runtime test uses the repository's local compatibility date, 2026-09-01.
 
 ## Verification
 
