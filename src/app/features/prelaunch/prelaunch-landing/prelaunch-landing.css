@@ -124,6 +124,33 @@
   max-width: 44rem;
 }
 
+.prelaunch__contact {
+  max-width: 44rem;
+  width: 100%;
+}
+
+.prelaunch__contact address {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: var(--space-group);
+  font-style: normal;
+}
+
+.prelaunch__contact a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-min-size);
+  max-width: 100%;
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+.prelaunch__contact a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
 .prelaunch__eyebrow {
   margin: 0 0 var(--space-group);
 }
