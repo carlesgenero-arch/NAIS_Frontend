@@ -78,8 +78,21 @@ supported test recipients). It is not a production sender for arbitrary customer
    **NAIS email test**. Acceptance does not prove delivery; check Resend's dashboard
    if the message does not arrive. With the test sender, use your Resend account's
    email as `EMAIL_TEST_TO`.
-9. Missing/invalid email settings or provider failures return generic 503
-   `unavailable`. Authentication failures return 401; unauthorized identities or
+9. The temporary test endpoint returns 503 `unavailable` with a safe `diagnostic`
+   category on email failures. Other consumers retain generic results. Categories:
+   - `not_configured`: required configuration missing or invalid (including sender
+     or optional reply-to); no request was made. Check Production variables and redeploy.
+   - `invalid_message`: message validation failed, e.g. malformed `EMAIL_TEST_TO`.
+   - `network_error`: fetch failed before receiving a response.
+   - `timeout`: the outbound request timed out.
+   - `provider_http_error`: Resend returned a non-2xx response; no body is exposed.
+   - `unexpected_error`: unexpected exception or malformed successful provider response.
+   No diagnostic logs are written. The provider URL is `https://api.resend.com/emails`,
+   with `Authorization: Bearer <RESEND_API_KEY>` and `Content-Type: application/json`.
+   After deploying these diagnostics, run step 8 once and inspect only status/category.
+   A generic 503 without a category can still originate in admin authentication
+   middleware before this endpoint runs; its security behavior is unchanged.
+   Authentication failures return 401; unauthorized identities or
    cross-origin writes return 403; non-POST methods return 405 after authentication.
    Request bodies are ignored and cannot override recipient or content. Do not
    repeatedly retry an ambiguous failure: the provider may already have accepted it.

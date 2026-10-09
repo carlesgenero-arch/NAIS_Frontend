@@ -27,11 +27,27 @@ test('successful Resend response is accepted, not a delivery claim', async () =>
     assert.equal(url, 'https://api.resend.com/emails'); assert.equal(options.method, 'POST');
     assert.equal(options.redirect, 'error'); assert.ok(options.signal instanceof AbortSignal);
     assert.equal(options.headers.Authorization, 'Bearer ' + env.RESEND_API_KEY);
+    assert.equal(options.headers['Content-Type'], 'application/json');
     assert.deepEqual(JSON.parse(options.body), { from: env.EMAIL_FROM, to: [message.to], subject: message.subject, html: message.html });
     return Response.json({ id: 'email_fixture' });
   });
   assert.deepEqual(await sendWith(request), { ok: true, status: 'accepted' });
   assert.equal(request.mock.callCount(), 1);
+});
+
+test('diagnostics are opt-in categories; default service results remain generic', async () => {
+  const cases = [
+    [message, {}, undefined, 'not_configured'],
+    [{ ...message, to: 'bad' }, env, undefined, 'invalid_message'],
+    [message, env, async () => { throw Error('private'); }, 'unexpected_error'],
+    [message, env, async () => ({ ok: false, status: 'unavailable', diagnostic: 'private arbitrary value' }), 'unexpected_error'],
+  ];
+  for (const [msg, settings, transport, expected] of cases) {
+    const categories = [];
+    const result = await sendEmail(msg, settings, transport, category => categories.push(category));
+    assert.deepEqual(categories, [expected]);
+    assert.equal('diagnostic' in result, false);
+  }
 });
 test('optional text and reply-to precedence use the provider wire contract', async () => {
   const bodies = [];
