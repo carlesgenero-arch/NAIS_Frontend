@@ -61,6 +61,18 @@ describe('admin products', () => {
     expect(fixture.nativeElement.textContent).toContain('No hi ha productes');
     expect(fixture.nativeElement.querySelector('table')).toBeNull();
   });
+  it('labels linked, legacy-linked and pending active products without mutations', () => {
+    const fixture = render();
+    http.expectOne('/api/admin/products').flush([
+      products[0], { ...products[0], id: 'legacy', stripeProductId: null },
+      { ...products[0], id: 'pending', stripePriceId: null, stripeProductId: null },
+    ]); fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    expect(Array.from(root.querySelectorAll('.stripe-status')).map(n => n.textContent?.trim()))
+      .toEqual(['Stripe vinculat', 'Stripe vinculat', 'Stripe pendent']);
+    expect(root.textContent).toContain('Product ID pendent de sincronitzar');
+    http.expectNone(request => request.method !== 'GET');
+  });
   it('confirms permanent deletion and removes only the successfully deleted row', () => {
     const fixture = render(); http.expectOne('/api/admin/products').flush(products); fixture.detectChanges();
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);

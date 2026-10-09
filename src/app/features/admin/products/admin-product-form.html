@@ -8,8 +8,12 @@
     @if (created()) {
       <a [routerLink]="['/admin/products', product()!.id, 'edit']">Editar el producte creat</a>
     } @else {
-      <p>Els productes nous no es poden activar fins que tinguin una configuració Stripe vàlida.</p>
-      @if (error()) { <p id="form-error" role="alert">{{ error() }}</p> }
+      @if (product()) {
+        <p>En activar o canviar el preu d’un producte actiu, el servidor sincronitza Stripe. Els identificadors no es poden editar.</p>
+      } @else {
+        <p>Desa primer el producte com a esborrany o properament; després podràs activar-lo amb Stripe.</p>
+      }
+      @if (error()) { <p #errorSummary id="form-error" role="alert" tabindex="-1">{{ error() }}</p> }
       <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting()" novalidate>
         <fieldset [disabled]="submitting()">
           <legend>Dades del producte</legend>
@@ -24,7 +28,7 @@
           <label for="product-status">Estat</label>
           <select id="product-status" formControlName="status">
             <option value="draft">Esborrany</option><option value="coming-soon">Properament</option>
-            <option value="active">Actiu</option><option value="archived">Arxivat</option>
+            <option value="active" [disabled]="!product()">Actiu</option><option value="archived">Arxivat</option>
           </select>
           <label for="product-price">Preu en EUR</label>
           <input id="product-price" type="text" inputmode="decimal" formControlName="price" required
@@ -41,7 +45,7 @@
           <input id="stripe-product" readonly [value]="product()?.stripeProductId ?? 'No assignat'">
           <label for="stripe-price">Stripe Price ID · només lectura</label>
           <input id="stripe-price" readonly [value]="product()?.stripePriceId ?? 'No assignat'">
-          <button type="submit" [disabled]="submitting()">{{ submitting() ? 'Desant…' : 'Desar producte' }}</button>
+          <button #saveButton type="submit" [disabled]="submitting()">{{ submitting() ? 'Desant…' : 'Desar producte' }}</button>
         </fieldset>
         <a routerLink="/admin/products">Cancel·lar</a>
       </form>

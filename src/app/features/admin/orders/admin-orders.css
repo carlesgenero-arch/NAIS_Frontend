@@ -1,0 +1,18 @@
+:host { display: block; min-width: 0; color: var(--color-negro); }
+h2, h3, p { margin-block: 1rem; }
+.table-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--surface-border); border-radius: var(--radius-sm); margin-block: var(--space-group); }
+table { width: 100%; border-collapse: collapse; background: var(--surface-card); font-size: 0.875rem; }
+caption { text-align: left; padding: 1rem; font-weight: 700; }
+th, td { padding: 0.85rem 1rem; text-align: left; vertical-align: top; border-block-start: 1px solid var(--surface-border); }
+thead { background: var(--color-crudo); }
+.amount, time { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.status-badge { display: inline-block; padding: 0.25rem 0.6rem; border: 1px solid currentColor; border-radius: var(--radius-pill); font-weight: 700; }
+button, a { min-height: var(--control-min-size); display: inline-flex; align-items: center; padding: 0.5rem; color: var(--color-negro); }
+button { font: inherit; background: var(--surface-card); border: 1px solid currentColor; border-radius: var(--radius-sm); cursor: pointer; }
+button:disabled { opacity: 0.65; cursor: wait; }
+:focus-visible { outline: 2px solid var(--color-negro); outline-offset: 3px; }
+.details-grid { display: grid; gap: var(--space-group); }
+dt { font-weight: 700; margin-block-start: 0.75rem; }
+dd { margin: 0; overflow-wrap: anywhere; }
+address { font-style: normal; overflow-wrap: anywhere; }
+@media (min-width: 48rem) { .details-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

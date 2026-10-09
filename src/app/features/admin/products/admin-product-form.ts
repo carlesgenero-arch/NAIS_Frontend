@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { afterRenderEffect, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -20,6 +20,8 @@ export class AdminProductForm {
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
   private readonly fb = inject(FormBuilder);
+  private readonly errorSummary = viewChild<ElementRef<HTMLElement>>('errorSummary');
+  private readonly saveButton = viewChild<ElementRef<HTMLButtonElement>>('saveButton');
   protected readonly product = signal<AdminProductDetail | null>(null);
   protected readonly loading = signal(false);
   protected readonly submitting = signal(false);
@@ -36,6 +38,9 @@ export class AdminProductForm {
     imageUrl: ['', Validators.maxLength(2048)], featureImageUrl: ['', Validators.maxLength(2048)],
   });
   constructor() {
+    afterRenderEffect(() => {
+      if (this.error()) this.errorSummary()?.nativeElement.focus();
+    });
     this.route.paramMap.pipe(
       tap(() => { this.loading.set(true); this.loadError.set(''); this.error.set(''); this.success.set(''); this.created.set(false); this.product.set(null); }),
       switchMap(params => {
@@ -53,6 +58,12 @@ export class AdminProductForm {
   protected invalid(field: keyof typeof this.form.controls): boolean {
     const control = this.form.controls[field]; return control.touched && control.invalid;
   }
+  private confirm(message: string): boolean {
+    // Native dialogs provide keyboard support and modal focus handling without another UI dependency.
+    const accepted = this.document.defaultView?.confirm(message) ?? false;
+    this.saveButton()?.nativeElement.focus();
+    return accepted;
+  }
   protected submit(): void {
     if (this.submitting() || this.loading() || this.loadError() || this.created()) return;
     this.success.set(''); this.error.set(''); this.form.markAllAsTouched();
@@ -61,12 +72,20 @@ export class AdminProductForm {
     if (!value.name.trim()) this.form.controls.name.setErrors({ required: true });
     if (cents === null || (value.status === 'active' && cents === 0)) this.form.controls.price.setErrors({ money: true });
     if (this.form.invalid || cents === null) { this.error.set('Revisa els camps indicats.'); return; }
+    const existing = this.product();
+    if (!existing && value.status === 'active') {
+      this.error.set('Desa primer el producte com a esborrany o properament. Després podràs activar-lo amb Stripe.'); return;
+    }
+    if (existing && value.status === 'active' && existing.status !== 'active'
+      && !this.confirm('Activar aquest producte? El servidor crearà o reutilitzarà un Product de Stripe i crearà un Price si cal. El producte estarà disponible per comprar només quan la sincronització sigui correcta.')) return;
+    if (existing?.status === 'active' && value.status === 'active' && cents !== existing.priceCents
+      && !this.confirm('Canviar el preu de ' + centsToEuro(existing.priceCents) + ' EUR a ' + centsToEuro(cents)
+        + ' EUR? Stripe crearà un Price nou. L’anterior es conservarà com a històric i es desactivarà quan sigui segur. Les compres futures utilitzaran el Price nou.')) return;
     if (value.status === 'archived' && this.product()?.status !== 'archived'
-      && !this.document.defaultView?.confirm('Vols arxivar aquest producte? Deixarà de ser comprable.')) return;
+      && !this.confirm('Vols arxivar aquest producte? Deixarà de ser comprable.')) return;
     const input = { slug: value.slug.trim().toLowerCase(), name: value.name.trim(), description: value.description.trim() || null,
       status: value.status, priceCents: cents, currency: value.currency,
       imageUrl: value.imageUrl.trim() || null, featureImageUrl: value.featureImageUrl.trim() || null };
-    const existing = this.product();
     this.submitting.set(true);
     const request = existing ? this.service.updateProduct(existing.id, input) : this.service.createProduct(input);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({

@@ -1,0 +1,22 @@
+<section aria-labelledby="orders-title">
+  <h2 id="orders-title">Comandes</h2>
+  @if (loading()) { <p role="status">{{ loaded() ? 'Carregant més comandes…' : 'Carregant comandes…' }}</p> }
+  @if (error()) { <p role="alert">{{ error() }}</p><button type="button" (click)="load()" [disabled]="loading()">Tornar-ho a provar</button> }
+  @if (loaded() && orders().length === 0) { <p role="status">No hi ha comandes.</p> }
+  @if (orders().length) {
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Taula de comandes">
+      <table><caption>Comandes · imports en EUR · dates UTC</caption>
+        <thead><tr><th scope="col">Comanda</th><th scope="col">Data</th><th scope="col">Client</th><th scope="col">Correu electrònic</th><th scope="col">Pagament</th><th scope="col">Preparació</th><th scope="col">Total (EUR)</th></tr></thead>
+        <tbody>@for (order of orders(); track order.id) {
+          <tr><th scope="row"><a [routerLink]="['/admin/orders', order.id]">{{ order.orderNumber }}</a></th>
+            <td><time [attr.datetime]="order.createdAt">{{ order.createdAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></td>
+            <td>{{ order.customer.name }}</td><td>{{ order.customer.email }}</td>
+            <td><span class="status-badge">{{ paymentLabels[order.paymentStatus] }}</span></td>
+            <td><span class="status-badge">{{ fulfillmentLabels[order.fulfillmentStatus] }}</span></td>
+            <td class="amount">{{ order.totalAmount | orderEuro }}</td></tr>
+        }</tbody>
+      </table>
+    </div>
+  }
+  @if (cursor() && !error()) { <button type="button" (click)="load()" [disabled]="loading()">Carregar més</button> }
+</section>

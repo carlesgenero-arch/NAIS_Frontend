@@ -24,3 +24,7 @@
 /admin/products/new/ / 200
 /admin/products/:id/edit / 200
 /admin/products/:id/edit/ / 200
+/admin/orders / 200
+/admin/orders/ / 200
+/admin/orders/:id / 200
+/admin/orders/:id/ / 200
