@@ -14,6 +14,7 @@ export function adminProductError(error: unknown): string {
     if (error.status === 409) return 'El producte ha canviat. Torna a carregar-lo abans de desar.';
     if (code === 'product_not_purchasable') return 'No es pot activar: falta una configuració Stripe vàlida o el preu no coincideix.';
     if (error.status === 400) return 'Les dades no són vàlides. Revisa els camps.';
+    if (code === 'unavailable' || error.status === 503) return 'El servei no està disponible i no podem confirmar el resultat. Torna al llistat i comprova el producte abans de tornar-ho a provar.';
   }
   return 'No s’ha pogut completar la petició. Torna-ho a provar.';
 }

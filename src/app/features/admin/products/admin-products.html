@@ -34,7 +34,12 @@
               <td><span class="status-badge" [attr.data-status]="product.status">{{ statusLabels[product.status] }}</span></td>
               <td class="amount">{{ product.priceCents / 100 | number:'1.2-2' }}</td><td>{{ product.currency | uppercase }}</td>
               <td><code>{{ product.stripeProductId ?? 'No assignat' }}</code></td>
-              <td><code>{{ product.stripePriceId ?? 'No assignat' }}</code></td>
+              <td><code>{{ product.stripePriceId ?? 'No assignat' }}</code>
+                @if (product.status === 'active') {
+                  <span class="stripe-status">{{ product.stripePriceId ? 'Stripe vinculat' : 'Stripe pendent' }}</span>
+                  @if (product.stripePriceId && !product.stripeProductId) { <span> · Product ID pendent de sincronitzar</span> }
+                }
+              </td>
               <td><time [attr.datetime]="product.updatedAt">{{ product.updatedAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></td>
               <td>
                 <a [routerLink]="['/admin/products', product.id, 'edit']" [attr.aria-label]="'Editar ' + product.name">Editar</a>

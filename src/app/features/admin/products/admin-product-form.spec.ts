@@ -65,7 +65,8 @@ describe('admin product form', () => {
     expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
   });
   for (const [status, code, text] of [[409, 'slug_conflict', 'Aquest slug ja existeix'],
-    [400, 'product_not_purchasable', 'No es pot activar'], [503, 'unavailable', 'No s’ha pogut completar']] as const) {
+    [400, 'product_not_purchasable', 'No es pot activar'], [503, 'unavailable', 'El servei no està disponible'],
+    [409, 'product_changed', 'El producte ha canviat'], [400, 'invalid_payload', 'Les dades no són vàlides']] as const) {
     it('retains entered values and shows safe API error ' + code, () => {
       const fixture = render(); const root: HTMLElement = fixture.nativeElement;
       fillNew(root); submit(root);
@@ -81,6 +82,64 @@ describe('admin product form', () => {
     http.expectOne('/api/admin/products/missing').flush({}, { status: 404, statusText: 'Not found' }); fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('form')).toBeNull();
     expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
+  });
+  for (const status of ['draft', 'coming-soon'] as const) it('confirms activation from ' + status + ' and navigates only after PATCH succeeds', () => {
+    const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    http.expectOne('/api/admin/products/fixture').flush({ ...product, status, stripeProductId: null, stripePriceId: null }); fixture.detectChanges();
+    const select = root.querySelector<HTMLSelectElement>('#product-status')!;
+    select.value = 'active'; select.dispatchEvent(new Event('change'));
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    submit(root); http.expectNone('/api/admin/products/fixture');
+    expect(confirm.mock.calls[0][0]).toContain('crearà o reutilitzarà');
+    expect(document.activeElement).toBe(root.querySelector('button[type="submit"]'));
+    confirm.mockReturnValue(true); submit(root); submit(root); fixture.detectChanges();
+    const request = http.expectOne('/api/admin/products/fixture');
+    expect(request.request.method).toBe('PATCH'); expect(request.request.body.status).toBe('active');
+    expect(request.request.body.stripeProductId).toBeUndefined(); expect(request.request.body.stripePriceId).toBeUndefined();
+    expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(true);
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
+    request.flush({ ...product, status: 'active' });
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledExactlyOnceWith(['/admin/products']);
+  });
+  it('confirms an active price change, submits cents only and navigates after success', () => {
+    const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    http.expectOne('/api/admin/products/fixture').flush({ ...product, status: 'active' }); fixture.detectChanges();
+    fill(root, '#product-price', '37,50');
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    submit(root); http.expectNone('/api/admin/products/fixture');
+    expect(confirm.mock.calls[0][0]).toContain('Price nou'); expect(confirm.mock.calls[0][0]).toContain('històric');
+    confirm.mockReturnValue(true); submit(root); submit(root);
+    const request = http.expectOne('/api/admin/products/fixture');
+    expect(request.request.body.priceCents).toBe(3750); expect(request.request.method).toBe('PATCH');
+    expect(request.request.body.stripePriceId).toBeUndefined();
+    request.flush({ ...product, status: 'active', priceCents: 3750, stripePriceId: 'price_newFixture' });
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledExactlyOnceWith(['/admin/products']);
+  });
+  it('keeps a failed synchronization on the form and focuses the safe error', async () => {
+    const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    http.expectOne('/api/admin/products/fixture').flush({ ...product, status: 'active' }); fixture.detectChanges();
+    vi.spyOn(window, 'confirm').mockReturnValue(true); fill(root, '#product-price', '37,50'); submit(root);
+    http.expectOne('/api/admin/products/fixture').flush({ status: 'unavailable', secret: 'private' }, { status: 503, statusText: 'Unavailable' });
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
+    expect(root.querySelector<HTMLInputElement>('#product-price')!.value).toBe('37,50');
+    expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
+    expect(root.textContent).not.toContain('private');
+    expect(document.activeElement).toBe(root.querySelector('#form-error'));
+  });
+  it('views legacy Stripe mapping without writes and does not prompt for unchanged price', () => {
+    const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    http.expectOne('/api/admin/products/fixture').flush({ ...product, status: 'active', stripeProductId: null }); fixture.detectChanges();
+    http.expectNone('/api/admin/products/fixture');
+    expect(root.querySelector<HTMLInputElement>('#stripe-product')!.readOnly).toBe(true);
+    expect(root.querySelector<HTMLInputElement>('#stripe-price')!.readOnly).toBe(true);
+    expect(root.querySelector('#stripe-price')!.hasAttribute('formControlName')).toBe(false);
+    const confirm = vi.spyOn(window, 'confirm');
+    fill(root, '#product-name', 'Updated name'); submit(root);
+    expect(confirm).not.toHaveBeenCalled();
+    const request = http.expectOne('/api/admin/products/fixture');
+    expect(Object.keys(request.request.body).sort()).toEqual(['currency', 'description', 'featureImageUrl', 'imageUrl', 'name', 'priceCents', 'slug', 'status']);
+    request.flush({ ...product, status: 'active', name: 'Updated name' });
   });
   it('service strips all operational fields from mutation input', () => {
     render(); const service = TestBed.inject(AdminProductsService);
