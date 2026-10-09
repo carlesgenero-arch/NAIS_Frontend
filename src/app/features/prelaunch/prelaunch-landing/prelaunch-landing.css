@@ -163,9 +163,13 @@ h1 {
 
 p {
   margin: 0;
-  line-height: 1.8;
+  line-height: 1.5;
 }
 
+a {
+  font-size: 20px ;
+
+}
 .prelaunch__bubbles {
   display: flex;
   flex-wrap: wrap;
