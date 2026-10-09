@@ -9,6 +9,16 @@
       <dt>Pagada (UTC)</dt><dd><time [attr.datetime]="current.paidAt">{{ current.paidAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></dd>
       <dt>Pagament</dt><dd><span class="status-badge">{{ paymentLabels[current.paymentStatus] }}</span></dd>
       <dt>Preparació</dt><dd><span class="status-badge">{{ fulfillmentLabels[current.fulfillmentStatus] }}</span></dd></dl>
+    <section aria-labelledby="fulfillment-actions-title" [attr.aria-busy]="saving()">
+      <h3 id="fulfillment-actions-title">Gestionar preparació</h3>
+      <p>El pagament és de només lectura. Cancel·lar la preparació no implica cap reemborsament.</p>
+      @if (saving()) { <p role="status">Desant estat…</p> }
+      @if (saveError()) { <p #feedback role="alert" tabindex="-1">{{ saveError() }}</p><button type="button" (click)="reload()" [disabled]="saving()">Recarregar comanda</button> }
+      @if (saved()) { <p #feedback role="status" tabindex="-1">{{ saved() }}</p> }
+      @for (next of nextStatuses(); track next) {
+        <button type="button" [attr.data-fulfillment]="next" (click)="changeFulfillment(next)" [disabled]="saving()">{{ next === 'cancelled' ? 'Cancel·lar preparació' : 'Marcar: ' + fulfillmentLabels[next] }}</button>
+      } @empty { <p>No hi ha més transicions disponibles.</p> }
+    </section>
     <div class="details-grid">
       <section aria-labelledby="customer-title"><h3 id="customer-title">Client</h3>
         <dl><dt>Nom</dt><dd>{{ current.customer.name }}</dd><dt>Correu electrònic</dt><dd>{{ current.customer.email }}</dd>

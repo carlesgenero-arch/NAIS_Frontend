@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { map, type Observable } from 'rxjs';
 import { isPublicOrderSummary } from '../../shared/order-summary';
 import type { AdminOrder, AdminOrderPage } from '../models/admin-order.interface';
+import type { FulfillmentStatus } from '../../shared/order-fulfillment';
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid admin order');
@@ -35,6 +36,15 @@ export function adminOrderError(error: unknown): string {
   if (error instanceof HttpErrorResponse && [401, 403].includes(error.status)) return 'No tens accés o la sessió ha caducat. Torna a identificar-te.';
   return 'No hem pogut carregar les comandes. Torna-ho a provar.';
 }
+export function fulfillmentError(error: unknown): string {
+  if (error instanceof HttpErrorResponse) {
+    if ([401, 403].includes(error.status)) return adminOrderError(error);
+    if (error.status === 409) return 'La comanda ha canviat o la transició no està permesa. Torna a carregar-la abans de continuar.';
+    if (error.status === 404) return 'No s’ha trobat la comanda.';
+    if (error.status === 400) return 'El canvi d’estat no és vàlid.';
+  }
+  return 'No podem confirmar el canvi. Torna a carregar la comanda per comprovar-ne l’estat.';
+}
 @Injectable({ providedIn: 'root' })
 export class AdminOrdersService {
   private readonly http = inject(HttpClient);
@@ -49,5 +59,9 @@ export class AdminOrdersService {
   }
   getOrder(id: string): Observable<AdminOrder> {
     return this.http.get<unknown>('/api/admin/orders/' + encodeURIComponent(id)).pipe(map(readOrder));
+  }
+  updateFulfillment(id: string, fulfillmentStatus: FulfillmentStatus): Observable<AdminOrder> {
+    return this.http.patch<unknown>('/api/admin/orders/' + encodeURIComponent(id) + '/fulfillment',
+      { fulfillmentStatus }).pipe(map(readOrder));
   }
 }
