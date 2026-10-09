@@ -54,7 +54,7 @@ export async function insertPaidOrder(db: OrderDatabase, order: NewPaidOrder): P
   if (results.length !== statements.length || results.some(result => !result.success)) throw new Error('Persistence failed');
 }
 
-/** Read-only D1 contract for paginated admin queries; no changes to the write contract. */
+/** Minimal D1 contract for admin reads and conditional fulfillment writes. */
 export interface AdminOrderDatabase {
   prepare(sql: string): {
     bind(...values: SqlValue[]): ReturnType<AdminOrderDatabase['prepare']>;
@@ -74,6 +74,12 @@ const ADMIN_ORDER_COLUMNS = `o.id, o.order_number AS orderNumber,
     'lineTotalAmount', i.line_total_amount)) FROM order_items i WHERE i.order_id = o.id) AS itemsJson`;
 export async function findAdminOrderById(db: AdminOrderDatabase, id: string): Promise<unknown | null> {
   return db.prepare(`SELECT ${ADMIN_ORDER_COLUMNS} FROM orders o WHERE o.id = ?1`).bind(id).first<unknown>();
+}
+export async function updateOrderFulfillment(db: AdminOrderDatabase, id: string,
+  previous: PublicOrderSummary['fulfillmentStatus'], next: PublicOrderSummary['fulfillmentStatus']): Promise<boolean> {
+  // A stale/concurrent request cannot overwrite a newer state. No other order column is written.
+  return await db.prepare('UPDATE orders SET fulfillment_status=?1 WHERE id=?2 AND fulfillment_status=?3 RETURNING id')
+    .bind(next, id, previous).first<{ id: string }>() !== null;
 }
 export async function findAdminOrders(db: AdminOrderDatabase, limit: number,
   cursor: { createdAt: string; id: string } | null): Promise<unknown[]> {

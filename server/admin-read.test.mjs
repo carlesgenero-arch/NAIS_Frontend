@@ -9,6 +9,8 @@ import { onRequest as products } from '../functions/api/admin/products/index.ts'
 import { onRequest as product } from '../functions/api/admin/products/[id].ts';
 import { onRequest as orders } from '../functions/api/admin/orders/index.ts';
 import { onRequest as order } from '../functions/api/admin/orders/[id].ts';
+import { onRequest as fulfillment } from '../functions/api/admin/orders/[id]/fulfillment.ts';
+import { changeOrderFulfillment } from './orders/order-fulfillment.service.ts';
 import { onRequest as publicProducts } from '../functions/api/products/index.ts';
 const env = { ACCESS_TEAM_DOMAIN: 'https://test.cloudflareaccess.com', ACCESS_AUD: 'test-only', ADMIN_EMAILS: 'admin@example.test' };
 const { privateKey, publicKey } = await generateKeyPair('RS256');
@@ -46,23 +48,90 @@ async function setup(t) {
   sqlite.exec("UPDATE orders SET created_at='2026-01-01T00:00:00.000Z'");
   const ids = sqlite.prepare('SELECT id FROM orders ORDER BY id DESC').all().map(r => r.id);
   const signed = await jwt();
-  async function send(handler, id, query = '', token = signed, database = db, method = 'GET') {
+  async function send(handler, id, query = '', token = signed, database = db, method = 'GET', options = {}) {
     const request = new Request('https://nais.example/api/admin/test' + query, { method,
-      headers: { ...(token ? { 'Cf-Access-Jwt-Assertion': token } : {}), Origin: 'https://nais.example' } });
+      headers: { ...(token ? { 'Cf-Access-Jwt-Assertion': token } : {}), Origin: options.origin ?? 'https://nais.example',
+        'Content-Type': options.contentType ?? 'application/json' },
+      body: options.raw ?? (options.payload === undefined ? undefined : JSON.stringify(options.payload)) });
     const context = { request, env: { ...env, PROMO_DB: database }, data: {}, params: { id },
       next: () => handler(context) };
     return requireAdmin(context, () => keys);
   }
   return { sqlite, db, ids, send };
 }
-test('all four adapters deny unauthenticated/unauthorized identities before D1', async t => {
+test('admin read and fulfillment adapters deny unauthenticated/unauthorized identities before D1', async t => {
   const { send, ids } = await setup(t);
   const failDb = { prepare() { assert.fail('D1 must not run'); } };
-  for (const handler of [products, product, orders, order]) {
+  for (const handler of [products, product, orders, order, fulfillment]) {
     assert.equal((await send(handler, ids[0], '', null, failDb)).status, 401);
     assert.equal((await send(handler, ids[0], '', 'forged', failDb)).status, 401);
     assert.equal((await send(handler, ids[0], '', await jwt('other@example.test'), failDb)).status, 403);
   }
+});
+
+test('fulfillment normal flow changes only fulfillment_status and refreshed list reflects it', async t => {
+  const { send, sqlite, ids } = await setup(t);
+  const before = sqlite.prepare('SELECT * FROM orders WHERE id=?').get(ids[0]);
+  const items = sqlite.prepare('SELECT * FROM order_items').all();
+  for (const next of ['preparing', 'shipped', 'delivered']) {
+    const response = await send(fulfillment, ids[0], '', undefined, undefined, 'PATCH', { payload: { fulfillmentStatus: next } });
+    assert.equal(response.status, 200); assert.equal((await response.json()).fulfillmentStatus, next);
+    assert.deepEqual({ ...sqlite.prepare('SELECT * FROM orders WHERE id=?').get(ids[0]) }, { ...before, fulfillment_status: next });
+  }
+  assert.deepEqual(sqlite.prepare('SELECT * FROM order_items').all(), items);
+  const page = await (await send(orders)).json();
+  assert.equal(page.items.find(o => o.id === ids[0]).fulfillmentStatus, 'delivered');
+});
+test('fulfillment cancellation allowed only from pending/preparing', async t => {
+  const { send, sqlite, ids } = await setup(t);
+  for (const previous of ['pending', 'preparing', 'shipped', 'delivered', 'cancelled']) {
+    sqlite.prepare('UPDATE orders SET fulfillment_status=? WHERE id=?').run(previous, ids[0]);
+    const response = await send(fulfillment, ids[0], '', undefined, undefined, 'PATCH', { payload: { fulfillmentStatus: 'cancelled' } });
+    assert.equal(response.status, ['pending', 'preparing'].includes(previous) ? 200 : 409);
+    assert.equal(sqlite.prepare('SELECT payment_status FROM orders WHERE id=?').get(ids[0]).payment_status, 'paid');
+  }
+});
+test('fulfillment rejects all backwards, skipped, repeated and terminal transitions', async t => {
+  const { send, sqlite, ids } = await setup(t);
+  const allowed = { pending: ['preparing','cancelled'], preparing: ['shipped','cancelled'], shipped: ['delivered'], delivered: [], cancelled: [] };
+  for (const previous of Object.keys(allowed)) for (const next of Object.keys(allowed)) {
+    if (allowed[previous].includes(next)) continue;
+    sqlite.prepare('UPDATE orders SET fulfillment_status=? WHERE id=?').run(previous, ids[0]);
+    const response = await send(fulfillment, ids[0], '', undefined, undefined, 'PATCH', { payload: { fulfillmentStatus: next } });
+    assert.equal(response.status, 409, `${previous} -> ${next}`);
+    assert.equal(sqlite.prepare('SELECT fulfillment_status FROM orders WHERE id=?').get(ids[0]).fulfillment_status, previous);
+  }
+});
+test('fulfillment rejects payment and other fields, malformed JSON and wrong method', async t => {
+  const { send, sqlite, ids } = await setup(t);
+  const before = sqlite.prepare('SELECT * FROM orders').all();
+  for (const payload of [{}, null, [], { fulfillmentStatus: 'bad' }, { fulfillmentStatus: 'preparing', paymentStatus: 'refunded' },
+    { payment_status: 'paid' }, { fulfillmentStatus: 'preparing', totalAmount: 0 }, { fulfillmentStatus: 'preparing', customer: {} }]) {
+    assert.equal((await send(fulfillment, ids[0], '', undefined, undefined, 'PATCH', { payload })).status, 400);
+  }
+  for (const raw of ['{', '', ' '.repeat(1025)]) assert.equal((await send(fulfillment, ids[0], '', undefined, undefined, 'PATCH', { raw })).status, 400);
+  assert.equal((await send(fulfillment, ids[0], '', undefined, undefined, 'PATCH', { payload: { fulfillmentStatus: 'preparing' }, contentType: 'text/plain' })).status, 400);
+  assert.equal((await send(fulfillment, ids[0])).status, 405);
+  assert.deepEqual(sqlite.prepare('SELECT * FROM orders').all(), before);
+});
+test('fulfillment unknown order, unauthorized/cross-origin and database failure fail safely', async t => {
+  const { send, ids } = await setup(t); const options = { payload: { fulfillmentStatus: 'preparing' } };
+  assert.equal((await send(fulfillment, '00000000-0000-0000-0000-000000000000', '', undefined, undefined, 'PATCH', options)).status, 404);
+  assert.equal((await send(fulfillment, '../bad', '', undefined, undefined, 'PATCH', options)).status, 400);
+  assert.equal((await send(fulfillment, ids[0], '', null, undefined, 'PATCH', options)).status, 401);
+  assert.equal((await send(fulfillment, ids[0], '', await jwt('other@example.test'), undefined, 'PATCH', options)).status, 403);
+  assert.equal((await send(fulfillment, ids[0], '', undefined, undefined, 'PATCH', { ...options, origin: 'https://evil.test' })).status, 403);
+  const response = await send(fulfillment, ids[0], '', undefined, { prepare() { throw Error('private SQL'); } }, 'PATCH', options);
+  assert.equal(response.status, 503); assert.deepEqual(await response.json(), { status: 'unavailable' });
+});
+test('concurrent fulfillment changes cannot overwrite each other', async t => {
+  const { db, ids, sqlite } = await setup(t);
+  // Start both reads together, without variable JWT verification timing serializing the requests.
+  const responses = await Promise.allSettled(['preparing', 'cancelled'].map(fulfillmentStatus =>
+    changeOrderFulfillment(db, ids[0], { fulfillmentStatus })));
+  assert.equal(responses.filter(r => r.status === 'fulfilled').length, 1);
+  assert.equal(responses.find(r => r.status === 'rejected').reason.code, 'order_changed');
+  assert.ok(['preparing','cancelled'].includes(sqlite.prepare('SELECT fulfillment_status FROM orders WHERE id=?').get(ids[0]).fulfillment_status));
 });
 test('authorized admin sees all product states and operational fields; public projection unchanged', async t => {
   const { send, sqlite, db } = await setup(t);

@@ -105,6 +105,58 @@ describe('protected admin orders UI', () => {
     expect(Object.values(PAYMENT_LABELS)).toEqual(['Pagat', 'Reemborsat parcialment', 'Reemborsat']);
     expect(Object.values(FULFILLMENT_LABELS)).toEqual(['Pendent', 'En preparació', 'Enviat', 'Lliurat', 'Cancel·lat']);
   });
+  for (const [status, actions] of [
+    ['pending', ['preparing', 'cancelled']], ['preparing', ['shipped', 'cancelled']],
+    ['shipped', ['delivered']], ['delivered', []], ['cancelled', []],
+  ] as const) it('shows only valid fulfillment actions for ' + status, () => {
+    const fixture = detail(); http.expectOne('/api/admin/orders/' + order.id).flush({ ...order, fulfillmentStatus: status }); fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    expect(Array.from(root.querySelectorAll('[data-fulfillment]')).map(el => el.getAttribute('data-fulfillment'))).toEqual([...actions]);
+    expect(root.querySelector('select')).toBeNull();
+  });
+  it('updates fulfillment only after server success and blocks duplicate submissions', () => {
+    const fixture = detail(); http.expectOne('/api/admin/orders/' + order.id).flush(order); fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    const button = root.querySelector<HTMLButtonElement>('[data-fulfillment="preparing"]')!;
+    button.click(); button.click(); fixture.detectChanges();
+    const request = http.expectOne('/api/admin/orders/' + order.id + '/fulfillment');
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ fulfillmentStatus: 'preparing' });
+    expect(button.disabled).toBe(true); expect(root.querySelector('dl')!.textContent).toContain('Pendent');
+    request.flush({ ...order, fulfillmentStatus: 'preparing' }); fixture.detectChanges();
+    expect(root.querySelector('dl')!.textContent).toContain('En preparació');
+    expect(root.querySelector('dl')!.textContent).toContain('Pagat');
+    expect(root.textContent).toContain('Estat de preparació actualitzat');
+    expect(root.querySelector('[data-fulfillment="shipped"]')).not.toBeNull();
+  });
+  it('failed fulfillment update preserves the displayed snapshot and offers reload', () => {
+    const fixture = detail(); http.expectOne('/api/admin/orders/' + order.id).flush(order); fixture.detectChanges();
+    fixture.nativeElement.querySelector('[data-fulfillment="preparing"]').click();
+    http.expectOne('/api/admin/orders/' + order.id + '/fulfillment').flush({ status: 'order_changed' }, { status: 409, statusText: 'Conflict' }); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('dl').textContent).toContain('Pendent');
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('Torna a carregar');
+    expect(fixture.nativeElement.querySelector('[data-fulfillment="preparing"]').disabled).toBe(false);
+  });
+  it('requires cancellation confirmation and does not change payment status', () => {
+    const fixture = detail(); http.expectOne('/api/admin/orders/' + order.id).flush(order); fixture.detectChanges();
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    fixture.nativeElement.querySelector('[data-fulfillment="cancelled"]').click();
+    http.expectNone('/api/admin/orders/' + order.id + '/fulfillment');
+    expect(confirm.mock.calls[0][0]).toContain('no reemborsa');
+    confirm.mockReturnValue(true); fixture.nativeElement.querySelector('[data-fulfillment="cancelled"]').click();
+    const request = http.expectOne('/api/admin/orders/' + order.id + '/fulfillment');
+    expect(request.request.body).toEqual({ fulfillmentStatus: 'cancelled' });
+    request.flush({ ...order, fulfillmentStatus: 'cancelled' }); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('[data-fulfillment]')).toHaveLength(0);
+    expect(fixture.nativeElement.querySelector('dl').textContent).toContain('Pagat');
+  });
+  it('cancels a pending mutation when navigating to another order', () => {
+    const fixture = detail(); http.expectOne('/api/admin/orders/' + order.id).flush(order); fixture.detectChanges();
+    fixture.nativeElement.querySelector('[data-fulfillment="preparing"]').click();
+    const update = http.expectOne('/api/admin/orders/' + order.id + '/fulfillment');
+    params.next(convertToParamMap({ id: 'next' })); expect(update.cancelled).toBe(true);
+    http.expectOne('/api/admin/orders/next').flush({}, { status: 404, statusText: 'Not found' });
+  });
 });
 describe('order cents to EUR', () => {
   const pipe = new OrderEuroPipe();
