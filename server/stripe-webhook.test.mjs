@@ -12,10 +12,134 @@ const fetch = globalThis.fetch;
 beforeEach(() => { globalThis.fetch = async () => { throw new Error('Real network prohibited'); }; });
 afterEach(() => { globalThis.fetch = fetch; });
 
+function emailProvider(env, fail = false) {
+  Object.assign(env, { RESEND_API_KEY: 're_synthetic', EMAIL_FROM: 'NAIS <sender@example.test>' });
+  const messages = [];
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, 'https://api.resend.com/emails');
+    messages.push(JSON.parse(options.body));
+    return fail ? Response.json({ private: 'never returned' }, { status: 500 }) : Response.json({ id: 'synthetic' });
+  };
+  return messages;
+}
+
+test('confirmation sends once after commit under concurrent and repeated signed webhooks', async t => {
+  const { env, db, send, event } = setup(t);
+  const messages = emailProvider(env);
+  const replies = await Promise.all(Array.from({ length: 8 }, (_, i) => send({ ...event, id: `evt_email_${i}` })));
+  assert.ok(replies.every(response => response.status === 200));
+  assert.equal((await send()).status, 200);
+  assert.equal(messages.length, 1);
+  const order = db.prepare('SELECT * FROM orders').get();
+  assert.equal(order.confirmation_email_status, 'sent');
+  assert.ok(Number.isFinite(Date.parse(order.confirmation_email_sent_at)));
+  assert.equal(order.payment_status, 'paid');
+  assert.ok(messages[0].text.includes(order.order_number));
+  assert.ok(messages[0].text.includes('Purchased name snapshot'));
+  assert.ok(!messages[0].text.includes('Different current product name'));
+  assert.ok(messages[0].text.includes('36,00'));
+  assert.ok(messages[0].text.includes('64,80'));
+  assert.ok(!messages[0].html.includes('pi_fixture'));
+  assert.ok(!messages[0].html.includes('cs_test_fixture'));
+});
+
+test('provider failure preserves paid order and records failed without webhook retry sends', async t => {
+  const { env, db, send } = setup(t);
+  const messages = emailProvider(env, true);
+  assert.equal((await send()).status, 200);
+  assert.equal((await send()).status, 200);
+  assert.equal(messages.length, 1);
+  const order = db.prepare('SELECT * FROM orders').get();
+  assert.equal(order.payment_status, 'paid');
+  assert.equal(order.confirmation_email_status, 'failed');
+  assert.equal(order.confirmation_email_sent_at, null);
+  assert.equal(db.prepare('SELECT count(*) n FROM order_items').get().n, 1);
+});
+
+test('missing customer email persists the paid order and records unsent failure', async t => {
+  const { env, db, send, session } = setup(t);
+  const messages = emailProvider(env);
+  session.customer_details.email = null;
+  assert.equal((await send()).status, 200);
+  assert.equal(messages.length, 0);
+  const order = db.prepare('SELECT * FROM orders').get();
+  assert.equal(order.payment_status, 'paid');
+  assert.equal(order.customer_email, '');
+  assert.equal(order.confirmation_email_status, 'failed');
+});
+
+test('confirmation escapes stored customer/item/address data and reads D1 historical values', async t => {
+  const { env, db, send, session, line } = setup(t);
+  session.customer_details.name = '<script>customer</script>';
+  session.collected_information.shipping_details.address.line1 = '<img src=x onerror="bad">';
+  line.description = 'Drink & <b>fruit</b>';
+  // Persist without mail configuration, then simulate a future explicitly authorized recovery.
+  await send();
+  db.exec("UPDATE orders SET confirmation_email_status='pending', subtotal_amount=8100, total_amount=7400");
+  const messages = emailProvider(env);
+  line.description = 'Changed upstream';
+  await send();
+  assert.equal(messages.length, 1);
+  assert.ok(messages[0].html.includes('&lt;script&gt;customer&lt;/script&gt;'));
+  assert.ok(messages[0].html.includes('Drink &amp; &lt;b&gt;fruit&lt;/b&gt;'));
+  assert.ok(messages[0].html.includes('&lt;img'));
+  assert.ok(!messages[0].html.includes('<script>'));
+  assert.ok(messages[0].text.includes('81,00'));
+  assert.ok(messages[0].text.includes('74,00'));
+  assert.ok(!messages[0].text.includes('Changed upstream'));
+});
+
+test('email final state write failure remains claimed and cannot duplicate an accepted send', async t => {
+  const { env, db, send } = setup(t);
+  const messages = emailProvider(env);
+  db.exec(`CREATE TRIGGER fail_email_finish BEFORE UPDATE OF confirmation_email_sent_at ON orders
+    BEGIN SELECT RAISE(ABORT, 'fixture failure'); END;`);
+  assert.equal((await send()).status, 200);
+  assert.equal((await send()).status, 200);
+  assert.equal(messages.length, 1);
+  assert.equal(db.prepare('SELECT confirmation_email_status s FROM orders').get().s, 'sending');
+});
+
+test('unpaid session never sends a confirmation', async t => {
+  const { env, send, session } = setup(t);
+  const messages = emailProvider(env);
+  session.payment_status = 'unpaid';
+  assert.equal((await send()).status, 200);
+  assert.equal(messages.length, 0);
+});
+
+test('migration preserves historical orders, skips backlog and constrains delivery states', async t => {
+  const { db, send } = setup(t);
+  await send();
+  const historical = db.prepare('SELECT * FROM orders').get();
+  delete historical.confirmation_email_status;
+  delete historical.confirmation_email_sent_at;
+  const old = new DatabaseSync(':memory:');
+  t.after(() => old.close());
+  old.exec(readFileSync(new URL('../migrations/0003_orders.sql', import.meta.url), 'utf8'));
+  const columns = Object.keys(historical);
+  old.prepare(`INSERT INTO orders (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})`).run(...Object.values(historical));
+  old.exec(readFileSync(new URL('../migrations/0006_order_confirmation.sql', import.meta.url), 'utf8'));
+  assert.equal(old.prepare('SELECT confirmation_email_status s FROM orders').get().s, 'skipped');
+  assert.equal(old.prepare('SELECT total_amount a FROM orders').get().a, historical.total_amount);
+  assert.throws(() => old.exec("UPDATE orders SET confirmation_email_status='invalid'"));
+});
+
+test('failed order transaction never sends an email', async t => {
+  const { env, db, send } = setup(t);
+  const messages = emailProvider(env);
+  db.exec(`CREATE TRIGGER fail_items BEFORE INSERT ON order_items
+    BEGIN SELECT RAISE(ABORT, 'fixture failure'); END;`);
+  assert.equal((await send()).status, 503);
+  assert.equal(messages.length, 0);
+  assert.equal(db.prepare('SELECT count(*) n FROM orders').get().n, 0);
+});
+
 function setup(t) {
   const db = new DatabaseSync(':memory:');
   db.exec('PRAGMA foreign_keys = ON');
   db.exec(readFileSync(new URL('../migrations/0003_orders.sql', import.meta.url), 'utf8'));
+  db.exec(readFileSync(new URL('../migrations/0006_order_confirmation.sql', import.meta.url), 'utf8'));
   t.after(() => db.close());
   const env = { STRIPE_SECRET_KEY: 'sk_test_fixture', STRIPE_WEBHOOK_SECRET: signingSecret,
     STRIPE_PRICE_ORANGE_SPRITZ: 'price_fixture', PROMO_DB: {
