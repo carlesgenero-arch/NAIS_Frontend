@@ -4,9 +4,11 @@ import { LEGACY_PRODUCT_PRICE_BINDINGS, type LegacyProductPriceBindings } from '
 import { createPaidOrder, hasOrderForSession } from '../orders/order.service.ts';
 import type { OrderDatabase } from '../orders/order.repository.ts';
 import type { PaidOrderSnapshot } from '../orders/order.types.ts';
+import { confirmOrderEmail } from '../orders/order-confirmation.service.ts';
+import type { EmailEnvironment } from '../email/email.types.ts';
 
 export type { OrderDatabase } from '../orders/order.repository.ts';
-export interface WebhookEnvironment extends Partial<LegacyProductPriceBindings> {
+export interface WebhookEnvironment extends Partial<LegacyProductPriceBindings>, EmailEnvironment {
   PROMO_DB?: OrderDatabase;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
@@ -81,7 +83,10 @@ async function savePaidSession(event: Stripe.Event, env: WebhookEnvironment, cli
     throw new Error('Invalid session');
   }
   const db = env.PROMO_DB!;
-  if (await hasOrderForSession(db, sessionRef.id)) return;
+  if (await hasOrderForSession(db, sessionRef.id)) {
+    await confirmOrderEmail(db, sessionRef.id, env);
+    return;
+  }
   // Fetch full authoritative data using the server key, never redirect/query data.
   const session = await client.checkout.sessions.retrieve(sessionRef.id);
   if (session.id !== sessionRef.id || session.livemode !== event.livemode) throw new Error('Session mismatch');
@@ -115,7 +120,7 @@ async function savePaidSession(event: Stripe.Event, env: WebhookEnvironment, cli
     stripe_payment_intent_id: required(objectId(session.payment_intent)),
     stripe_customer_id: objectId(session.customer),
     customer_name: required(details?.name ?? session.collected_information?.individual_name ?? recipient?.name),
-    customer_email: required(details?.email),
+    customer_email: typeof details?.email === 'string' ? details.email : '',
     customer_phone: details?.phone ?? null,
     shipping_name: required(recipient?.name),
     shipping_address_line1: required(address?.line1),
@@ -141,6 +146,7 @@ async function savePaidSession(event: Stripe.Event, env: WebhookEnvironment, cli
     }),
   };
   await createPaidOrder(db, snapshot);
+  await confirmOrderEmail(db, session.id, env);
 }
 
 export async function stripeWebhook(request: Request, env: WebhookEnvironment, clientFactory: ClientFactory = createStripeClient): Promise<Response> {

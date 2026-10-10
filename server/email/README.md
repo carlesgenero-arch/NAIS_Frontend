@@ -1,7 +1,8 @@
 # Server email infrastructure
 
-Future order, promotion and fulfillment services call `sendEmail(message, env)` from
-`email.service.ts`. Nothing sends email automatically in this phase. A temporary
+Order confirmations call `sendEmail(message, env)` from `email.service.ts` after
+paid order persistence; see `../orders/order-confirmation.md` for rollout and recovery.
+Future promotion and fulfillment services will reuse the same boundary. A temporary
 protected admin smoke-test endpoint is available; there is no Angular integration.
 No additional dependencies are required.
 
