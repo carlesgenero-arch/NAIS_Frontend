@@ -84,7 +84,7 @@ describe('ProductCard', () => {
     await fixture.whenStable();
     expect(element.querySelector('h2')?.textContent).toBe('Test flavour');
     expect(element.querySelector('img')?.getAttribute('src')).toBe('images/test.png');
-    expect(element.querySelector('img')?.getAttribute('alt')).toBe('Test flavour can');
+    expect(element.querySelector('img')?.getAttribute('alt')).toBe('Llauna de Test flavour');
     expect(element.querySelector('article')?.getAttribute('data-variant')).toBe('neutral');
     expect(element.querySelector('.product-ingredients')).toBeNull();
     expect(element.querySelector('.fruit')).toBeNull();

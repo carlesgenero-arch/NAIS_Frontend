@@ -1,16 +1,16 @@
 
 
-<section class="tira-animada" aria-label="10% DE DESCOMPTE"role="button"tabindex="0"(click)="openPromotion()" (keydown.enter)="openPromotion()"(keydown.space)="openPromotion(); $event.preventDefault()">
+<section class="tira-animada" [attr.aria-label]="'ui.10_de_descompte' | t"role="button"tabindex="0"(click)="openPromotion()" (keydown.enter)="openPromotion()"(keydown.space)="openPromotion(); $event.preventDefault()">
   <div class="tira-animada__inner">
-    <span>10% DE DESCOMPTE ✦</span>
-    <span>10% DE DESCOMPTE ✦</span>
-    <span>10% DE DESCOMPTE ✦</span>
-    <span>10% DE DESCOMPTE ✦</span>
-    <span>10% DE DESCOMPTE ✦</span>
-    <span aria-hidden="true">10% DE DESCOMPTE✦</span>
-    <span aria-hidden="true">10% DE DESCOMPTE✦</span>
-    <span aria-hidden="true">10% DE DESCOMPTE✦</span>
-    <span aria-hidden="true">10% DE DESCOMPTE✦</span>
-    <span aria-hidden="true">10% DE DESCOMPTE✦</span>
+    <span>{{ 'ui.10_de_descompte_' | t }}</span>
+    <span>{{ 'ui.10_de_descompte_' | t }}</span>
+    <span>{{ 'ui.10_de_descompte_' | t }}</span>
+    <span>{{ 'ui.10_de_descompte_' | t }}</span>
+    <span>{{ 'ui.10_de_descompte_' | t }}</span>
+    <span aria-hidden="true">{{ 'ui.10_de_descompte__' | t }}</span>
+    <span aria-hidden="true">{{ 'ui.10_de_descompte__' | t }}</span>
+    <span aria-hidden="true">{{ 'ui.10_de_descompte__' | t }}</span>
+    <span aria-hidden="true">{{ 'ui.10_de_descompte__' | t }}</span>
+    <span aria-hidden="true">{{ 'ui.10_de_descompte__' | t }}</span>
   </div>
 </section>

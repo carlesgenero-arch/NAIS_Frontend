@@ -10,3 +10,5 @@
   width: 100%;
   max-width: none;
 }
+
+.prelaunch-language { display: flex; justify-content: flex-end; padding: .5rem var(--page-gutter); }

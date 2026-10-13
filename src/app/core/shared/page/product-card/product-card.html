@@ -1,26 +1,26 @@
-<article class="product-card" [class.catalogue]="presentation() === 'catalogue'" [attr.data-variant]="product().variant" [attr.aria-label]="product().name" lang="ca">
+<article class="product-card" [class.catalogue]="presentation() === 'catalogue'" [attr.data-variant]="product().variant" [attr.aria-label]="(product().name) | t">
   <div class="content">
-    <h2>{{ product().name }}</h2>
-    <p class="product-description">{{ product().description }}</p>
+    <h2>{{ (product().name) | t }}</h2>
+    <p class="product-description">{{ (product().description) | t }}</p>
     @if (product().ingredients) {
       @if (presentation() === 'catalogue') {
-        <p class="product-ingredients">{{ product().ingredients }}</p>
+        <p class="product-ingredients">{{ (product().ingredients) | t }}</p>
       } @else {
-        <h1 class="product-ingredients">{{ product().ingredients }}</h1>
+        <h1 class="product-ingredients">{{ (product().ingredients) | t }}</h1>
       }
     }
     @if (presentation() === 'catalogue') {
-      <button class="button--add" type="button" [attr.aria-label]="addLabel()" (click)="addRequested.emit(product())">AFEGIR</button>
+      <button class="button--add" type="button" [attr.aria-label]="addLabel()" (click)="addRequested.emit(product())">{{ 'ui.afegir' | t }}</button>
     } @else {
-      <a class="button--buy" [routerLink]="['/products', product().slug]">COMPRAR</a>
+      <a class="button--buy" [routerLink]="['/products', product().slug]">{{ 'ui.comprar' | t }}</a>
     }
   </div>
-  <figure class="visual" [attr.tabindex]="product().fruitImage ? 0 : null" [attr.aria-label]="product().name">
+  <figure class="visual" [attr.tabindex]="product().fruitImage ? 0 : null" [attr.aria-label]="(product().name) | t">
     @if (product().imageUrl; as imageUrl) {
-      <img class="image can" [src]="imageUrl" [alt]="imageAlt()" loading="lazy" />
+      <img class="image can" [src]="imageUrl" [alt]="(imageAlt()) | t" loading="lazy" />
     }
     @if (product().fruitImage; as fruitImage) {
-      <img class="image fruit" [src]="fruitImage.url" [alt]="fruitImage.alt" loading="lazy" />
+      <img class="image fruit" [src]="fruitImage.url" [alt]="(fruitImage.alt) | t" loading="lazy" />
     }
   </figure>
 </article>

@@ -1,3 +1,4 @@
+import { CA } from '../i18n/ca';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
@@ -35,7 +36,7 @@ export class CheckoutService {
       }),
       // Never forward backend error bodies, Stripe details or raw HTTP errors to the UI.
       catchError(() => throwError(() => new Error(
-        "No s'ha pogut iniciar el pagament. Torna-ho a provar.",
+        CA['ui.no_s_ha_pogut_iniciar_el_pagament_torna_ho_a_provar'],
       ))),
     );
   }

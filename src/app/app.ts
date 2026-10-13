@@ -1,3 +1,4 @@
+import { LanguageSelector } from './core/shared/base/language-selector/language-selector';
 import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
@@ -8,7 +9,7 @@ import { Promotion } from './features/components/promotion/promotion';
 
 @Component({
   selector: 'app-root',
-  imports: [Header, RouterOutlet, Footer, Promotion],
+  imports: [LanguageSelector, Header, RouterOutlet, Footer, Promotion],
   templateUrl: './app.html',
   styleUrl: './app.css',
   host: { '[class.prelaunch]': 'isPrelaunch()' },

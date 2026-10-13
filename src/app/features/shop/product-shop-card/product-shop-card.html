@@ -2,38 +2,38 @@
   class="product-shop-card"
   [class.product-shop-card--featured]="!!product().featureBackgroundImageUrl"
   [attr.data-variant]="product().variant"
-  [attr.aria-label]="product().name"
-  lang="ca"
+  [attr.aria-label]="(product().name) | t"
+
 >
-  <a class="product-visual" [routerLink]="['/products', product().slug]" [attr.aria-label]="product().name">
+  <a class="product-visual" [routerLink]="['/products', product().slug]" [attr.aria-label]="(product().name) | t">
     @if (product().cardImageUrl ?? product().imageUrl; as imageUrl) {
-      <img [src]="imageUrl" [alt]="imageAlt()" loading="lazy" />
+      <img [src]="imageUrl" [alt]="(imageAlt()) | t" loading="lazy" />
     }
   </a>
 
   <div class="product-details">
     <h2>
-      <a class="product-select" [routerLink]="['/products', product().slug]" [attr.aria-label]="'Veure ' + product().name">{{ product().name }}</a>
+      <a class="product-select" [routerLink]="['/products', product().slug]" [attr.aria-label]="'product.view' | t: { product: (product().name | t) }">{{ (product().name) | t }}</a>
     </h2>
 
-    <p class="product-format">{{ product().format }}</p>
+    <p class="product-format">{{ (product().format) | t }}</p>
 
     <p class="product-price">{{ priceLabel() }}</p>
 
     <div class="product-actions">
-      <div class="product-quantity" role="group" [attr.aria-label]="'Quantitat de ' + product().name">
+      <div class="product-quantity" role="group" [attr.aria-label]="'cart.quantity' | t: { product: (product().name | t) }">
         <button
           class="button--quantity"
           type="button"
-          [attr.aria-label]="'Reduir la quantitat de ' + product().name"
+          [attr.aria-label]="'cart.reduce' | t: { product: (product().name | t) }"
           [disabled]="quantity() === 1"
           (click)="decreaseQuantity()"
         >−</button>
-        <output class="product-quantity__value" aria-live="polite" aria-atomic="true" aria-label="Quantitat">{{ quantity() }}</output>
+        <output class="product-quantity__value" aria-live="polite" aria-atomic="true" [attr.aria-label]="'ui.quantitat' | t">{{ quantity() }}</output>
         <button
           class="button--quantity"
           type="button"
-          [attr.aria-label]="'Augmentar la quantitat de ' + product().name"
+          [attr.aria-label]="'cart.increase' | t: { product: (product().name | t) }"
           (click)="increaseQuantity()"
         >+</button>
       </div>
@@ -43,7 +43,7 @@
         [attr.aria-label]="addLabel()"
         (click)="addRequested.emit({ product: product(), quantity: quantity() })"
       >
-        AFEGIR
+        {{ 'ui.afegir' | t }}
       </button>
     </div>
   </div>

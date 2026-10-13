@@ -1,20 +1,20 @@
-<section class="shop-page" aria-label="Botiga" lang="ca">
+<section class="shop-page" [attr.aria-label]="'ui.botiga' | t">
   @if (catalogue.loading() || detail().status === 'loading') {
-    <p role="status">Estem carregant els productes.</p>
+    <p role="status">{{ 'ui.estem_carregant_els_productes' | t }}</p>
   } @else if (catalogue.error()) {
-    <p role="alert">{{ catalogue.error() }}</p>
-    <button type="button" class="button--buy" (click)="catalogue.load()">Tornar-ho a provar</button>
+    <p role="alert">{{ (catalogue.error()) | t }}</p>
+    <button type="button" class="button--buy" (click)="catalogue.load()">{{ 'ui.tornar_ho_a_provar' | t }}</button>
   } @else if (detail().status === 'error') {
-    <p role="alert">No hem pogut carregar aquest producte. Torna a carregar la pàgina per provar-ho de nou.</p>
+    <p role="alert">{{ 'ui.no_hem_pogut_carregar_aquest_producte_torna_a_carregar_la_pagina_per_provar_ho_d' | t }}</p>
   } @else if (selectedProduct(); as product) {
     <div class="shop-detail">
       <app-product-selected-detail [product]="product" (addRequested)="requestSelectedProductAdd($event)" />
     </div>
   }
   <p class="cart-status" role="status">{{ cartMessage() }}</p>
-  <h2 id="shop-heading">TOTS ELS PRODUCTES</h2>
+  <h2 id="shop-heading">{{ 'ui.tots_els_productes' | t }}</h2>
   @if (catalogue.loaded() && !catalogue.activeProducts.length) {
-    <p role="status">No hi ha productes disponibles ara mateix.</p>
+    <p role="status">{{ 'ui.no_hi_ha_productes_disponibles_ara_mateix' | t }}</p>
   }
   <app-product-grid (addRequested)="requestAdd($event)" />
 </section>

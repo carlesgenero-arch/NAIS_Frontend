@@ -1,6 +1,8 @@
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { ChangeDetectionStrategy, Component, ElementRef, input, OnDestroy, output, signal, viewChild } from '@angular/core';
 
 @Component({
+  imports: [TranslatePipe],
   selector: 'app-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './modal.html',

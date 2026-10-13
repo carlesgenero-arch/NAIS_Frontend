@@ -1,28 +1,28 @@
-<app-modal title="ACONSEGUEIX UN 10% DE DESCOMPTE" variant="promotion" (closed)="dismiss()">
+<app-modal [title]="'ui.aconsegueix_un_10_de_descompte' | t" variant="promotion" (closed)="dismiss()">
   <div class="promotion-layout">
     <div class="promotion-content">
-      <h2 class="promotion-subtitle">AMB LA PRIMERA COMANDA</h2>
+      <h2 class="promotion-subtitle">{{ 'ui.amb_la_primera_comanda' | t }}</h2>
       @if (result()) {
         <p role="status" class="promotion-success">
           @if (result() === 'registered') {
-            Registre confirmat! Revisa el teu correu per trobar el codi del 10% per a la primera comanda. Si no el veus, comprova la carpeta de correu brossa.
+            {{ 'ui.registre_confirmat_revisa_el_teu_correu_per_trobar_el_codi_del_10_per_a_la_prime' | t }}
           } @else {
-            Aquest email ja s’ha utilitzat per  aquesta promoció.
+            {{ 'ui.aquest_email_ja_sha_utilitzat_per_aquesta_promocio' | t }}
           }
         </p>
       } @else {
         <form [attr.aria-busy]="pending()" [formGroup]="form" (ngSubmit)="submit()" novalidate>
           
-          <label for="promotion-email">Correu electrònic</label>
+          <label for="promotion-email">{{ 'ui.correu_electronic' | t }}</label>
           <input [readOnly]="pending()" id="promotion-email" type="email" formControlName="email" required autocomplete="email"
-            placeholder="Introdueix el teu email" aria-describedby="promotion-legal promotion-error"
+            [placeholder]="'ui.introdueix_el_teu_email' | t" aria-describedby="promotion-legal promotion-error"
             [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid" />
           <p id="promotion-error" class="promotion-error" aria-live="polite">
-            @if (form.controls.email.touched && form.controls.email.invalid) { Introdueix un correu electrònic vàlid. }
-            @if (error()) { {{ error() }} }
+            @if (form.controls.email.touched && form.controls.email.invalid) { {{ 'ui.introdueix_un_correu_electronic_valid' | t }} }
+            @if (error()) { {{ (error()) | t }} }
           </p>
-          <button class="button--buy" type="submit" [disabled]="pending()">{{ pending() ? 'ENVIANT…' : 'OBTÉN EL CODI' }}</button>
-          <p id="promotion-legal" class="promotion-legal">*Proporcionant-nos el teu email, acceptes rebre comunicacions sobre nous llançaments, promocions i novetats exclusives.</p>
+          <button class="button--buy" type="submit" [disabled]="pending()">{{ (pending() ? 'ui.enviant' : 'ui.obten_el_codi') | t }}</button>
+          <p id="promotion-legal" class="promotion-legal">{{ 'ui.proporcionant_nos_el_teu_email_acceptes_rebre_comunicacions_sobre_nous_llancamen' | t }}</p>
         </form>
       }
     </div>

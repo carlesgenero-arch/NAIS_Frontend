@@ -1,3 +1,4 @@
+import { CA } from '../i18n/ca';
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
@@ -6,7 +7,7 @@ import type { Product } from '../models/product.interface';
 import type { PublicProduct } from '../models/public-product.interface';
 import { PRODUCT_DISPLAY_ORDER, PRODUCT_PRESENTATION } from './product-presentation';
 
-const CATALOGUE_ERROR = 'No hem pogut carregar els productes. Torna-ho a provar.';
+const CATALOGUE_ERROR = CA['ui.no_hem_pogut_carregar_els_productes_torna_ho_a_provar'];
 
 function isSlug(value: unknown): value is string {
   return typeof value === 'string' && value.length <= 200 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);

@@ -1,4 +1,5 @@
-import { CurrencyPipe } from '@angular/common';
+import { TranslationService } from '../../i18n/translation.service';
+import { TranslatePipe } from '../../i18n/translate.pipe';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -16,11 +17,15 @@ type OrderState = { status: 'missing' | 'invalid' | 'loading' | 'pending' | 'err
 @Component({
   selector: 'app-checkout-success',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, CurrencyPipe],
+  imports: [TranslatePipe, RouterLink],
   templateUrl: './checkout-success.html',
   styleUrl: './checkout-result.css',
 })
 export class CheckoutSuccess {
+  protected formatAmount(cents: number, currency: string): string {
+    return new Intl.NumberFormat(this.i18n.locale(), { style: 'currency', currency }).format(cents / 100);
+  }
+  protected readonly i18n = inject(TranslationService);
   private readonly route = inject(ActivatedRoute);
   private readonly lookup = inject(OrderLookupService);
   private readonly cart = inject(CartService);

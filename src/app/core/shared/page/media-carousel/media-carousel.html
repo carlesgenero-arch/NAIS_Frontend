@@ -1,14 +1,15 @@
 @if (images().length > 0) {
-  <section class="media-carousel" aria-roledescription="carrusel" lang="ca" (keydown)="onKeydown($event)">
-    
+  <section class="media-carousel" [attr.aria-roledescription]="'ui.carrusel' | t" (keydown)="onKeydown($event)">
+
     <!-- Fletxa esquerra -->
-    <button 
+    <button
       class="media-carousel__arrow media-carousel__arrow--left"
       type="button"
-      aria-label="Imatge anterior"
+      [attr.aria-label]="'ui.imatge_anterior' | t"
       (click)="move(-1)">
       <span aria-hidden="true">❮</span>
     </button>
+
 
     <!-- Track de targetes -->
     <div class="media-carousel__track">
@@ -16,20 +17,21 @@
         <div class="media-carousel__card" role="group">
           @if (image.href; as href) {
             <a class="media-carousel__link" [href]="href">
-              <img class="media-carousel__image" [src]="image.src" [alt]="image.alt" loading="lazy" />
+              <img class="media-carousel__image" [src]="image.src" [alt]="(image.alt) | t" loading="lazy" />
             </a>
           } @else {
-            <img class="media-carousel__image" [src]="image.src" [alt]="image.alt" loading="lazy" />
+            <img class="media-carousel__image" [src]="image.src" [alt]="(image.alt) | t" loading="lazy" />
           }
         </div>
       }
     </div>
 
+
     <!-- Fletxa dreta -->
-    <button 
+    <button
       class="media-carousel__arrow media-carousel__arrow--right"
       type="button"
-      aria-label="Imatge següent"
+      [attr.aria-label]="'ui.imatge_seguent' | t"
       (click)="move(1)">
       <span aria-hidden="true">❯</span>
     </button>

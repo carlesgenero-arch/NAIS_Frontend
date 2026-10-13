@@ -1,9 +1,9 @@
   <app-hero />
-  <section class="info-section" aria-labelledby="info-heading" lang="ca">
+  <section class="info-section" aria-labelledby="info-heading">
     <div class="info-introduction">
-      <h1>Què és Nais?</h1>
-      <h2 id="info-heading">REAL FRUIT MOCKTAILS</h2>
-      <p>Beguda sense alcohol a base de sucs naturals i botànics</p>
+      <h1>{{ 'ui.que_es_nais' | t }}</h1>
+      <h2 id="info-heading">{{ 'ui.real_fruit_mocktails' | t }}</h2>
+      <p>{{ 'ui.beguda_sense_alcohol_a_base_de_sucs_naturals_i_botanics' | t }}</p>
     </div>
     <div class="info-benefits">
       @for (card of infoCards; track card.colour) {
@@ -14,12 +14,12 @@
   <app-brand-message-card/>
   <app-animated-banner/>
   @if (catalogue.loading()) {
-    <p role="status">Estem carregant els productes.</p>
+    <p role="status">{{ 'ui.estem_carregant_els_productes' | t }}</p>
   } @else if (catalogue.error()) {
-    <p role="alert">{{ catalogue.error() }}</p>
-    <button type="button" class="button--buy" (click)="catalogue.load()">Tornar-ho a provar</button>
+    <p role="alert">{{ (catalogue.error()) | t }}</p>
+    <button type="button" class="button--buy" (click)="catalogue.load()">{{ 'ui.tornar_ho_a_provar' | t }}</button>
   } @else if (!catalogue.activeProducts.length) {
-    <p role="status">No hi ha productes disponibles ara mateix.</p>
+    <p role="status">{{ 'ui.no_hi_ha_productes_disponibles_ara_mateix' | t }}</p>
   }
   @for (product of featuredProducts(); track product.id) {
     <app-product-feature-card [product]="product" />
@@ -34,4 +34,4 @@
       [class.product-card--image-left]="index % 2 === 1"
     />
   }
-  <app-media-carousel [images]="carouselImages" label="Moments NAIS Drinks" />
+  <app-media-carousel [images]="carouselImages" [label]="'ui.moments_nais_drinks' | t" />

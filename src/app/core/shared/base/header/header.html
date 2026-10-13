@@ -1,10 +1,6 @@
-<header class="site-header" lang="ca">
+<header class="site-header">
   <div class="utilities">
-    <div class="languages" role="group" aria-label="Idioma">
-      <button type="button" disabled aria-label="Català, idioma actual">CAT</button>
-      <span aria-hidden="true">/</span>
-      <button type="button" disabled aria-label="Castellà, pròximament" title="Castellà: pròximament">CAST</button>
-    </div>
+    <app-language-selector />
     <div class="header-actions">
       <img class="brand-mark" src="images/brand/nais-mark.svg" alt="" width="394" height="394" />
     <button class="cart" type="button" aria-haspopup="dialog" [attr.aria-expanded]="cartDrawer.isOpen()" (click)="cartDrawer.open()">
@@ -14,15 +10,15 @@
         <circle cx="17" cy="19" r="1" />
       </svg>
       <span role="status" aria-atomic="true">
-      <span class="cart__label">Cistella: </span>
+      <span class="cart__label">{{ 'ui.cistella' | t }} </span>
       <span class="cart__count">{{ totalQuantity() }}</span>
-      <span class="cart__label"> unitats</span>
+      <span class="cart__label"> {{ 'ui.unitats' | t }}</span>
       </span>
     </button>
     </div>
   </div>
   <app-navbar />
 </header>
-<app-modal #cartDrawer title="La meva cistella" [titleCount]="totalQuantity()" variant="drawer">
+<app-modal #cartDrawer [title]="'ui.la_meva_cistella' | t" [titleCount]="totalQuantity()" variant="drawer">
   <app-cart presentation="drawer" (continueShoppingRequested)="cartDrawer.close()"/>
 </app-modal>

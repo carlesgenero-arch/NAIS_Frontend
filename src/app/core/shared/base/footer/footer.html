@@ -1,39 +1,39 @@
   <app-newsletter/>
-  <footer class="footer" lang="ca" aria-label="Peu de pàgina">
+  <footer class="footer" [attr.aria-label]="'ui.peu_de_pagina' | t">
   <div class="footer__main">
     <div class="footer__social">
-      <p class="footer__label">segueix-nos</p>
+      <p class="footer__label">{{ 'ui.segueix_nos' | t }}</p>
       @if (instagramUrl(); as url) {
         <a class="footer__social-link" [href]="url" aria-label="Instagram de NAIS Drinks">
           <ng-container [ngTemplateOutlet]="instagramIcon" />
         </a>
       } @else {
-        <span class="footer__social-link" role="link" aria-disabled="true" aria-label="Instagram de NAIS Drinks, pròximament">
+        <span class="footer__social-link" role="link" aria-disabled="true" [attr.aria-label]="'ui.instagram_de_nais_drinks_proximament' | t">
           <ng-container [ngTemplateOutlet]="instagramIcon" />
         </span>
       }
     </div>
 
-    <a class="footer__brand" routerLink="/" aria-label="NAIS Drinks, inici">
+    <a class="footer__brand" routerLink="/" [attr.aria-label]="'ui.nais_drinks_inici' | t">
       <img src="images/brand/nais logos-09.svg" alt="NAIS Drinks" width="756" height="429" loading="lazy" />
     </a>
 
     <div class="footer__contact">
-      <p class="footer__label">escriu-nos</p>
-      <a class="footer__email" href="mailto:hola@naisdrinks.com">hola@naisdrinks.com</a>
+      <p class="footer__label">{{ 'ui.escriu_nos' | t }}</p>
+      <a class="footer__email" href="mailto:info@naisdrinks.com">info&#64;naisdrinks.com</a>
     </div>
   </div>
 
   <div class="footer__bottom">
-    <p class="footer__copyright">© {{ year }} NAIS DRINKS. Tots els drets reservats</p>
-    <nav aria-label="Informació legal">
+    <p class="footer__copyright">© {{ year }} {{ 'ui.nais_drinks_tots_els_drets_reservats' | t }}</p>
+    <nav [attr.aria-label]="'ui.informacio_legal' | t">
       <ul class="footer__legal">
         @for (link of legalLinks(); track link.label) {
           <li>
             @if (link.url; as url) {
-              <a [href]="url">{{ link.label }}</a>
+              <a [href]="url">{{ (link.label) | t }}</a>
             } @else {
-              <span role="link" aria-disabled="true">{{ link.label }}</span>
+              <span role="link" aria-disabled="true">{{ (link.label) | t }}</span>
             }
           </li>
         }

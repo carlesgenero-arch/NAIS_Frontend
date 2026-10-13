@@ -1,7 +1,7 @@
 <section class="footer-newsletter">
   <div class="footer-newsletter__inner">
     <div class="footer_newsletter_text">
-        <h3 class="footer-newsletter__title">Segueix-nos de prop</h3>
+        <h3 class="footer-newsletter__title">{{ 'ui.segueix_nos_de_prop' | t }}</h3>
         
           
     </div>
@@ -14,7 +14,7 @@
           <input
             type="email"
             formControlName="email"
-            placeholder="Introdueix el teu email"
+            [placeholder]="'ui.introdueix_el_teu_email' | t"
             class="footer-newsletter__input"
           />
 
@@ -22,11 +22,11 @@
             type="submit"
             class="footer-newsletter__button"
             [disabled]="newsletterForm.invalid">
-            Subscriu‑te
+            {{ 'ui.subscriute' | t }}
           </button>
           </div>
            <p class="footer-newsletter__legal footer-newsletter__legal--form">
-          *En proporcionar-nos el teu email, acceptes rebre comunicacions sobre nous llançaments, promocions i novetats exclusives.
+          {{ 'ui.en_proporcionar_nos_el_teu_email_acceptes_rebre_comunicacions_sobre_nous_llancam' | t }}
         </p>
         </form>
     </div>

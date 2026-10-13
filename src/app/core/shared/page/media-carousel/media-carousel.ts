@@ -1,7 +1,9 @@
+import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { ChangeDetectionStrategy, Component, computed, input, linkedSignal } from '@angular/core';
 import { CarouselImage } from '../../../../models/carousel-image.interface';
 
 @Component({
+  imports: [TranslatePipe],
   selector: 'app-media-carousel',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './media-carousel.html',

@@ -1,8 +1,9 @@
+import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-hero',
-  imports: [],
+  imports: [TranslatePipe, ],
   templateUrl: './hero.html',
   styleUrl: './hero.css',
 })

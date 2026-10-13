@@ -1,3 +1,5 @@
+import { CA } from '../../../i18n/ca';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { Component, computed, inject } from '@angular/core';
 import { BrandMessageCard } from '../../../core/shared/page/brand-message-card/brand-message-card';
 import { Hero } from '../../../core/shared/page/hero/hero';
@@ -11,7 +13,7 @@ import { AnimatedBanner } from '../../../core/shared/page/animated-banner/animat
 
 @Component({
   selector: 'app-home-page',
-  imports: [Hero, InfoCard, ProductCard, ProductFeatureCard, BrandMessageCard, MediaCarousel, AnimatedBanner],
+  imports: [TranslatePipe, Hero, InfoCard, ProductCard, ProductFeatureCard, BrandMessageCard, MediaCarousel, AnimatedBanner],
   templateUrl: './home-page.html',
   styleUrl: './home-page.css'
 })
@@ -24,19 +26,19 @@ export class HomePage {
     product => product.variant !== 'assorted' && !product.isFeatured && !product.isSeasonal));
   protected readonly infoCards: readonly InfoCardContent[] = [
     {
-      text: 'Sense sucres afegits ni edulcorants',
+      text: CA['ui.sense_sucres_afegits_ni_edulcorants'],
       colour: 'pink',
-      image: { src: 'images/info-card/gingebre.png', alt: 'Arrel de gingebre sobre un fons rosa' },
+      image: { src: 'images/info-card/gingebre.png', alt: CA['ui.arrel_de_gingebre_sobre_un_fons_rosa'] },
     },
     {
-      text: 'Lleugerament carbonatada',
+      text: CA['ui.lleugerament_carbonatada'],
       colour: 'blue',
-      image: { src: 'images/info-card/raspberries (1).png', alt: 'Gerds sobre un fons blau' },
+      image: { src: 'images/info-card/raspberries (1).png', alt: CA['ui.gerds_sobre_un_fons_blau'] },
     },
     {
-      text: 'Sense filtrar',
+      text: CA['ui.sense_filtrar'],
       colour: 'green',
-      image: { src: 'images/info-card/mint.png', alt: 'Fulles de menta sobre un fons verd' },
+      image: { src: 'images/info-card/mint.png', alt: CA['ui.fulles_de_menta_sobre_un_fons_verd'] },
     },
   ];
 }

@@ -1,23 +1,23 @@
-<section class="prelaunch" aria-labelledby="prelaunch-heading" lang="ca">
-  <div class="prelaunch__composition" [class.prelaunch__composition--waiting]="!imagesReady()" [style.--asset-count]="assets.length" role="group" aria-label="L'univers de NAIS Drinks">
+<section class="prelaunch" aria-labelledby="prelaunch-heading">
+  <div class="prelaunch__composition" [class.prelaunch__composition--waiting]="!imagesReady()" [style.--asset-count]="assets.length" role="group" [attr.aria-label]="'ui.l_univers_de_nais_drinks' | t">
     @for (asset of assets; track asset.src) {
       <div class="prelaunch__card" [attr.data-type]="asset.type" [style.--asset-order]="$index">
-        <img [src]="asset.src" [alt]="asset.alt" width="240" height="300" (load)="onAssetSettled(asset.src)" (error)="onAssetSettled(asset.src)" />
+        <img [src]="asset.src" [alt]="(asset.alt) | t" width="240" height="300" (load)="onAssetSettled(asset.src)" (error)="onAssetSettled(asset.src)" />
       </div>
     }
   </div>
   <div class="prelaunch__message">
-    <p class="prelaunch__eyebrow">Real fruit mocktails</p>
-    <h1 id="prelaunch-heading">Alguna cosa NAIS<br />està a punt d'arribar</h1>
-    <p>Estem preparant la nostra nova web<br />Ens veiem molt aviat</p>
+    <p class="prelaunch__eyebrow">{{ 'ui.real_fruit_mocktails_' | t }}</p>
+    <h1 id="prelaunch-heading">{{ 'ui.alguna_cosa_nais' | t }}<br />{{ 'ui.esta_a_punt_d_arribar' | t }}</h1>
+    <p>{{ 'ui.estem_preparant_la_nostra_nova_web' | t }}<br />{{ 'ui.ens_veiem_molt_aviat' | t }}</p>
   </div>
   <div class="prelaunch__bubbles" aria-hidden="true">
     <span></span><span></span><span></span><span></span><span></span>
   </div>
-  <section class="prelaunch__contact" aria-label="Contacte">
-    <p>Per a més informació, podeu contactar amb nosaltres a</p>
+  <section class="prelaunch__contact" [attr.aria-label]="'ui.contacte' | t">
+    <p>{{ 'ui.per_a_mes_informacio_podeu_contactar_amb_nosaltres_a' | t }}</p>
     <address>
-      <a href="mailto:naisdrinksnais@gmail.com">naisdrinksnais&#64;gmail.com</a>
+      <a href="mailto:info@naisdrinks.com">info&#64;naisdrinks.com</a>
       <a href="tel:684758843">+34 684 758 843</a>
     </address>
   </section>

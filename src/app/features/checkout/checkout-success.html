@@ -1,30 +1,30 @@
-<section class="checkout-result" aria-labelledby="checkout-heading" lang="ca">
-  <h1 id="checkout-heading">Gràcies per triar NAIS!</h1>
+<section class="checkout-result" aria-labelledby="checkout-heading">
+  <h1 id="checkout-heading">{{ 'ui.gracies_per_triar_nais' | t }}</h1>
   @let result = state();
   <div aria-live="polite" aria-atomic="true" [attr.aria-busy]="result.status === 'loading'">
     @switch (result.status) {
-      @case ('loading') { <p>Estem confirmant la teva comanda.</p> }
+      @case ('loading') { <p>{{ 'ui.estem_confirmant_la_teva_comanda' | t }}</p> }
       @case ('pending') {
-        <p>Estem confirmant la teva comanda.</p>
-        <p>Encara no podem confirmar el pagament. Torna a carregar aquesta pàgina d’aquí a uns instants.</p>
+        <p>{{ 'ui.estem_confirmant_la_teva_comanda' | t }}</p>
+        <p>{{ 'ui.encara_no_podem_confirmar_el_pagament_torna_a_carregar_aquesta_pagina_daqui_a_un' | t }}</p>
       }
       @case ('verified') {
-        <p>Pagament confirmat. Gràcies per la teva comanda!</p>
-        <p>Comanda <strong>{{ result.order.orderNumber }}</strong></p>
+        <p>{{ 'ui.pagament_confirmat_gracies_per_la_teva_comanda' | t }}</p>
+        <p>{{ 'ui.comanda' | t }} <strong>{{ result.order.orderNumber }}</strong></p>
         <ul class="order-items">
           @for (item of result.order.items; track $index) {
             <li>
               <span>{{ item.productName }} × {{ item.quantity }}</span>
-              <span>{{ item.lineTotalAmount / 100 | currency:result.order.currency.toUpperCase() }}</span>
+              <span>{{ formatAmount(item.lineTotalAmount, result.order.currency) }}</span>
             </li>
           }
         </ul>
-        <p><strong>Total: {{ result.order.totalAmount / 100 | currency:result.order.currency.toUpperCase() }}</strong></p>
+        <p><strong>{{ 'ui.total' | t }} {{ formatAmount(result.order.totalAmount, result.order.currency) }}</strong></p>
       }
-      @case ('error') { <p>No hem pogut consultar la comanda. Torna a carregar la pàgina per provar-ho de nou.</p> }
-      @case ('not-paid') { <p>No podem mostrar aquesta comanda com a pagament confirmat. Hem conservat la teva cistella.</p> }
-      @default { <p>Aquesta pàgina no confirma cap pagament sense una comanda verificada. Hem conservat la teva cistella.</p> }
+      @case ('error') { <p>{{ 'ui.no_hem_pogut_consultar_la_comanda_torna_a_carregar_la_pagina_per_provar_ho_de_no' | t }}</p> }
+      @case ('not-paid') { <p>{{ 'ui.no_podem_mostrar_aquesta_comanda_com_a_pagament_confirmat_hem_conservat_la_teva_' | t }}</p> }
+      @default { <p>{{ 'ui.aquesta_pagina_no_confirma_cap_pagament_sense_una_comanda_verificada_hem_conserv' | t }}</p> }
     }
   </div>
-  <a class="button--buy" routerLink="/products">Tornar a la botiga</a>
+  <a class="button--buy" routerLink="/products">{{ 'ui.tornar_a_la_botiga' | t }}</a>
 </section>

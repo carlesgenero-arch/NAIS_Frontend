@@ -1,3 +1,4 @@
+import { CA } from '../i18n/ca';
 import type { Product } from '../models/product.interface';
 
 /** Presentation and nutrition not yet provided by the public API. Never defines availability or price. */
@@ -6,211 +7,211 @@ export const PRODUCT_PRESENTATION: Readonly<Record<string, Presentation>> = {
   "orange-spritz": {
     "nutrition": [
       {
-        "label": "Valor energètic",
+        "label": CA['ui.valor_energetic'],
         "value": "98 kJ / 23 kcal"
       },
       {
-        "label": "Greixos",
+        "label": CA['ui.greixos'],
         "value": "0,0 g"
       },
       {
-        "label": "dels quals saturats",
+        "label": CA['ui.dels_quals_saturats'],
         "value": "0,0 g"
       },
       {
-        "label": "Hidrats de carboni",
+        "label": CA['ui.hidrats_de_carboni'],
         "value": "5,2 g"
       },
       {
-        "label": "dels quals sucres",
+        "label": CA['ui.dels_quals_sucres'],
         "value": "4,8 g"
       },
       {
-        "label": "Proteïnes",
+        "label": CA['ui.proteines'],
         "value": "0,1 g"
       },
       {
-        "label": "Sal",
+        "label": CA['ui.sal'],
         "value": "<0,01 g"
       }
     ],
-    "format": "pack 16 llaunes x 250ml",
-    "ingredients": "TARONJA, LLIMONA, GERDS, GENCIANA",
-    "imageAlt": "NAIS Orange Spritz can with blue fruit artwork",
+    "format": CA['ui.pack_16_llaunes_x_250ml'],
+    "ingredients": CA['ui.taronja_llimona_gerds_genciana'],
+    "imageAlt": CA['ui.nais_orange_spritz_can_with_blue_fruit_artwork'],
     "fruitImage": {
       "url": "images/info-card/orange.png",
-      "alt": "Orange fruit on a blue background"
+      "alt": CA['ui.orange_fruit_on_a_blue_background']
     },
     "variant": "citrus"
   },
   "passion-hugo": {
     "nutrition": [
       {
-        "label": "Valor energètic",
+        "label": CA['ui.valor_energetic'],
         "value": "99 kJ / 23 kcal"
       },
       {
-        "label": "Greixos",
+        "label": CA['ui.greixos'],
         "value": "0,0 g"
       },
       {
-        "label": "dels quals saturats",
+        "label": CA['ui.dels_quals_saturats'],
         "value": "0,0 g"
       },
       {
-        "label": "Hidrats de carboni",
+        "label": CA['ui.hidrats_de_carboni'],
         "value": "5,1 g"
       },
       {
-        "label": "dels quals sucres",
+        "label": CA['ui.dels_quals_sucres'],
         "value": "4,9 g"
       },
       {
-        "label": "Proteïnes",
+        "label": CA['ui.proteines'],
         "value": "0,1 g"
       },
       {
-        "label": "Sal",
+        "label": CA['ui.sal'],
         "value": "<0,01 g"
       }
     ],
-    "format": "pack 16 llaunes x 250ml",
-    "ingredients": "LLIMONA, MENTA, FLOR DE SAÜC, POMA, FRUITA DE LA PASSIÓ",
-    "imageAlt": "NAIS Passion Hugo can with green fruit artwork",
+    "format": CA['ui.pack_16_llaunes_x_250ml'],
+    "ingredients": CA['ui.llimona_menta_flor_de_sauc_poma_fruita_de_la_passio'],
+    "imageAlt": CA['ui.nais_passion_hugo_can_with_green_fruit_artwork'],
     "fruitImage": {
       "url": "images/info-card/lemon.jpg",
-      "alt": "Lemon fruit on a green background"
+      "alt": CA['ui.lemon_fruit_on_a_green_background']
     },
     "variant": "botanical"
   },
   "ginger-crush": {
     "nutrition": [
       {
-        "label": "Valor energètic",
+        "label": CA['ui.valor_energetic'],
         "value": "102 kJ / 24 kcal"
       },
       {
-        "label": "Greixos",
+        "label": CA['ui.greixos'],
         "value": "0,0 g"
       },
       {
-        "label": "dels quals saturats",
+        "label": CA['ui.dels_quals_saturats'],
         "value": "0,0 g"
       },
       {
-        "label": "Hidrats de carboni",
+        "label": CA['ui.hidrats_de_carboni'],
         "value": "5,3 g"
       },
       {
-        "label": "dels quals sucres",
+        "label": CA['ui.dels_quals_sucres'],
         "value": "5,1 g"
       },
       {
-        "label": "Proteïnes",
+        "label": CA['ui.proteines'],
         "value": "0,1 g"
       },
       {
-        "label": "Sal",
+        "label": CA['ui.sal'],
         "value": "<0,01 g"
       }
     ],
-    "format": "pack 16 llaunes x 250ml",
-    "ingredients": "LLIMONA, POMA, GINGEBRE, MANGO",
-    "imageAlt": "NAIS can with pink fruit artwork and a Ginger Crush label",
+    "format": CA['ui.pack_16_llaunes_x_250ml'],
+    "ingredients": CA['ui.llimona_poma_gingebre_mango'],
+    "imageAlt": CA['ui.nais_can_with_pink_fruit_artwork_and_a_ginger_crush_label'],
     "fruitImage": {
       "url": "images/info-card/mango.png",
-      "alt": "Mango fruit on a pink background"
+      "alt": CA['ui.mango_fruit_on_a_pink_background']
     },
     "variant": "ginger"
   },
   "tropical-hops": {
     "nutrition": [
       {
-        "label": "Valor energètic",
+        "label": CA['ui.valor_energetic'],
         "value": "103 kJ / 24 kcal"
       },
       {
-        "label": "Greixos",
+        "label": CA['ui.greixos'],
         "value": "0,2 g"
       },
       {
-        "label": "dels quals saturats",
+        "label": CA['ui.dels_quals_saturats'],
         "value": "0,0 g"
       },
       {
-        "label": "Hidrats de carboni",
+        "label": CA['ui.hidrats_de_carboni'],
         "value": "5,3 g"
       },
       {
-        "label": "dels quals sucres",
+        "label": CA['ui.dels_quals_sucres'],
         "value": "4,9 g"
       },
       {
-        "label": "Proteïnes",
+        "label": CA['ui.proteines'],
         "value": "0,2 g"
       },
       {
-        "label": "Sal",
+        "label": CA['ui.sal'],
         "value": "<0,01 g"
       }
     ],
-    "format": "pack 16 llaunes x 250 ml",
-    "ingredients": "PINYA, RAÏM, MANGO, MANDARINA, CIVADA SENSE GLUTEN, LLIMONA, LLÚPOL CITRA",
-    "imageAlt": "NAIS can with purple artwork and a tropical hops label",
+    "format": CA['ui.pack_16_llaunes_x_250_ml'],
+    "ingredients": CA['ui.pinya_raim_mango_mandarina_civada_sense_gluten_llimona_llupol_citra'],
+    "imageAlt": CA['ui.nais_can_with_purple_artwork_and_a_tropical_hops_label'],
     "fruitImage": {
       "url": "images/info-card/s_hop (2).jpg",
-      "alt": "hop on a purple background"
+      "alt": CA['ui.hop_on_a_purple_background']
     },
     "variant": "tropical"
   },
   "pack-variat": {
     "variant": "assorted",
-    "format": "Pack variat de 4 sabors (16 x 250ml)",
-    "imageAlt": "Pack variat de NAIS Drinks amb Orange Spritz, Passion Hugo, Ginger Crush i Tropical Hops",
+    "format": CA['ui.pack_variat_de_4_sabors_16_x_250ml'],
+    "imageAlt": CA['ui.pack_variat_de_nais_drinks_amb_orange_spritz_passion_hugo_ginger_crush_i_tropica'],
     "detailsPending": true
   },
   "tropical-hops-harvest": {
     "nutrition": [
       {
-        "label": "Valor energètic",
+        "label": CA['ui.valor_energetic'],
         "value": "103 kJ / 24 kcal"
       },
       {
-        "label": "Greixos",
+        "label": CA['ui.greixos'],
         "value": "0,2 g"
       },
       {
-        "label": "dels quals saturats",
+        "label": CA['ui.dels_quals_saturats'],
         "value": "0,0 g"
       },
       {
-        "label": "Hidrats de carboni",
+        "label": CA['ui.hidrats_de_carboni'],
         "value": "5,3 g"
       },
       {
-        "label": "dels quals sucres",
+        "label": CA['ui.dels_quals_sucres'],
         "value": "4,9 g"
       },
       {
-        "label": "Proteïnes",
+        "label": CA['ui.proteines'],
         "value": "0,2 g"
       },
       {
-        "label": "Sal",
+        "label": CA['ui.sal'],
         "value": "<0,01 g"
       }
     ],
-    "format": "pack 16 llaunes x 250 ml",
-    "ingredients": "TROPICAL HOPS + FRESH HOPS CHINOOK DELS CAMPS DE BIOLUPULUS-GIRONA",
-    "imageAlt": "Llauna de Tropical Hops Harvest amb il·lustracions blaves i verdes de llúpol",
+    "format": CA['ui.pack_16_llaunes_x_250_ml'],
+    "ingredients": CA['ui.tropical_hops_fresh_hops_chinook_dels_camps_de_biolupulus_girona'],
+    "imageAlt": CA['ui.llauna_de_tropical_hops_harvest_amb_illustracions_blaves_i_verdes_de_llupol'],
     "fruitImage": {
       "url": "images/info-card/s_hop (2).jpg",
-      "alt": "hop on a purple background"
+      "alt": CA['ui.hop_on_a_purple_background']
     },
     "variant": "tropical",
     "isSeasonal": true,
-    "badge": "NOVA COLLITA",
-    "featureDescription": "Tot el caràcter de la TROPICAL HOPS amb llúpol CHINOOK fresc. Visca el verd!",
+    "badge": CA['ui.nova_collita'],
+    "featureDescription": CA['ui.tot_el_caracter_de_la_tropical_hops_amb_llupol_chinook_fresc_visca_el_verd'],
     "featureBackgroundImageUrl": "images/products/hop2.jpg"
   }
 };
