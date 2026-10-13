@@ -1,13 +1,15 @@
 import { FULFILLMENT_TRANSITIONS, type FulfillmentStatus } from '../../src/shared/order-fulfillment.ts';
 import { getAdminOrder, isOrderId } from './admin-order.service.ts';
 import { updateOrderFulfillment, type AdminOrderDatabase } from './order.repository.ts';
+import { sendShippingEmail } from './shipping-email.service.ts';
+import type { EmailEnvironment } from '../email/email.types.ts';
 
 export class FulfillmentError extends Error {
   readonly status: 400 | 404 | 409;
   readonly code: string;
   constructor(status: 400 | 404 | 409, code: string) { super(code); this.status = status; this.code = code; }
 }
-export async function changeOrderFulfillment(db: AdminOrderDatabase, id: unknown, payload: unknown) {
+export async function changeOrderFulfillment(db: AdminOrderDatabase, id: unknown, payload: unknown, env: EmailEnvironment = {}) {
   if (!isOrderId(id) || !payload || typeof payload !== 'object' || Array.isArray(payload)) {
     throw new FulfillmentError(400, 'invalid_payload');
   }
@@ -23,5 +25,10 @@ export async function changeOrderFulfillment(db: AdminOrderDatabase, id: unknown
   if (!await updateOrderFulfillment(db, id, order.fulfillmentStatus, next as FulfillmentStatus)) {
     throw new FulfillmentError(409, 'order_changed');
   }
-  return getAdminOrder(db, id);
+  const updated = { ...order, fulfillmentStatus: next as FulfillmentStatus };
+  if (order.fulfillmentStatus === 'preparing' && next === 'shipped') {
+    const shippingEmailWarning = await sendShippingEmail(db, updated, env);
+    return { ...updated, shippingEmailWarning };
+  }
+  return updated;
 }

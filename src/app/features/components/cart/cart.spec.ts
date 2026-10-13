@@ -10,6 +10,9 @@ import { ProductService } from '../../../services/product.service';
 import { Cart, CHECKOUT_REDIRECT } from './cart';
 import { CheckoutService, type CheckoutResponse } from '../../../services/checkout.service';
 import { Subject } from 'rxjs';
+import { DOCUMENT } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
@@ -289,7 +292,7 @@ describe('Cart page', () => {
     expect(TestBed.inject(Router).url).toBe(route);
     expect(cart.totalQuantity()).toBe(3);
     fixture.detectChanges();
-    expect(button.disabled).toBe(false);
+    expect(button.disabled).toBe(true);
   });
 
   it('re-enables checkout after failure without clearing cart or persisted items', async () => {
@@ -333,45 +336,40 @@ describe('Cart page', () => {
     expect(redirect).not.toHaveBeenCalled();
   });
 
-  it('shows the existing safe error and preserves cart when opening is blocked', async () => {
+  it.each([{}, { url: '' }, { url: 'https://invalid.example' }])('shows safe error for invalid API response %j', async payload => {
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.overrideProvider(CheckoutService, { useFactory: () => new CheckoutService() });
+    const http = TestBed.inject(HttpTestingController);
     TestBed.inject(CartService).addItem('orange-spritz');
     const saved = stored.get(CART_STORAGE_KEY);
-    redirect.mockImplementation(() => { throw new Error('Popup blocked'); });
     const { fixture, button } = drawer();
     button.click();
-    response.next({ url: 'https://checkout.stripe.com/c/pay/test' });
+    http.expectOne('/api/checkout').flush(payload);
     await fixture.whenStable();
     fixture.detectChanges();
     expect(button.disabled).toBe(false);
     expect(fixture.nativeElement.querySelector('.checkout-status').textContent).toContain('Torna-ho a provar');
     expect(stored.get(CART_STORAGE_KEY)).toBe(saved);
+    expect(redirect).not.toHaveBeenCalled();
+    http.verify();
   });
 
 });
 
-describe('Checkout new-tab browser boundary', () => {
+describe('Checkout same-tab browser boundary', () => {
   afterEach(() => { TestBed.resetTestingModule(); vi.restoreAllMocks(); });
 
-  it('isolates the new tab and suppresses referrer before external navigation', () => {
-    const doc = document.implementation.createHTMLDocument();
-    const popup = { opener: window, document: doc, close: vi.fn() };
-    const open = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window);
-    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
-      expect(popup.opener).toBeNull();
-      expect(this.href).toBe('https://checkout.stripe.com/c/pay/test');
-      expect(this.rel).toBe('noopener noreferrer');
-      expect(this.target).toBe('_self');
-    });
-    const originalUrl = window.location.href;
+  it('assigns current window location and never opens a popup', () => {
+    const assign = vi.fn();
+    const open = vi.spyOn(window, 'open').mockReturnValue(null);
+    TestBed.overrideProvider(DOCUMENT, { useValue: { defaultView: { location: { assign }, open } } });
     TestBed.inject(CHECKOUT_REDIRECT)('https://checkout.stripe.com/c/pay/test');
-    expect(open).toHaveBeenCalledExactlyOnceWith('', '_blank');
-    expect(click).toHaveBeenCalledTimes(1);
-    expect(window.location.href).toBe(originalUrl);
-    expect(popup.close).not.toHaveBeenCalled();
+    expect(assign).toHaveBeenCalledExactlyOnceWith('https://checkout.stripe.com/c/pay/test');
+    expect(open).not.toHaveBeenCalled();
   });
 
-  it('throws on null so the existing checkout catch handles blocked popups', () => {
-    vi.spyOn(window, 'open').mockReturnValue(null);
-    expect(() => TestBed.inject(CHECKOUT_REDIRECT)('https://checkout.stripe.com/c/pay/test')).toThrow('Popup blocked');
+  it('does not attempt browser navigation during server rendering', () => {
+    TestBed.overrideProvider(DOCUMENT, { useValue: { defaultView: null } });
+    expect(() => TestBed.inject(CHECKOUT_REDIRECT)('https://checkout.stripe.com/c/pay/test')).not.toThrow();
   });
 });

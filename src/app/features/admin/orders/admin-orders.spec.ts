@@ -33,6 +33,20 @@ describe('protected admin orders UI', () => {
   function list() { const fixture = TestBed.createComponent(AdminOrders); fixture.detectChanges(); return fixture; }
   function detail() { const fixture = TestBed.createComponent(AdminOrderDetail); fixture.detectChanges(); return fixture; }
   function page() { return http.expectOne('/api/admin/orders?limit=25'); }
+
+  it('keeps shipped state and shows non-destructive feedback when email fails', () => {
+    const fixture = detail();
+    http.expectOne('/api/admin/orders/' + order.id).flush({ ...order, fulfillmentStatus: 'preparing' });
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('[data-fulfillment="shipped"]').click();
+    http.expectOne('/api/admin/orders/' + order.id + '/fulfillment').flush({
+      ...order, fulfillmentStatus: 'shipped', shippingEmailWarning: true,
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain("La comanda s'ha marcat com enviada, però no s'ha pogut enviar el correu.");
+    expect(fixture.nativeElement.querySelector('[data-fulfillment="delivered"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-fulfillment="shipped"]')).toBeNull();
+  });
   it('renders loading and list fields with a detail link', () => {
     const fixture = list(); expect(fixture.nativeElement.textContent).toContain('Carregant');
     const request = page(); expect(request.request.method).toBe('GET');

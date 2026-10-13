@@ -13,8 +13,64 @@ import { onRequest as fulfillment } from '../functions/api/admin/orders/[id]/ful
 import { changeOrderFulfillment } from './orders/order-fulfillment.service.ts';
 import { onRequest as publicProducts } from '../functions/api/products/index.ts';
 const env = { ACCESS_TEAM_DOMAIN: 'https://test.cloudflareaccess.com', ACCESS_AUD: 'test-only', ADMIN_EMAILS: 'admin@example.test' };
+const emailEnv = { RESEND_API_KEY: 're_fixture', EMAIL_FROM: 'sender@example.test' };
 const { privateKey, publicKey } = await generateKeyPair('RS256');
 const keys = createLocalJWKSet({ keys: [{ ...await exportJWK(publicKey), kid: 'test' }] });
+
+test('shipping email sends once under concurrent transitions and uses escaped historical snapshot', async t => {
+  const { db, sqlite, ids } = await setup(t);
+  sqlite.exec("UPDATE orders SET fulfillment_status='preparing', customer_name='<b>Customer</b>', shipping_address_line1='<script>address</script>'; UPDATE order_items SET product_name='Historical & <fruit>'; DELETE FROM products");
+  const messages = [];
+  t.mock.method(globalThis, 'fetch', async (_url, options) => { messages.push(JSON.parse(options.body)); return Response.json({ id: 'fixture' }); });
+  const results = await Promise.allSettled(Array.from({ length: 8 }, () => changeOrderFulfillment(db, ids[0], { fulfillmentStatus: 'shipped' }, emailEnv)));
+  assert.equal(results.filter(result => result.status === 'fulfilled').length, 1);
+  assert.equal(messages.length, 1);
+  await assert.rejects(changeOrderFulfillment(db, ids[0], { fulfillmentStatus: 'shipped' }, emailEnv));
+  const row = sqlite.prepare('SELECT * FROM orders WHERE id=?').get(ids[0]);
+  assert.equal(row.shipping_email_status, 'sent');
+  assert.ok(Number.isFinite(Date.parse(row.shipping_email_sent_at)));
+  assert.equal(row.confirmation_email_status, 'pending');
+  assert.ok(messages[0].html.includes('&lt;b&gt;Customer&lt;/b&gt;'));
+  assert.ok(messages[0].html.includes('Historical &amp; &lt;fruit&gt;'));
+  assert.ok(messages[0].html.includes('&lt;script&gt;address&lt;/script&gt;'));
+  assert.ok(!messages[0].html.includes('pi_fixture'));
+  assert.ok(messages[0].text.includes(row.order_number));
+  await changeOrderFulfillment(db, ids[0], { fulfillmentStatus: 'delivered' }, emailEnv);
+  await changeOrderFulfillment(db, ids[1], { fulfillmentStatus: 'cancelled' }, emailEnv);
+  assert.equal(messages.length, 1);
+});
+
+test('provider failure returns successful shipment plus warning; missing email is skipped', async t => {
+  const { send, sqlite, ids } = await setup(t);
+  sqlite.exec("UPDATE orders SET fulfillment_status='preparing'");
+  const provider = t.mock.method(globalThis, 'fetch', async () => Response.json({ private: 'provider data' }, { status: 500 }));
+  const response = await send(fulfillment, ids[0], '', undefined, undefined, 'PATCH', { payload: { fulfillmentStatus: 'shipped' }, emailEnv });
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.fulfillmentStatus, 'shipped'); assert.equal(body.shippingEmailWarning, true);
+  assert.equal(JSON.stringify(body).includes('provider data'), false);
+  assert.equal(sqlite.prepare('SELECT shipping_email_status s FROM orders WHERE id=?').get(ids[0]).s, 'failed');
+  sqlite.prepare("UPDATE orders SET customer_email='' WHERE id=?").run(ids[1]);
+  const missing = await send(fulfillment, ids[1], '', undefined, undefined, 'PATCH', { payload: { fulfillmentStatus: 'shipped' }, emailEnv });
+  assert.equal(missing.status, 200);
+  assert.equal((await missing.json()).shippingEmailWarning, true);
+  const row = sqlite.prepare('SELECT * FROM orders WHERE id=?').get(ids[1]);
+  assert.equal(row.fulfillment_status, 'shipped'); assert.equal(row.shipping_email_status, 'skipped');
+  assert.equal(row.shipping_email_sent_at, null); assert.equal(provider.mock.callCount(), 1);
+});
+
+test('shipping migration marks historical final states skipped and leaves preparing eligible', async t => {
+  const { sqlite } = await setup(t);
+  sqlite.exec('ALTER TABLE orders DROP COLUMN shipping_email_status; ALTER TABLE orders DROP COLUMN shipping_email_sent_at');
+  for (const state of ['pending', 'preparing', 'shipped', 'delivered', 'cancelled']) {
+    sqlite.prepare('UPDATE orders SET fulfillment_status=?').run(state);
+    sqlite.exec(readFileSync(new URL('../migrations/0007_shipping_email.sql', import.meta.url), 'utf8'));
+    assert.equal(sqlite.prepare('SELECT shipping_email_status s FROM orders LIMIT 1').get().s,
+      ['pending', 'preparing'].includes(state) ? 'pending' : 'skipped');
+    assert.throws(() => sqlite.exec("UPDATE orders SET shipping_email_status='invalid'"));
+    sqlite.exec('ALTER TABLE orders DROP COLUMN shipping_email_status; ALTER TABLE orders DROP COLUMN shipping_email_sent_at');
+  }
+});
 async function jwt(email = 'admin@example.test') {
   return new SignJWT({ type: 'app', email }).setProtectedHeader({ alg: 'RS256', kid: 'test' })
     .setSubject('test-subject').setIssuer(env.ACCESS_TEAM_DOMAIN).setAudience(env.ACCESS_AUD)
@@ -23,7 +79,7 @@ async function jwt(email = 'admin@example.test') {
 async function setup(t) {
   const sqlite = new DatabaseSync(':memory:'); t.after(() => sqlite.close());
   sqlite.exec('PRAGMA foreign_keys=ON');
-  for (const file of ['0003_orders.sql', '0004_products.sql', '0005_seed_products.sql']) {
+  for (const file of ['0003_orders.sql', '0004_products.sql', '0005_seed_products.sql', '0006_order_confirmation.sql', '0007_shipping_email.sql']) {
     sqlite.exec(readFileSync(new URL('../migrations/' + file, import.meta.url), 'utf8'));
   }
   const db = { prepare(sql) { return { sql, values: [], bind(...values) { this.values = values; return this; },
@@ -53,7 +109,7 @@ async function setup(t) {
       headers: { ...(token ? { 'Cf-Access-Jwt-Assertion': token } : {}), Origin: options.origin ?? 'https://nais.example',
         'Content-Type': options.contentType ?? 'application/json' },
       body: options.raw ?? (options.payload === undefined ? undefined : JSON.stringify(options.payload)) });
-    const context = { request, env: { ...env, PROMO_DB: database }, data: {}, params: { id },
+    const context = { request, env: { ...env, ...options.emailEnv, PROMO_DB: database }, data: {}, params: { id },
       next: () => handler(context) };
     return requireAdmin(context, () => keys);
   }
@@ -76,7 +132,9 @@ test('fulfillment normal flow changes only fulfillment_status and refreshed list
   for (const next of ['preparing', 'shipped', 'delivered']) {
     const response = await send(fulfillment, ids[0], '', undefined, undefined, 'PATCH', { payload: { fulfillmentStatus: next } });
     assert.equal(response.status, 200); assert.equal((await response.json()).fulfillmentStatus, next);
-    assert.deepEqual({ ...sqlite.prepare('SELECT * FROM orders WHERE id=?').get(ids[0]) }, { ...before, fulfillment_status: next });
+    assert.deepEqual({ ...sqlite.prepare('SELECT * FROM orders WHERE id=?').get(ids[0]) }, {
+      ...before, fulfillment_status: next, shipping_email_status: next === 'preparing' ? 'pending' : 'failed',
+    });
   }
   assert.deepEqual(sqlite.prepare('SELECT * FROM order_items').all(), items);
   const page = await (await send(orders)).json();
