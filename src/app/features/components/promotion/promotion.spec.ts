@@ -49,8 +49,8 @@ describe('Promotion', () => {
     const { fixture, element } = await create();
     const dialog = element.querySelector('dialog')!;
     expect(dialog.open).toBe(true);
-    expect(dialog.getAttribute('aria-label')).toBe('OBTÉN UN 10% DESCOMPTE');
-    expect(element.querySelector('h2')?.textContent).toContain('OBTÉN UN 10% DESCOMPTE');
+    expect(dialog.getAttribute('aria-label')).toBe('ACONSEGUEIX UN 10% DE DESCOMPTE');
+    expect(element.querySelector('h2')?.textContent).toContain('ACONSEGUEIX UN 10% DE DESCOMPTE');
     expect(element.querySelector('img')).toBeNull();
     expect(dialog.classList.contains('promotion')).toBe(true);
     expect(document.activeElement).toBe(element.querySelector('.modal-close'));
@@ -95,7 +95,7 @@ describe('Promotion', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(register).toHaveBeenCalledExactlyOnceWith('person@example.com');
-    expect(element.querySelector('[role="status"]')?.textContent).toContain('no s’ha enviat cap correu');
+    expect(element.querySelector('[role="status"]')?.textContent).toContain('Revisa el teu correu');
     expect(element.querySelector('input')).toBeNull();
     expect(document.activeElement).toBe(element.querySelector('.modal-close'));
     expect([...values]).toEqual([[PROMOTION_SESSION_KEY, '1']]);
