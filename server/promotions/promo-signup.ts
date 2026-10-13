@@ -1,5 +1,7 @@
 import type Stripe from 'stripe';
 import { createStripeClient } from '../stripe/stripe-client.ts';
+import type { EmailEnvironment } from '../email/email.types.ts';
+import { deliverPromo } from './promo-email.ts';
 
 /** Minimal D1 contract: implemented by the Pages PROMO_DB binding. */
 export interface PromoDatabase {
@@ -11,7 +13,7 @@ export interface PromoDatabase {
   };
 }
 
-export interface PromoEnvironment {
+export interface PromoEnvironment extends EmailEnvironment {
   PROMO_DB?: PromoDatabase;
   STRIPE_SECRET_KEY?: string;
   STRIPE_PROMO_COUPON_ID?: string;
@@ -109,16 +111,8 @@ export async function promoSignup(
       'INSERT INTO promo_signups (email, promotion_request_id) VALUES (?1, ?2) ON CONFLICT(email) DO NOTHING',
     ).bind(email, requestId).run();
     if (!result.success) return response(503, 'unavailable');
-    if (result.meta.changes === 0) {
-      const existing = await env.PROMO_DB.prepare(
-        'SELECT promotion_request_id, stripe_promotion_code_id, promotion_code FROM promo_signups WHERE email = ?1',
-      ).bind(email).first<{ promotion_request_id: string | null; stripe_promotion_code_id: string | null; promotion_code: string | null }>();
-      // Legacy registrations stay duplicates; unfinished new registrations never claim success.
-      if (existing && (!existing.promotion_request_id || (existing.stripe_promotion_code_id && existing.promotion_code))) {
-        return response(200, 'already_registered');
-      }
-      return response(503, 'unavailable');
-    }
+    // Never expose delivery/provider state through duplicate submissions.
+    if (result.meta.changes === 0) return response(200, 'already_registered');
     if (result.meta.changes !== 1) return response(503, 'unavailable');
     const coupon = await client.coupons.retrieve(env.STRIPE_PROMO_COUPON_ID);
     if (!coupon.valid || coupon.percent_off !== 10) return response(503, 'unavailable');
@@ -133,8 +127,7 @@ export async function promoSignup(
       'UPDATE promo_signups SET stripe_promotion_code_id = ?1, promotion_code = ?2 WHERE email = ?3 AND promotion_request_id = ?4 AND stripe_promotion_code_id IS NULL',
     ).bind(promotion.id, promotion.code, email, requestId).run();
     if (!saved.success || saved.meta.changes !== 1) return response(503, 'unavailable');
-    // delivery_status stays pending: code generation does not mean email delivery.
-    // Keep failed reservations for manual reconciliation; never blindly issue a replacement.
+    if (!await deliverPromo(env.PROMO_DB, requestId, env)) return response(503, 'unavailable');
     return response(201, 'registered');
   } catch {
     // Never return SQL, binding details or email addresses to the client or logs.
