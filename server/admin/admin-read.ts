@@ -2,12 +2,13 @@ import type { AdminIdentity } from './admin-auth.ts';
 import type { ProductDatabase } from '../catalogue/product.repository.ts';
 import type { AdminOrderDatabase } from '../orders/order.repository.ts';
 import { InvalidAdminOrderQuery } from '../orders/admin-order.service.ts';
+import type { EmailEnvironment } from '../email/email.types.ts';
 
 export class InvalidAdminReadRequest extends Error {}
 
 export interface AdminReadContext {
   request: Request;
-  env: { PROMO_DB?: ProductDatabase & AdminOrderDatabase };
+  env: { PROMO_DB?: ProductDatabase & AdminOrderDatabase } & EmailEnvironment;
   data: { admin?: AdminIdentity };
   params?: { id?: string | string[] };
 }

@@ -39,7 +39,7 @@ function readOrder(value: unknown): AdminOrder {
   return { id: row['id'], orderNumber: summary.orderNumber, paymentStatus: summary.paymentStatus,
     fulfillmentStatus: summary.fulfillmentStatus, totalAmount: summary.totalAmount, currency: summary.currency,
     createdAt: row['createdAt'], paidAt: row['paidAt'], items,
-    customer: { name: text('customerName'), email: text('customerEmail'), phone: nullable('customerPhone') },
+    customer: { name: text('customerName'), email: nullable('customerEmail') ?? '', phone: nullable('customerPhone') },
     shippingAddress: { name: text('shippingName'), line1: text('shippingLine1'), line2: nullable('shippingLine2'),
       postalCode: text('shippingPostalCode'), city: text('shippingCity'), country: text('shippingCountry') } };
 }

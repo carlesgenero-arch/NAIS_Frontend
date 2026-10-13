@@ -50,7 +50,9 @@ export class AdminOrderDetail {
     if (next === 'cancelled' && !this.document.defaultView?.confirm('Cancel·lar la preparació d’aquesta comanda? És un estat final. Aquesta acció no reemborsa ni modifica el pagament.')) return;
     this.saving.set(true); this.saveError.set(''); this.saved.set('');
     this.mutation = this.service.updateFulfillment(current.id, next).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: order => { this.order.set(order); this.saving.set(false); this.saved.set('Estat de preparació actualitzat.'); },
+      next: order => { this.order.set(order); this.saving.set(false); this.saved.set(order.shippingEmailWarning
+        ? "La comanda s'ha marcat com enviada, però no s'ha pogut enviar el correu."
+        : 'Estat de preparació actualitzat.'); },
       error: error => { this.saving.set(false); this.saveError.set(fulfillmentError(error)); },
     });
   }

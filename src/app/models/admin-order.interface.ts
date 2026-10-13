@@ -2,6 +2,7 @@ import type { PublicOrderSummary, PublicOrderItem } from '../../shared/order-sum
 
 /** Protected admin API contract. Never persist this customer data in browser storage. */
 export interface AdminOrder extends Omit<PublicOrderSummary, 'items'> {
+  readonly shippingEmailWarning?: boolean;
   readonly id: string;
   readonly paidAt: string;
   readonly customer: { readonly name: string; readonly email: string; readonly phone: string | null };

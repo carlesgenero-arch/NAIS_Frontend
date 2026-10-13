@@ -13,23 +13,7 @@ export const CHECKOUT_REDIRECT = new InjectionToken<(url: string) => void>('Chec
   factory: () => {
     const document = inject(DOCUMENT);
     return url => {
-      if (!document.defaultView) throw new Error('Browser unavailable');
-      // noopener in window.open returns null even on success. Open blank first
-      // to detect blockers, then isolate it before navigating to external content.
-      const tab = document.defaultView.open('', '_blank');
-      if (!tab) throw new Error('Popup blocked');
-      try {
-        tab.opener = null;
-        const link = tab.document.createElement('a');
-        link.href = url;
-        link.target = '_self';
-        link.rel = 'noopener noreferrer';
-        tab.document.body.append(link);
-        link.click();
-      } catch (error) {
-        tab.close();
-        throw error;
-      }
+      document.defaultView?.location.assign(url);
     };
   },
 });
@@ -60,18 +44,21 @@ export class Cart {
     if (this.checkoutLoading() || this.cart.isEmpty() || this.cart.subtotalCents() === null) return;
     this.checkoutLoading.set(true);
     this.checkoutMessage.set('');
+    let checkoutUrl: string;
     try {
       const items = this.cart.entries().map(({ productId, quantity }) => ({ productId, quantity }));
       const { url } = await firstValueFrom(this.injector.get(CheckoutService).createCheckout(items).pipe(
         takeUntilDestroyed(this.destroyRef),
       ));
-      if (!this.destroyRef.destroyed) this.redirect(url);
-      if (!this.destroyRef.destroyed) this.checkoutLoading.set(false);
+      checkoutUrl = url;
     } catch {
       if (this.destroyRef.destroyed) return;
       this.checkoutLoading.set(false);
       this.checkoutMessage.set("No s'ha pogut iniciar el pagament. Torna-ho a provar.");
+      return;
     }
+    // Keep submissions disabled while the browser leaves for the validated Stripe URL.
+    if (!this.destroyRef.destroyed) this.redirect(checkoutUrl);
   }
 
   protected decreaseQuantity(productId: string, quantity: number, focusTarget: HTMLElement): void {

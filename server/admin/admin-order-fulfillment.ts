@@ -25,7 +25,7 @@ export async function adminOrderFulfillment(context: AdminReadContext): Promise<
   if (context.request.method !== 'PATCH') return reply(405, { status: 'method_not_allowed' }, { Allow: 'PATCH' });
   if (!context.env.PROMO_DB) return reply(503, { status: 'unavailable' });
   try {
-    return reply(200, await changeOrderFulfillment(context.env.PROMO_DB, context.params?.id, await readPayload(context.request)));
+    return reply(200, await changeOrderFulfillment(context.env.PROMO_DB, context.params?.id, await readPayload(context.request), context.env));
   } catch (error) {
     return error instanceof FulfillmentError ? reply(error.status, { status: error.code }) : reply(503, { status: 'unavailable' });
   }
