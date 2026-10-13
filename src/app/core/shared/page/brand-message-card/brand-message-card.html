@@ -1,6 +1,6 @@
-<section class="brand-message" [attr.aria-label]="heading()" [style.background-image]="backgroundImage()" lang="ca">
+<section class="brand-message" [attr.aria-label]="(heading()) | t" [style.background-image]="backgroundImage()">
   <div class="brand-message-content">
-    <h1>{{ heading() }}</h1>
+    <h1>{{ (heading()) | t }}</h1>
      <!--<p>{{ message() }}</p>
    <a class="button--buy" [href]="ctaHref()">COMPRAR</a>-->
   </div>

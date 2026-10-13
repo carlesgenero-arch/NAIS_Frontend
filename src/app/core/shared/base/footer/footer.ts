@@ -1,3 +1,5 @@
+import { CA } from '../../../../i18n/ca';
+import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -11,7 +13,7 @@ export interface FooterLink {
 @Component({
   selector: 'app-footer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, NgTemplateOutlet, Newsletter],
+  imports: [TranslatePipe, RouterLink, NgTemplateOutlet, Newsletter],
   templateUrl: './footer.html',
   styleUrl: './footer.css',
 })
@@ -19,9 +21,9 @@ export class Footer {
   readonly year = new Date().getFullYear();
   readonly instagramUrl = input('https://www.instagram.com/naisdrinks/');
   readonly legalLinks = input<readonly FooterLink[]>([
-    { label: 'Avís Legal' },
-    { label: 'Política de privacitat' },
+    { label: CA['ui.avis_legal'] },
+    { label: CA['ui.politica_de_privacitat'] },
     { label: 'cookies' },
-    { label: 'Termes i condicions' },
+    { label: CA['ui.termes_i_condicions'] },
   ]);
 }

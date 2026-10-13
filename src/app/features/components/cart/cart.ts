@@ -1,3 +1,6 @@
+import { TranslationService } from '../../../i18n/translation.service';
+import { CA } from '../../../i18n/ca';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { ChangeDetectionStrategy, Component, DestroyRef, DOCUMENT, inject, InjectionToken, Injector, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
@@ -21,12 +24,13 @@ export const CHECKOUT_REDIRECT = new InjectionToken<(url: string) => void>('Chec
 @Component({
   selector: 'app-cart',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [TranslatePipe, RouterLink],
   templateUrl: './cart.html',
   styleUrl: './cart.css',
   host: { '[class.drawer-cart]': "presentation() === 'drawer'" },
 })
 export class Cart {
+  protected readonly i18n = inject(TranslationService);
   readonly presentation = input<'page' | 'drawer'>('page');
   protected readonly cart = inject(CartService);
   protected readonly maxQuantity = MAX_CART_QUANTITY;
@@ -36,7 +40,7 @@ export class Cart {
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private readonly redirect = inject(CHECKOUT_REDIRECT);
-  private readonly currency = new Intl.NumberFormat('ca-ES', { style: 'currency', currency: 'EUR' });
+  private readonly currency = () => new Intl.NumberFormat(this.i18n.locale(), { style: 'currency', currency: 'EUR' });
   private readonly router = inject(Router);
   
 
@@ -54,7 +58,7 @@ export class Cart {
     } catch {
       if (this.destroyRef.destroyed) return;
       this.checkoutLoading.set(false);
-      this.checkoutMessage.set("No s'ha pogut iniciar el pagament. Torna-ho a provar.");
+      this.checkoutMessage.set(CA['ui.no_s_ha_pogut_iniciar_el_pagament_torna_ho_a_provar']);
       return;
     }
     // Keep submissions disabled while the browser leaves for the validated Stripe URL.
@@ -68,7 +72,7 @@ export class Cart {
   }
 
   protected formatCents(cents: number | null): string {
-    return cents === null ? 'Preu no disponible' : this.currency.format(cents / 100);
+    return cents === null ? this.i18n.t('ui.preu_no_disponible') : this.currency().format(cents / 100);
   }
 
   /** Catalogue prices are for display only; checkout must reprice on the server. */

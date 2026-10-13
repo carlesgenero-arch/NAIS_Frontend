@@ -1,3 +1,5 @@
+import { LanguageSelector } from '../language-selector/language-selector';
+import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { Component, inject, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CartDrawerService } from '../../../../services/cart-drawer.service';
@@ -8,7 +10,7 @@ import { Cart } from '../../../../features/components/cart/cart';
 
 @Component({
   selector: 'app-header',
-  imports: [Navbar, Modal, Cart],
+  imports: [LanguageSelector, TranslatePipe, Navbar, Modal, Cart],
   templateUrl: './header.html',
   styleUrl: './header.css',
 })

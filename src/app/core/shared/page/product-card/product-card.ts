@@ -1,3 +1,5 @@
+import { TranslationService } from '../../../../i18n/translation.service';
+import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Product } from '../../../../models/product.interface';
@@ -5,7 +7,7 @@ import { Product } from '../../../../models/product.interface';
 @Component({
   selector: 'app-product-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [TranslatePipe, RouterLink],
   host: {
     '[class.catalogue]': "presentation() === 'catalogue'",
     '[class.product-card--reveal]': 'revealEnabled()',
@@ -16,6 +18,7 @@ import { Product } from '../../../../models/product.interface';
   styleUrl: './product-card.css',
 })
 export class ProductCard {
+  protected readonly i18n = inject(TranslationService);
   readonly product = input.required<Product>();
   readonly presentation = input<'editorial' | 'catalogue'>('editorial');
   readonly scrollReveal = input(false);
@@ -24,8 +27,8 @@ export class ProductCard {
   private observer?: IntersectionObserver;
 
   readonly addRequested = output<Product>();
-  protected readonly addLabel = computed(() => `Afegir ${this.product().name} al carret`);
-  protected readonly imageAlt = computed(() => this.product().imageAlt ?? `${this.product().name} can`);
+  protected readonly addLabel = computed(() => this.i18n.t('cart.add', { product: this.i18n.text(this.product().name) }));
+  protected readonly imageAlt = computed(() => this.product().imageAlt ?? this.i18n.t('product.can', { product: this.i18n.text(this.product().name) }));
 
   constructor() {
     const element = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;

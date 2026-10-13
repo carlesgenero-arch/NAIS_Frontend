@@ -1,7 +1,10 @@
+@if (isPrelaunch()) {
+  <div class="prelaunch-language"><app-language-selector /></div>
+}
 @if (!isPrelaunch() && !isAdmin()) {
   <app-header />
 }
-<main>
+<main [attr.lang]="isAdmin() ? 'ca' : null">
   <router-outlet />
 </main>
 @if (!isPrelaunch() && !isAdmin()) {

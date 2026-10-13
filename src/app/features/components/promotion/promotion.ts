@@ -1,3 +1,5 @@
+import { CA } from '../../../i18n/ca';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { DOCUMENT } from '@angular/common';
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,7 +12,7 @@ export const PROMOTION_SESSION_KEY = 'nais.promotion.dismissed.v1';
 @Component({
   selector: 'app-promotion',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Modal, ReactiveFormsModule],
+  imports: [TranslatePipe, Modal, ReactiveFormsModule],
   templateUrl: './promotion.html',
   styleUrl: './promotion.css',
 })
@@ -70,7 +72,7 @@ export class Promotion {
     } else if (result === 'invalid_email') {
       this.form.controls.email.setErrors({ email: true });
     } else {
-      this.error.set('No hem pogut confirmar el registre. Torna-ho a provar més tard.');
+      this.error.set(CA['ui.no_hem_pogut_confirmar_el_registre_torna_ho_a_provar_mes_tard']);
     }
   }
 

@@ -1,3 +1,5 @@
+import { CA } from '../../../i18n/ca';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 
 export interface LandingAsset {
@@ -7,6 +9,7 @@ export interface LandingAsset {
 }
 
 @Component({
+  imports: [TranslatePipe],
   selector: 'app-prelaunch-landing',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './prelaunch-landing.html',
@@ -36,22 +39,22 @@ export class PrelaunchLanding {
  
     {
       src: 'images/carousel/friends-toasting.jpeg',
-      alt: 'Diverses persones brinden amb llaunes de NAIS Drinks',
+      alt: CA['ui.diverses_persones_brinden_amb_llaunes_de_nais_drinks'],
       type: 'brand',
     },
     {
       src: 'images/carousel/orange-spritz-on-ice.jpeg',
-      alt: 'Llauna d’Orange Spritz sobre glaçons de gel',
+      alt: CA['ui.llauna_dorange_spritz_sobre_glacons_de_gel'],
       type: 'brand',
     },
     {
       src: 'images/carousel/drinking-ginger-crush.jpeg',
-      alt: 'Una persona amb ulleres de sol beu una llauna de Ginger Crush',
+      alt: CA['ui.una_persona_amb_ulleres_de_sol_beu_una_llauna_de_ginger_crush'],
       type: 'brand',
     },
     {
       src: 'images/carousel/offering-orange-spritz.jpeg',
-      alt: 'Una persona mostra una llauna de NAIS Orange Spritz',
+      alt: CA['ui.una_persona_mostra_una_llauna_de_nais_orange_spritz'],
       type: 'brand',
     },
     {
@@ -61,7 +64,7 @@ export class PrelaunchLanding {
     },
     {
       src: 'images/hero/nais-fruit-sodas.jpeg',
-      alt: 'Llaunes de Passion Hugo, Orange Spritz i Ginger Crush sobre un fons blau',
+      alt: CA['ui.llaunes_de_passion_hugo_orange_spritz_i_ginger_crush_sobre_un_fons_blau'],
       type: 'brand',
     },
     

@@ -1,22 +1,22 @@
-<section class="selected-detail" [class.selected-detail--featured]="!!product().featureBackgroundImageUrl" [attr.data-variant]="product().variant" [attr.aria-label]="product().name" lang="ca">
+<section class="selected-detail" [class.selected-detail--featured]="!!product().featureBackgroundImageUrl" [attr.data-variant]="product().variant" [attr.aria-label]="(product().name) | t">
   <div class="selected-detail__visual" [class.selected-detail__visual--paired]="product().imageUrl && product().fruitImage && !product().featureBackgroundImageUrl">
     @if (product().imageUrl; as imageUrl) {
-      <img class="selected-detail__can" [src]="imageUrl" [alt]="imageAlt()" />
+      <img class="selected-detail__can" [src]="imageUrl" [alt]="(imageAlt()) | t" />
     }
     @if (product().featureBackgroundImageUrl; as backgroundUrl) {
       <img class="selected-detail__background" [src]="backgroundUrl" alt="" />
     } @else if (product().fruitImage; as fruitImage) {
-      <img class="selected-detail__fruit" [src]="fruitImage.url" [alt]="fruitImage.alt" />
+      <img class="selected-detail__fruit" [src]="fruitImage.url" [alt]="(fruitImage.alt) | t" />
     }
   </div>
   <div class="selected-detail__content">
-    <h1 tabindex="-1">{{ product().name }}</h1>
+    <h1 tabindex="-1">{{ (product().name) | t }}</h1>
     @if (product().detailsPending) {
-      <p class="selected-detail__format">{{ product().format }}</p>
-      <p class="selected-detail__description">{{ product().description }}</p>
+      <p class="selected-detail__format">{{ (product().format) | t }}</p>
+      <p class="selected-detail__description">{{ (product().description) | t }}</p>
     } @else {
-      <p class="selected-detail__label">Ingredients</p>
-      <p class="selected-detail__ingredients">{{ product().ingredients || 'Informació dels ingredients no disponible' }}</p>
+      <p class="selected-detail__label">{{ 'ui.ingredients' | t }}</p>
+      <p class="selected-detail__ingredients">{{ (product().ingredients || 'ui.informacio_dels_ingredients_no_disponible') | t }}</p>
     }
     <div class= "selected-detail_buttons">
       @if (product().nutrition; as nutrition) {
@@ -27,17 +27,17 @@
           [attr.aria-label]="nutritionLabel()"
           (click)="nutritionModal.open()"
         >
-          VALORS NUTRICIONALS
+          {{ 'ui.valors_nutricionals' | t }}
         </button>
 
         <app-modal #nutritionModal [title]="product().name">
           <table class="nutrition-table">
-            <caption>Informació nutricional per 100 ml</caption>
+            <caption>{{ 'ui.informacio_nutricional_per_100_ml' | t }}</caption>
 
             <tbody>
               @for (entry of nutrition; track entry.label) {
                 <tr>
-                  <th scope="row">{{ entry.label }}</th>
+                  <th scope="row">{{ (entry.label) | t }}</th>
                   <td>{{ entry.value }}</td>
                 </tr>
               }
@@ -46,7 +46,7 @@
         </app-modal>
       }
 
-      <button class="button--add" type="button" [attr.aria-label]="addLabel()" (click)="addRequested.emit(product())">AFEGIR</button>
+      <button class="button--add" type="button" [attr.aria-label]="addLabel()" (click)="addRequested.emit(product())">{{ 'ui.afegir' | t }}</button>
     </div>
   </div>
 </section>

@@ -1,3 +1,4 @@
+import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 export interface InfoCardContent {
@@ -9,7 +10,7 @@ export interface InfoCardContent {
 @Component({
   selector: 'app-info-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [],
+  imports: [TranslatePipe, ],
   templateUrl: './info-card.html',
   styleUrl: './info-card.css',
 })
