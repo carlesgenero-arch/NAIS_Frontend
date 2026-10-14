@@ -1,5 +1,6 @@
 import { MockProductService } from '../../../testing/product-fixture';
 import { Location } from '@angular/common';
+import { provideLocationMocks } from '@angular/common/testing';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { firstValueFrom, filter } from 'rxjs';
@@ -12,7 +13,7 @@ import { ProductService } from '../../../services/product.service';
 beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('Product routes', () => {
-  beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter(routes)] }));
+  beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter(routes), provideLocationMocks()] }));
 
   it('renders the first product above the complete catalogue and forwards quantities without navigating', async () => {
     const harness = await RouterTestingHarness.create('/products');
@@ -78,6 +79,8 @@ describe('Product routes', () => {
   it('loads the assorted pack and restores selection through browser history', async () => {
     const harness = await RouterTestingHarness.create('/products/orange-spritz');
     const router = TestBed.inject(Router);
+    // RouterTestingHarness does not bootstrap the application's history listener.
+    router.setUpLocationChangeListener();
     const location = TestBed.inject(Location);
     await harness.navigateByUrl('/products/pack-variat');
     const element = harness.routeNativeElement!;
@@ -85,7 +88,7 @@ describe('Product routes', () => {
     expect(pack.price).toBe(36);
     expect(pack.variant).toBe('assorted');
     expect(element.querySelector('.selected-detail h1')?.textContent).toBe('PACK VARIAT');
-    expect(element.querySelector('.selected-detail__can')?.getAttribute('src')).toBe('images/products/assorted-pack-blue.png');
+    expect(element.querySelector('.selected-detail__can')?.getAttribute('src')).toBe(pack.imageUrl);
     expect(element.querySelector('.selected-detail__ingredients')).toBeNull();
     expect(element.querySelector('app-modal')).toBeNull();
     expect(element.querySelectorAll('app-product-shop-card').length).toBe(5);

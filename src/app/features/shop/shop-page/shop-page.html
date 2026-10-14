@@ -11,7 +11,7 @@
       <app-product-selected-detail [product]="product" [focusOnArrival]="focusDetail()" (addRequested)="requestSelectedProductAdd($event)" />
     </div>
   }
-  <p class="cart-status" role="status">{{ cartMessage() }}</p>
+  <!--<p class="cart-status" role="status">{{ cartMessage() }}</p>-->
   <h2 id="shop-heading">{{ 'ui.tots_els_productes' | t }}</h2>
   @if (catalogue.loaded() && !catalogue.activeProducts.length) {
     <p role="status">{{ 'ui.no_hi_ha_productes_disponibles_ara_mateix' | t }}</p>

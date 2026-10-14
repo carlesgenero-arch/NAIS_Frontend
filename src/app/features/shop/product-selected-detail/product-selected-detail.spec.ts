@@ -91,7 +91,7 @@ describe('ProductSelectedDetail', () => {
       button.click();
       expect(showModal).toHaveBeenCalledOnce();
       expect(dialog.getAttribute('aria-label')).toBe(product.name);
-      expect(dialog.querySelector('h2')?.textContent).toBe(product.name);
+      expect(dialog.querySelector('h2')?.textContent?.trim()).toBe(product.name);
       expect(dialog.querySelector('caption')?.textContent).toBe('Informació nutricional per 100 ml');
       expect(Array.from(dialog.querySelectorAll('tr'), row => [row.querySelector('th')?.textContent, row.querySelector('td')?.textContent])).toEqual(expected[product.isSeasonal ? 'tropical-hops' : product.id]);
 

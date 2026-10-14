@@ -35,7 +35,9 @@ describe('API product catalogue', () => {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([{ productId: 'tropical-hops', quantity: 1 }]));
     const cart = TestBed.inject(CartService);
     const harness = await RouterTestingHarness.create('/home');
-    http.expectOne('/api/products').flush(active.filter(p => p.id !== 'tropical-hops'));
+    // Even an older/mixed API listing must not render a non-active product.
+    http.expectOne('/api/products').flush(active.map(p => p.id === 'tropical-hops'
+      ? { ...p, status: 'coming-soon' } : p));
     harness.detectChanges();
     expect(harness.routeNativeElement!.querySelector('a[href="/products/tropical-hops"]')).toBeNull();
     expect(cart.entries()).toEqual([]);

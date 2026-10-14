@@ -153,11 +153,8 @@ p {
 }
 
 .selected-detail__add {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
+  align-self: flex-start;
   max-width: 100%;
-  min-height: var(--control-min-size);
 }
 
 .nutrition-table {
@@ -199,12 +196,15 @@ p {
     border-inline-start: 1px solid var(--color-negro);
   }
 
-  .selected-detail__add {
-    align-self: flex-start;
-    width: auto;
-    min-width: min(var(--button-min-width), 100%);
-  }
+}
 
+@media (max-width: 47.99rem) {
+  .selected-detail__add {
+    box-sizing: border-box;
+    min-width: min(var(--button-min-width), 100%);
+    min-height: var(--control-min-size);
+    padding-inline: var(--page-gutter);
+  }
 }
 
 @media (min-width: 64rem) {
