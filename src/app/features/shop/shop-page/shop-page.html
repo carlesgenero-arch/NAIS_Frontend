@@ -7,14 +7,14 @@
   } @else if (detail().status === 'error') {
     <p role="alert">{{ 'ui.no_hem_pogut_carregar_aquest_producte_torna_a_carregar_la_pagina_per_provar_ho_d' | t }}</p>
   } @else if (selectedProduct(); as product) {
-    <div class="shop-detail">
-      <app-product-selected-detail [product]="product" (addRequested)="requestSelectedProductAdd($event)" />
+    <div #selectedDetail class="shop-detail">
+      <app-product-selected-detail [product]="product" [focusOnArrival]="focusDetail()" (addRequested)="requestSelectedProductAdd($event)" />
     </div>
   }
-  <p class="cart-status" role="status">{{ cartMessage() }}</p>
+  <!--<p class="cart-status" role="status">{{ cartMessage() }}</p>-->
   <h2 id="shop-heading">{{ 'ui.tots_els_productes' | t }}</h2>
   @if (catalogue.loaded() && !catalogue.activeProducts.length) {
     <p role="status">{{ 'ui.no_hi_ha_productes_disponibles_ara_mateix' | t }}</p>
   }
-  <app-product-grid (addRequested)="requestAdd($event)" />
+  <app-product-grid (addRequested)="requestGridAdd($event)" />
 </section>

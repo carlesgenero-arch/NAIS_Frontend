@@ -34,4 +34,7 @@
       [class.product-card--image-left]="index % 2 === 1"
     />
   }
+  @if (assortedPack(); as product) {
+    <app-assorted-pack-promotion [product]="product" />
+  }
   <app-media-carousel [images]="carouselImages" [label]="'ui.moments_nais_drinks' | t" />

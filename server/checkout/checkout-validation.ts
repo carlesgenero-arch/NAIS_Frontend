@@ -8,6 +8,13 @@ import { resolveCheckoutItems, type ResolvedCheckout } from './checkout-resoluti
 export const MAX_CHECKOUT_LINES = 5;
 const MAX_BODY_BYTES = 4096;
 
+/** Stripe has no Catalan locale; Spanish is NAIS's explicit supported fallback. */
+function checkoutLocale(value: unknown): 'es' {
+  const language = typeof value === 'string' ? value.trim().toLowerCase() : 'ca';
+  const locales = { ca: 'es', es: 'es' } as const;
+  return language === 'ca' || language === 'es' ? locales[language] : locales.ca;
+}
+
 function response(status: number, result: string): Response {
   return Response.json({ status: result }, {
     status,
@@ -46,7 +53,7 @@ async function readPayload(request: Request): Promise<unknown> {
   }
 }
 
-export async function validateCheckout(request: Request, env: Partial<CheckoutEnvironment> = {}): Promise<Response | ResolvedCheckout> {
+export async function validateCheckout(request: Request, env: Partial<CheckoutEnvironment> = {}): Promise<Response | (ResolvedCheckout & { readonly locale: 'es' })> {
   if (request.method !== 'POST') return response(405, 'method_not_allowed');
   if (request.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() !== 'application/json') {
     return response(415, 'invalid_payload');
@@ -54,7 +61,8 @@ export async function validateCheckout(request: Request, env: Partial<CheckoutEn
   let payload: unknown;
   try { payload = await readPayload(request); }
   catch { return response(400, 'invalid_payload'); }
-  if (!isRecord(payload) || Object.keys(payload).length !== 1 || !Object.hasOwn(payload, 'items')) {
+  if (!isRecord(payload) || Object.keys(payload).some(key => key !== 'items' && key !== 'locale')
+    || !Object.hasOwn(payload, 'items')) {
     return response(400, 'invalid_payload');
   }
   const items = payload['items'];
@@ -80,7 +88,7 @@ export async function validateCheckout(request: Request, env: Partial<CheckoutEn
     quantities.set(productId, combined);
   }
   try {
-    return await resolveCheckoutItems(quantities, env);
+    return { ...await resolveCheckoutItems(quantities, env), locale: checkoutLocale(payload['locale']) };
   } catch (error) {
     if (error instanceof UnavailableCheckoutProductError) return response(400, 'invalid_product');
     return response(503, 'unavailable');

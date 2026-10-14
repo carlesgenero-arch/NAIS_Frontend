@@ -3,9 +3,11 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import type { CartEntry } from '../models/cart.interface';
+import { TranslationService, type Language } from '../i18n/translation.service';
 
 export interface CheckoutRequest {
   readonly items: readonly CartEntry[];
+  readonly locale: Language;
 }
 
 export interface CheckoutResponse {
@@ -15,11 +17,13 @@ export interface CheckoutResponse {
 @Injectable({ providedIn: 'root' })
 export class CheckoutService {
   private readonly http = inject(HttpClient);
+  private readonly translations = inject(TranslationService);
 
   createCheckout(items: readonly CartEntry[]): Observable<CheckoutResponse> {
     // Explicit projection prevents enriched cart objects from sending prices or totals.
     const body: CheckoutRequest = {
       items: items.map(({ productId, quantity }) => ({ productId, quantity })),
+      locale: this.translations.language(),
     };
     return this.http.post<unknown>('/api/checkout', body).pipe(
       map((response): CheckoutResponse => {

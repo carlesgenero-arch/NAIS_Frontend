@@ -22,7 +22,7 @@
             @if (error()) { {{ (error()) | t }} }
           </p>
           <button class="button--buy" type="submit" [disabled]="pending()">{{ (pending() ? 'ui.enviant' : 'ui.obten_el_codi') | t }}</button>
-          <p id="promotion-legal" class="promotion-legal">{{ 'ui.proporcionant_nos_el_teu_email_acceptes_rebre_comunicacions_sobre_nous_llancamen' | t }}</p>
+          <p id="promotion-legal" class="promotion-legal">{{ 'ui.newsletter_legal_text' | t }}</p>
         </form>
       }
     </div>

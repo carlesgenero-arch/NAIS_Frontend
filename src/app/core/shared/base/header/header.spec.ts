@@ -35,6 +35,18 @@ describe('Header cart drawer', () => {
     return { fixture, dialog, trigger };
   }
 
+  it('uses a mobile picture source while preserving the desktop logo and accessible home link', () => {
+    const { fixture } = setup();
+    const brand = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>('a.brand')!;
+    expect(brand.getAttribute('href')).toBe('/');
+    expect(brand.getAttribute('aria-label')).toBe('NAIS Drinks, inici');
+    const source = brand.querySelector('source')!;
+    expect(source.getAttribute('media')).toBe('(max-width: 47.99rem)');
+    expect(source.getAttribute('srcset')).toBe('images/brand/nais%20logos-03.svg');
+    expect(brand.querySelector('img')?.getAttribute('src')).toBe('images/brand/nais logos-02.svg');
+    expect(brand.querySelector('img')?.alt).toBe('NAIS Drinks');
+  });
+
   it('opens without navigation, locks scrolling and returns focus after close', () => {
     const { fixture, dialog, trigger } = setup();
     const router = TestBed.inject(Router);

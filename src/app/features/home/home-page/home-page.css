@@ -90,10 +90,8 @@ app-product-feature-card {
 }
 
 app-media-carousel {
-  margin-block: var(--space-section);
-}
-
-/* Extra breathing room after the connected Home products, before the carousel. */
-app-product-card + app-media-carousel {
-  margin-block-start: calc(var(--space-section) + var(--page-gutter));
+  display: block;
+  margin-block: 0 var(--space-section);
+  padding-block-start: clamp(var(--space-group), 6.25vw, calc(var(--space-group) * 3));
+  background: var(--surface-page);
 }

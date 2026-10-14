@@ -84,10 +84,10 @@
 .selected-detail__content {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   min-width: 0;
-  gap: var(--space-group);
+  gap: calc(var(--space-group) / 2);
   padding: var(--page-gutter);
   border-block-start: 1px solid var(--color-negro);
 }
@@ -95,7 +95,7 @@
 h1 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 4.5rem);
+  font-size: clamp(1.75rem, 3vw, 3.25rem);
   line-height: 1.1;
   text-transform: none;
   overflow-wrap: anywhere;
@@ -117,9 +117,44 @@ p {
   font-weight: 700;
 }
 
+.selected-detail__ingredient-group {
+  display: grid;
+  gap: calc(var(--space-group) / 4);
+}
+
 .selected-detail__ingredients {
-  margin-top: calc(var(--space-group) / -2);
+  font-size: clamp(1.125rem, 1.6vw, 1.375rem);
+  font-weight: 500;
   line-height: 1.5;
+}
+
+.selected-detail__description {
+  line-height: 1.5;
+}
+
+.selected-detail__nutrition {
+  --button-shadow-offset-x: 0px;
+  --button-shadow-offset-y: 0px;
+  align-self: flex-start;
+  font-size: 0.875rem;
+  text-transform: none;
+}
+
+.selected-detail__purchase-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: calc(var(--space-group) / 4) var(--space-group);
+}
+
+.selected-detail__price {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 700;
+}
+
+.selected-detail__add {
+  align-self: flex-start;
+  max-width: 100%;
 }
 
 .nutrition-table {
@@ -151,18 +186,6 @@ p {
   text-align: right;
 }
 
-.selected-detail_buttons{
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 6rem; 
-  flex-wrap: wrap; 
-}
-
-.selected-detail_buttons > *:first-child {
-  margin-right: auto; 
-}
-
 @media (min-width: 48rem) {
   .selected-detail {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -175,20 +198,21 @@ p {
 
 }
 
+@media (max-width: 47.99rem) {
+  .selected-detail__add {
+    box-sizing: border-box;
+    min-width: min(var(--button-min-width), 100%);
+    min-height: var(--control-min-size);
+    padding-inline: var(--page-gutter);
+  }
+}
+
 @media (min-width: 64rem) {
   .selected-detail__content {
     padding: var(--surface-padding);
   }
 }
 
-@media (max-width: 48rem) {
-  .selected-detail_buttons {
-    flex-direction: column;
-    justify-content: center;
-    align-items: stretch;
-    gap: 1.5rem;
-  }
-}
 .selected-detail.selected-detail--featured {
   background: var(--surface-product-harvest);
 }

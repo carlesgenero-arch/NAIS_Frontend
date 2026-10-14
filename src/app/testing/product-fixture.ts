@@ -43,7 +43,7 @@ export class MockProductService {
     "format": "pack 16 llaunes x 250ml",
     "price": 36,
     "description": "Cítrica amb un toc amarg i àcid. Caràcter i puresa a cada glop",
-    "ingredients": "TARONJA, LLIMONA, GERDS, GENCIANA",
+    "ingredients": "TARONJA, HIBISC, GERDS, GENCIANA",
     "imageUrl": "images/products/mocktails_3.png",
     "imageAlt": "NAIS Orange Spritz can with blue fruit artwork",
     "fruitImage": {

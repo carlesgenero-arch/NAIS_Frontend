@@ -3,6 +3,9 @@
     [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
     [hidden]="shopLink.isActive" [attr.aria-label]="'ui.botiga' | t">{{ 'ui.botiga_' | t }}</button>
   <a class="brand" routerLink="/" [attr.aria-label]="'ui.nais_drinks_inici' | t">
-    <img src="images/brand/nais logos-02.svg" alt="NAIS Drinks" width="756" height="429" fetchpriority="high" />
+    <picture>
+      <source media="(max-width: 47.99rem)" srcset="images/brand/nais%20logos-03.svg" width="756" height="429" />
+      <img src="images/brand/nais logos-02.svg" alt="NAIS Drinks" width="1247" height="190" fetchpriority="high" />
+    </picture>
   </a>
 </nav>

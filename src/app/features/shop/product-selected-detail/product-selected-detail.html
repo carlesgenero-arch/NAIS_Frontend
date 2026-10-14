@@ -10,43 +10,53 @@
     }
   </div>
   <div class="selected-detail__content">
-    <h1 tabindex="-1">{{ (product().name) | t }}</h1>
-    @if (product().detailsPending) {
-      <p class="selected-detail__format">{{ (product().format) | t }}</p>
+    <h1 #heading tabindex="-1">{{ (product().name) | t }}</h1>
+    @if (product().description) {
       <p class="selected-detail__description">{{ (product().description) | t }}</p>
-    } @else {
-      <p class="selected-detail__label">{{ 'ui.ingredients' | t }}</p>
-      <p class="selected-detail__ingredients">{{ (product().ingredients || 'ui.informacio_dels_ingredients_no_disponible') | t }}</p>
     }
-    <div class= "selected-detail_buttons">
-      @if (product().nutrition; as nutrition) {
-        <button
-          class="button--nutrition"
-          type="button"
-          aria-haspopup="dialog"
-          [attr.aria-label]="nutritionLabel()"
-          (click)="nutritionModal.open()"
-        >
-          {{ 'ui.valors_nutricionals' | t }}
-        </button>
+    @if (!product().detailsPending) {
+      <div class="selected-detail__ingredient-group">
+        <p class="selected-detail__label">{{ 'ui.ingredients' | t }}</p>
+        <p class="selected-detail__ingredients">{{ ingredientsText() || ('ui.informacio_dels_ingredients_no_disponible' | t) }}</p>
+      </div>
+    }
+    @if (product().nutrition; as nutrition) {
+      <button
+        class="button--nutrition selected-detail__nutrition"
+        type="button"
+        aria-haspopup="dialog"
+        [attr.aria-label]="nutritionLabel()"
+        (click)="nutritionModal.open()"
+      >
+        {{ 'ui.valors_nutricionals' | t }}
+      </button>
 
-        <app-modal #nutritionModal [title]="product().name">
-          <table class="nutrition-table">
-            <caption>{{ 'ui.informacio_nutricional_per_100_ml' | t }}</caption>
+      <app-modal #nutritionModal [title]="product().name">
+        <table class="nutrition-table">
+          <caption>{{ 'ui.informacio_nutricional_per_100_ml' | t }}</caption>
 
-            <tbody>
-              @for (entry of nutrition; track entry.label) {
-                <tr>
-                  <th scope="row">{{ (entry.label) | t }}</th>
-                  <td>{{ entry.value }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </app-modal>
-      }
+          <tbody>
+            @for (entry of nutrition; track entry.label) {
+              <tr>
+                <th scope="row">{{ (entry.label) | t }}</th>
+                <td>{{ entry.value }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </app-modal>
+    }
 
-      <button class="button--add" type="button" [attr.aria-label]="addLabel()" (click)="addRequested.emit(product())">{{ 'ui.afegir' | t }}</button>
-    </div>
+    @if (product().format || priceLabel()) {
+      <div class="selected-detail__purchase-info">
+        @if (product().format) {
+          <p class="selected-detail__format">{{ (product().format) | t }}</p>
+        }
+        @if (priceLabel()) {
+          <p class="selected-detail__price">{{ priceLabel() }}</p>
+        }
+      </div>
+    }
+    <button class="button--buy selected-detail__add" type="button" [attr.aria-label]="addLabel()" (click)="addRequested.emit(product())">{{ 'ui.afegir' | t }}</button>
   </div>
 </section>

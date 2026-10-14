@@ -25,6 +25,15 @@ function mockClient(url = checkoutUrl) {
     calls.push(params); return { url };
   } } } }) };
 }
+for (const locale of ['ca', 'es', ' ES ', ' CA ', 'fr', 'auto', '', null, 42, {}, ['es'], undefined]) {
+  test(`safe checkout locale mapping: ${JSON.stringify(locale)}`, async () => {
+    const mock = mockClient();
+    const response = await checkout(request([item(1)], locale === undefined ? {} : { locale }), env, mock.factory);
+    assert.equal(response.status, 200);
+    assert.equal(mock.calls[0].locale, 'es');
+    assert.deepEqual(mock.calls[0].line_items, [{ price: priceIds['orange-spritz'], quantity: 1 }]);
+  });
+}
 for (const [name, items, shipping] of [
   ['one box', [item(1)], 600], ['two boxes', [item(2)], 0],
   ['mixed two boxes', [item(1), item(1, 'ginger-crush')], 0], ['three boxes', [item(3)], 0],

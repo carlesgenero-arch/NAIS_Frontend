@@ -10,16 +10,19 @@ import { MediaCarousel } from '../../../core/shared/page/media-carousel/media-ca
 import { homeCarouselImages } from './home-carousel-images';
 import { ProductService } from '../../../services/product.service';
 import { AnimatedBanner } from '../../../core/shared/page/animated-banner/animated-banner';
+import { AssortedPackPromotion } from '../assorted-pack-promotion/assorted-pack-promotion';
 
 @Component({
   selector: 'app-home-page',
-  imports: [TranslatePipe, Hero, InfoCard, ProductCard, ProductFeatureCard, BrandMessageCard, MediaCarousel, AnimatedBanner],
+  imports: [TranslatePipe, Hero, InfoCard, ProductCard, ProductFeatureCard, BrandMessageCard, MediaCarousel, AnimatedBanner, AssortedPackPromotion],
   templateUrl: './home-page.html',
   styleUrl: './home-page.css'
 })
 export class HomePage {
   protected readonly carouselImages = homeCarouselImages;
   protected readonly catalogue = inject(ProductService);
+  protected readonly assortedPack = computed(() => this.catalogue.activeProducts.find(
+    product => product.variant === 'assorted'));
   protected readonly featuredProducts = computed(() => this.catalogue.activeProducts.filter(
     product => product.isFeatured || product.isSeasonal));
   protected readonly products = computed(() => this.catalogue.activeProducts.filter(

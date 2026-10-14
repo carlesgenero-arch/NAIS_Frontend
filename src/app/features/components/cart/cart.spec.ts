@@ -13,6 +13,7 @@ import { Subject } from 'rxjs';
 import { DOCUMENT } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TranslationService } from '../../../i18n/translation.service';
 
 beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
@@ -46,6 +47,47 @@ describe('Cart page', () => {
   afterEach(() => {
     TestBed.resetTestingModule();
     vi.restoreAllMocks();
+  });
+
+  it('updates shipping guidance from total boxes, translates it and hides it for an empty cart', () => {
+    const cart = TestBed.inject(CartService);
+    const products = TestBed.inject(ProductService).products;
+    const i18n = TestBed.inject(TranslationService);
+    i18n.setLanguage('ca');
+    const fixture = TestBed.createComponent(Cart);
+    fixture.componentRef.setInput('presentation', 'drawer');
+    const message = () => {
+      fixture.detectChanges();
+      return (fixture.nativeElement as HTMLElement).querySelector('.cart-shipping-message')?.textContent?.trim();
+    };
+    expect(message()).toBeUndefined();
+    cart.addItem(products[0].id);
+    expect(message()).toBe('Enviament gratuït a partir de 2 caixes.');
+    cart.addItem(products[1].id);
+    expect(message()).toBe('Enviament gratuït a partir de 2 caixes.');
+    cart.increaseQuantity(products[0].id);
+    expect(message()).toBe('Enviament gratuït a partir de 2 caixes.');
+    i18n.setLanguage('es');
+    expect(message()).toBe('Envío gratuito a partir de 2 cajas.');
+    cart.removeItem(products[1].id);
+    cart.decreaseQuantity(products[0].id);
+    expect(message()).toBe('Envío gratuito a partir de 2 cajas.');
+    cart.clearCart();
+    expect(message()).toBeUndefined();
+  });
+
+  it.each([1, 2, 3])('includes correct shipping for %s boxes in the displayed total', quantity => {
+    const cart = TestBed.inject(CartService);
+    const product = TestBed.inject(ProductService).products[0];
+    TestBed.inject(TranslationService).setLanguage('ca');
+    cart.addItem(product.id, quantity);
+    const fixture = TestBed.createComponent(Cart);
+    fixture.componentRef.setInput('presentation', 'drawer');
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('.drawer-subtotal')?.textContent).toBe(euros(product.price! * quantity));
+    expect(element.querySelector('.drawer-shipping')?.textContent).toBe(quantity === 1 ? euros(6) : 'Gratuït');
+    expect(element.querySelector('.drawer-total')?.textContent).toBe(euros(product.price! * quantity + (quantity === 1 ? 6 : 0)));
   });
 
   it('uses the same service subtotal for both footer amounts and preserves the cart while checkout is pending', () => {
@@ -190,7 +232,7 @@ describe('Cart page', () => {
       expect(element.querySelector('.title-count')?.textContent).toBe(String(quantity));
       expect(element.querySelector('.cart__count')?.textContent).toBe(String(quantity));
       expect(element.querySelector('.drawer-subtotal')?.textContent).toBe(euros(product.price! * quantity));
-      expect(element.querySelector('.drawer-total')?.textContent).toBe(euros(product.price! * quantity));
+      expect(element.querySelector('.drawer-total')?.textContent).toBe(euros(product.price! * quantity + (quantity === 1 ? 6 : 0)));
     };
     check(0);
     cart.addItem(product.id, 2);

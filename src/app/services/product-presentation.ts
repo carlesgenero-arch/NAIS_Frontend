@@ -36,7 +36,7 @@ export const PRODUCT_PRESENTATION: Readonly<Record<string, Presentation>> = {
       }
     ],
     "format": CA['ui.pack_16_llaunes_x_250ml'],
-    "ingredients": CA['ui.taronja_llimona_gerds_genciana'],
+    "ingredients": CA['product.orangeSpritz.ingredients'],
     "imageAlt": CA['ui.nais_orange_spritz_can_with_blue_fruit_artwork'],
     "fruitImage": {
       "url": "images/info-card/orange.png",
