@@ -9,6 +9,8 @@ import { RouterLink } from '@angular/router';
 import { MAX_CART_QUANTITY } from '../../../models/cart.interface';
 import { CartService } from '../../../services/cart.service';
 import { Router } from '@angular/router';
+import { FREE_SHIPPING_MIN_BOXES, shippingAmountCents } from '../../../../shared/shipping-rules';
+import { computed } from '@angular/core';
 
 /** Injectable browser boundary so tests never leave the page. */
 export const CHECKOUT_REDIRECT = new InjectionToken<(url: string) => void>('Checkout redirect', {
@@ -34,6 +36,12 @@ export class Cart {
   readonly presentation = input<'page' | 'drawer'>('page');
   protected readonly cart = inject(CartService);
   protected readonly maxQuantity = MAX_CART_QUANTITY;
+  protected readonly freeShippingMinBoxes = FREE_SHIPPING_MIN_BOXES;
+  protected readonly shippingCents = computed(() => shippingAmountCents(this.cart.totalQuantity()));
+  protected readonly totalCents = computed(() => {
+    const subtotal = this.cart.subtotalCents();
+    return subtotal === null ? null : subtotal + this.shippingCents();
+  });
   protected readonly checkoutMessage = signal('');
   protected readonly checkoutLoading = signal(false);
   readonly continueShoppingRequested = output<void>();

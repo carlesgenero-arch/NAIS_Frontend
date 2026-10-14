@@ -28,9 +28,6 @@ export class Newsletter {
       return;
     }
 
-    const email = this.newsletterForm.value.email;
-    console.log('Email correcte:', email);
-
     // Aquí pots integrar Web3Forms, backend, SweetAlert2, etc.
   }
 

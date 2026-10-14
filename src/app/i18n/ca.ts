@@ -1,7 +1,12 @@
 export const CA = {
+  "cart.shipping.label": "Enviament",
+  "cart.shipping.freeLabel": "Gratuït",
+  "cart.shipping.info": "Enviament gratuït a partir de {boxes} caixes.",
+  "cart.shipping.addBox": "Afegeix 1 caixa més i tens enviament gratis.",
+  "cart.shipping.free": "Enviament gratuït aplicat.",
   "home.assortedPack.title": "DESCOBREIX TOTS ELS SABORS",
   "home.assortedPack.tagline": "4 sabors. 1 pack.",
-  "home.assortedPack.description": "La millor manera de tastar NAIS.",
+  "home.assortedPack.description": "La millor manera de conèixer NAIS.",
   "home.assortedPack.label": "PACK VARIAT",
   "home.assortedPack.cta": "COMPRAR PACK VARIAT",
   "ui.peu_de_pagina": "Peu de pàgina",

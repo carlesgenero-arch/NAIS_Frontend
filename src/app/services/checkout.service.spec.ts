@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { firstValueFrom } from 'rxjs';
 import { CheckoutService } from './checkout.service';
+import { TranslationService } from '../i18n/translation.service';
 
 describe('CheckoutService', () => {
   let service: CheckoutService;
@@ -14,6 +15,7 @@ describe('CheckoutService', () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     service = TestBed.inject(CheckoutService);
     http = TestBed.inject(HttpTestingController);
+    TestBed.inject(TranslationService).setLanguage('ca');
   });
   afterEach(() => http.verify());
 
@@ -25,7 +27,7 @@ describe('CheckoutService', () => {
     const result = firstValueFrom(service.createCheckout(items));
     const req = http.expectOne('/api/checkout');
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ items: [{ productId: 'orange-spritz', quantity: 2 }] });
+    expect(req.request.body).toEqual({ items: [{ productId: 'orange-spritz', quantity: 2 }], locale: 'ca' });
     req.flush({ url, internal: 'not exposed' });
     expect(await result).toEqual({ url });
     expect(items[0].price).toBe(36);
@@ -35,7 +37,17 @@ describe('CheckoutService', () => {
     const items = [{ productId: 'orange-spritz', quantity: 1 }, { productId: 'ginger-crush', quantity: 3 }];
     const result = firstValueFrom(service.createCheckout(items));
     const req = http.expectOne('/api/checkout');
-    expect(req.request.body).toEqual({ items });
+    expect(req.request.body).toEqual({ items, locale: 'ca' });
+    req.flush({ url });
+    expect(await result).toEqual({ url });
+  });
+
+  it('reads Spanish selection at checkout time instead of caching the initial language', async () => {
+    TestBed.inject(TranslationService).setLanguage('es');
+    const items = [{ productId: 'orange-spritz', quantity: 1 }];
+    const result = firstValueFrom(service.createCheckout(items));
+    const req = http.expectOne('/api/checkout');
+    expect(req.request.body).toEqual({ items, locale: 'es' });
     req.flush({ url });
     expect(await result).toEqual({ url });
   });

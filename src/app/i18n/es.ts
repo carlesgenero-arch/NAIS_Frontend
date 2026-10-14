@@ -1,5 +1,10 @@
 import type { TranslationKey } from './ca';
 export const ES: Record<TranslationKey, string> = {
+  "cart.shipping.label": "Envío",
+  "cart.shipping.freeLabel": "Gratis",
+  "cart.shipping.info": "Envío gratuito a partir de {boxes} cajas.",
+  "cart.shipping.addBox": "Añade 1 caja más y tendrás envío gratis.",
+  "cart.shipping.free": "Envío gratuito aplicado.",
   "home.assortedPack.title": "DESCUBRE TODOS LOS SABORES",
   "home.assortedPack.tagline": "4 sabores. 1 pack.",
   "home.assortedPack.description": "La mejor manera de probar NAIS.",

@@ -64,8 +64,14 @@
     <footer class="drawer-footer" [attr.aria-label]="'ui.resum_de_la_cistella' | t">
       <dl aria-live="polite" aria-atomic="true">
         <div><dt>{{ 'ui.subtotal' | t }}</dt><dd class="drawer-subtotal">{{ formatCents(cart.subtotalCents()) }}</dd></div>
-        <div class="drawer-total-row"><dt>{{ 'ui.total_' | t }}</dt><dd class="drawer-total">{{ formatCents(cart.subtotalCents()) }}</dd></div>
+        <div><dt>{{ 'cart.shipping.label' | t }}</dt><dd class="drawer-shipping">{{ (cart.isEmpty() ? '—' : shippingCents() === 0 ? ('cart.shipping.freeLabel' | t) : formatCents(shippingCents())) }}</dd></div>
+        <div class="drawer-total-row"><dt>{{ 'ui.total_' | t }}</dt><dd class="drawer-total">{{ formatCents(totalCents()) }}</dd></div>
       </dl>
+      @if (!cart.isEmpty()) {
+        <p class="cart-shipping-message" role="status" aria-live="polite">
+          {{ 'cart.shipping.info' | t: { boxes: freeShippingMinBoxes } }}
+        </p>
+      }
       <div class="drawer-actions">
         <button class="button--buy continue-shopping" type="button" (click)="continueShopping()">
           {{ 'ui.seguir_comprant' | t }}
@@ -75,7 +81,7 @@
           {{ (checkoutLoading() ? 'ui.preparant_pagament' : 'ui.checkout') | t }}
         </button>
       </div>
-      <p id="drawer-checkout-note">{{ 'ui.el_pagament_es_completara_de_manera_segura_a_stripe' | t }}</p>
+      <!--<p id="drawer-checkout-note">{{ 'ui.el_pagament_es_completara_de_manera_segura_a_stripe' | t }}</p>-->
       <p class="checkout-status" role="status">{{ (checkoutMessage()) | t }}</p>
     </footer>
   }

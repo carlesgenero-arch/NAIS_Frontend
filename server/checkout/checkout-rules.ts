@@ -1,11 +1,10 @@
 import type Stripe from 'stripe';
+import { shippingAmountCents } from '../../src/shared/shipping-rules.ts';
 
 /** Quantities represent boxes, never individual cans. */
 export const UNITS_PER_BOX = 16;
-export const SHIPPING_PRICE_EUR = 6;
-export const FREE_SHIPPING_MIN_BOXES = 2;
+export { FREE_SHIPPING_MIN_BOXES, SHIPPING_PRICE_EUR } from '../../src/shared/shipping-rules.ts';
 export const CHECKOUT_CURRENCY = 'eur';
-const EUR_MINOR_UNITS = 100;
 
 /** For the future hosted Session: let Stripe validate codes; no client coupon config. */
 export const HOSTED_CHECKOUT_OPTIONS = Object.freeze({
@@ -18,12 +17,13 @@ export function checkoutShippingOption(totalBoxes: number): Stripe.Checkout.Sess
   if (!Number.isSafeInteger(totalBoxes) || totalBoxes < 1) {
     throw new Error('Shipping requires a positive integer box count');
   }
-  const free = totalBoxes >= FREE_SHIPPING_MIN_BOXES;
+  const amount = shippingAmountCents(totalBoxes);
+  const free = amount === 0;
   return {
     shipping_rate_data: {
       type: 'fixed_amount',
       fixed_amount: {
-        amount: free ? 0 : SHIPPING_PRICE_EUR * EUR_MINOR_UNITS,
+        amount,
         currency: CHECKOUT_CURRENCY,
       },
       display_name: free ? 'Enviament gratuït' : 'Enviament estàndard',
