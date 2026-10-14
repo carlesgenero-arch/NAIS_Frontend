@@ -1,5 +1,10 @@
 import type { TranslationKey } from './ca';
 export const ES: Record<TranslationKey, string> = {
+  "home.assortedPack.title": "DESCUBRE TODOS LOS SABORES",
+  "home.assortedPack.tagline": "4 sabores. 1 pack.",
+  "home.assortedPack.description": "La mejor manera de probar NAIS.",
+  "home.assortedPack.label": "PACK VARIADO",
+  "home.assortedPack.cta": "COMPRAR PACK VARIADO",
   "ui.peu_de_pagina": "Pie de página",
   "ui.segueix_nos": "síguenos",
   "ui.instagram_de_nais_drinks_proximament": "Instagram de NAIS Drinks, próximamente",

@@ -1,6 +1,7 @@
 import type Stripe from 'stripe';
 import type { AdminProduct } from '../catalogue/product.types.ts';
 import type { ManagedProduct } from '../catalogue/product-write.repository.ts';
+import { CHECKOUT_PACK_DESCRIPTION } from './checkout-presentation.ts';
 
 type Price = Pick<Stripe.Price, 'id' | 'active' | 'type' | 'billing_scheme' | 'unit_amount' | 'currency' | 'product'>;
 type Product = Pick<Stripe.Product, 'id' | 'active' | 'metadata'>;
@@ -58,7 +59,8 @@ export async function synchronizeStripeCatalogue(client: StripeCatalogueClient, 
     throw new Error('Invalid Stripe catalogue product');
   }
   if (oldPrice && productId(oldPrice) !== id) throw new Error('Stripe mapping mismatch');
-  await client.products.update(id, { name: product.name, description: product.description ?? '',
+  // Keep existing Stripe images; price and image configuration are not presentation copy.
+  await client.products.update(id, { name: product.name, description: CHECKOUT_PACK_DESCRIPTION,
     metadata: { nais_product_id: previous.id } });
 
   if (oldPrice && oldPrice.unit_amount === product.priceCents && oldPrice.currency === product.currency && oldPrice.active) {

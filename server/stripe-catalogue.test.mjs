@@ -22,7 +22,7 @@ for (const status of ['draft', 'coming-soon']) test('activation from ' + status 
   assert.equal(row(id).stripe_price_id, p.stripePriceId); assert.equal(row(id).price_cents, 3750);
   const product = stripe.products.get(p.stripeProductId);
   assert.equal(product.metadata.nais_product_id, id); assert.equal(product.name, p.name);
-  assert.equal(product.description, 'Fixture description');
+  assert.equal(product.description, 'Pack 16');
   const price = stripe.prices.get(p.stripePriceId);
   assert.equal(price.unit_amount, 3750); assert.equal(price.currency, 'eur');
   assert.equal(price.type, 'one_time'); assert.equal(price.billing_scheme, 'per_unit');

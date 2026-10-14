@@ -1,0 +1,181 @@
+:host {
+  display: block;
+  min-width: 0;
+  padding-block-start: var(--space-section);
+}
+
+.assorted-pack-promotion {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'copy' 'visual' 'cta' 'botanicals';
+  overflow: hidden;
+  padding: clamp(1.25rem, 4vw, 3.5rem);
+  border: 2px solid var(--color-negro);
+  border-radius: var(--radius-panel);
+  background: var(--surface-product-assorted);
+  color: var(--color-negro);
+}
+
+/* One continuous scene; the soft pink shape connects copy and product. */
+.assorted-pack-promotion::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 155%;
+  height: 27rem;
+  inset: -12rem auto auto -48%;
+  border-radius: 40% 60% 65% 35%;
+  transform: rotate(-24deg);
+  background: var(--surface-product-ginger);
+}
+
+.pack-copy {
+  grid-area: copy;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  max-width: 27rem;
+}
+
+h2, p { margin: 0; }
+
+h2 {
+  max-width: 12ch;
+  font-family: var(--font-display);
+  font-size: clamp(1.85rem, 4.1vw, 4.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.pack-copy p {
+  max-width: 27ch;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  line-height: 1.45;
+}
+
+.pack-copy .pack-tagline {
+  margin-block-start: 0.5rem;
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.pack-feature {
+  position: relative;
+  z-index: 1;
+  display: block;
+  min-width: 0;
+  grid-area: visual;
+  margin: 1rem 0 0;
+  padding: 4rem 0.75rem;
+  border-radius: var(--radius-card);
+  color: inherit;
+}
+
+.pack-feature:focus-visible {
+  outline: 3px solid var(--color-negro);
+  outline-offset: -3px;
+}
+
+.pack-image {
+  display: block;
+  width: 78%;
+  max-width: 24rem;
+  margin-inline: 12% 10%;
+  height: auto;
+  object-fit: contain;
+  transform: rotate(-2deg);
+  filter: drop-shadow(0.3rem 0.65rem 0.55rem rgb(24 24 26 / 13%));
+}
+
+.pack-botanicals {
+  grid-area: botanicals;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1vw, 0.75rem);
+  min-width: 0;
+  margin-block-start: 2.225rem;
+  padding: 0.25rem;
+  pointer-events: none;
+}
+
+.pack-botanicals > div {
+  flex: 0 1 clamp(2.75rem, 5vw, 4.5rem);
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 2px solid var(--color-negro);
+}
+
+.pack-botanicals img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pack-cta {
+  grid-area: cta;
+  position: relative;
+  z-index: 3;
+  align-self: flex-start;
+  box-sizing: border-box;
+  min-height: 52px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0.8rem clamp(1rem, 2vw, 2rem);
+  margin-block: 0.75rem 0;
+  font-size: clamp(1rem, 1.3vw, 1.125rem);
+  line-height: 1.3;
+  text-align: center;
+}
+
+@media (min-width: 48rem) {
+  .assorted-pack-promotion {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    grid-template-areas: 'copy visual' 'cta visual' 'botanicals visual';
+    grid-template-rows: 1fr auto 0.8fr;
+    column-gap: 1rem;
+    min-height: 36rem;
+    padding: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .assorted-pack-promotion::before {
+    width: 100%;
+    height: 160%;
+    inset: -53% auto auto -39%;
+    border-radius: 35% 65% 60% 40%;
+    transform: rotate(-32deg);
+  }
+
+  .pack-copy {
+    align-self: end;
+  }
+
+  .pack-feature {
+    align-self: center;
+    margin: 0 0 2rem;
+    padding: 5.25rem 1rem;
+    transform: none;
+  }
+
+  .pack-botanicals {
+    align-self: start;
+  }
+
+  .pack-cta {
+    align-self: end;
+    justify-self: start;
+    margin-block: 1.5rem 0;
+  }
+}

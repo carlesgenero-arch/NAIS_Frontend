@@ -1,4 +1,9 @@
 export const CA = {
+  "home.assortedPack.title": "DESCOBREIX TOTS ELS SABORS",
+  "home.assortedPack.tagline": "4 sabors. 1 pack.",
+  "home.assortedPack.description": "La millor manera de tastar NAIS.",
+  "home.assortedPack.label": "PACK VARIAT",
+  "home.assortedPack.cta": "COMPRAR PACK VARIAT",
   "ui.peu_de_pagina": "Peu de pàgina",
   "ui.segueix_nos": "segueix-nos",
   "ui.instagram_de_nais_drinks_proximament": "Instagram de NAIS Drinks, pròximament",
