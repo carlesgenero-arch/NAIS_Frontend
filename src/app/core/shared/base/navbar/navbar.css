@@ -14,9 +14,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: var(--header-column-gap);
-  min-height: var(--header-height);
-  padding: var(--header-block-padding) var(--header-inline-padding);
+  gap: var(--page-gutter);
+  min-height: 0;
+  padding: var(--page-gutter);
   /*border: var(--navbar-border-width) solid var(--color-negro);*/
   border-radius: var(--navbar-border-radius);
   background: var(--surface-card);
@@ -24,14 +24,12 @@
 
 /* Shop button */
 .shop {
-  position:absolute;
-  right: var(--page-gutter);
-  bottom: -1rem;
+  position: static;
+  grid-row: 2;
   box-sizing: border-box;
-  justify-self: center;
+  justify-self: end;
   align-self:flex-end;
-  margin-inline-start: var(--shop-button-left-inset);
-  margin-block: var(--header-column-gap);
+  margin: 0;
   width: clamp(6.5rem, 28vw, 7.5rem);
   min-height: max(var(--control-min-size), clamp(3.25rem, 14vw, 3.75rem));
   padding: 0.375rem 0.75rem;
@@ -59,7 +57,18 @@
 }
 
 @media (min-width: 48rem) {
+  .navigation {
+    gap: var(--header-column-gap);
+    min-height: var(--header-height);
+    padding: var(--header-block-padding) var(--header-inline-padding);
+  }
+
   .shop {
+    position: absolute;
+    grid-row: auto;
+    justify-self: center;
+    margin-inline-start: var(--shop-button-left-inset);
+    margin-block: var(--header-column-gap);
     right: 3.5rem;
     bottom: -2.5rem;
     width: min(var(--shop-button-width), 12rem);
@@ -83,18 +92,24 @@
 /* Main logo */
 .brand {
   display: block;
-  width: 100%;
+  width: clamp(10rem, 55vw, 13rem);
   max-width: var(--main-logo-width);
   min-width: 0;
   justify-self: center;
   align-self: center;
+  grid-row: 1;
   /*border-radius: var(--radius-sm);*/
 }
 
+.brand picture,
 .brand img {
   display: block;
   width: 100%;
   height: auto;
+}
+
+@media (min-width: 48rem) {
+  .brand { width: 100%; }
 }
 
 .brand:focus-visible,
