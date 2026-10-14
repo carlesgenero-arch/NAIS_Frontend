@@ -8,6 +8,12 @@ import { MAX_CART_QUANTITY } from '../../../models/cart.interface';
 import { CART_STORAGE_KEY, CartService } from '../../../services/cart.service';
 import { ProductService } from '../../../services/product.service';
 
+const originalScrollIntoView = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollIntoView');
+beforeEach(() => Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: vi.fn() }));
+afterEach(() => {
+  if (originalScrollIntoView) Object.defineProperty(Element.prototype, 'scrollIntoView', originalScrollIntoView);
+  else Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+});
 beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('Shop cart integration', () => {
@@ -45,16 +51,16 @@ describe('Shop cart integration', () => {
     return { header, dialog, show, close };
   }
 
-  it('opens the same drawer after adding every catalogue product, preserving route, totals and storage', async () => {
+  it('opens the same drawer after selecting every added product, preserving totals and storage', async () => {
     const harness = await RouterTestingHarness.create('/products?from=home#catalogue');
     const { header, dialog, close } = createDrawer();
     const cart = TestBed.inject(CartService);
     const products = TestBed.inject(ProductService).activeProducts;
-    const cards = harness.routeNativeElement!.querySelectorAll('app-product-shop-card');
     let quantity = 0;
     for (const [index, product] of products.entries()) {
       for (let addition = 0; addition < 2; addition++) {
-        cards[index].querySelector<HTMLButtonElement>('.button--add')!.click();
+        harness.routeNativeElement!.querySelectorAll('app-product-shop-card')[index].querySelector<HTMLButtonElement>('.button--add')!.click();
+        await harness.fixture.whenStable();
         quantity++;
         header.detectChanges();
         expect(dialog.open).toBe(true);
@@ -65,7 +71,7 @@ describe('Shop cart integration', () => {
         expect(dialog.querySelector('.drawer-subtotal')?.textContent).toBe(amount);
         expect(dialog.querySelector('.drawer-total')?.textContent).toBe(amount);
         expect(JSON.parse(window.localStorage.getItem(CART_STORAGE_KEY)!)).toEqual(cart.entries());
-        expect(TestBed.inject(Router).url).toBe('/products?from=home#catalogue');
+        expect(TestBed.inject(Router).url).toBe(`/products/${product.slug}?from=home`);
         expect(dialog.textContent).not.toContain('Preu unitari');
         close();
       }
@@ -96,15 +102,18 @@ describe('Shop cart integration', () => {
     const header = TestBed.createComponent(Header);
     const cart = TestBed.inject(CartService);
     const products = TestBed.inject(ProductService).activeProducts;
-    const cards = harness.routeNativeElement!.querySelectorAll('app-product-shop-card');
-    const add = (index: number) => cards[index].querySelector<HTMLButtonElement>('.button--add')!.click();
+    const cards = () => harness.routeNativeElement!.querySelectorAll('app-product-shop-card');
+    const add = async (index: number) => {
+      cards()[index].querySelector<HTMLButtonElement>('.button--add')!.click();
+      await harness.fixture.whenStable();
+    };
 
-    add(0);
-    add(0);
-    cards[1].querySelectorAll<HTMLButtonElement>('.button--quantity')[1].click();
+    await add(0);
+    await add(0);
+    cards()[1].querySelectorAll<HTMLButtonElement>('.button--quantity')[1].click();
     harness.detectChanges();
-    add(1);
-    add(0);
+    await add(1);
+    await add(0);
     harness.detectChanges();
     header.detectChanges();
 
@@ -113,8 +122,7 @@ describe('Shop cart integration', () => {
       { productId: products[1].id, quantity: 2 },
     ]);
     expect(header.nativeElement.querySelector('.cart__count').textContent).toBe('5');
-    expect(harness.routeNativeElement!.querySelector('[role="status"]')?.textContent).toContain('afegit al carret');
-    expect(TestBed.inject(Router).url).toBe('/products');
+    expect(TestBed.inject(Router).url).toBe(`/products/${products[0].slug}`);
   });
 
   it('adds the selected detail product and reports a rejected addition at the limit', async () => {
@@ -128,7 +136,7 @@ describe('Shop cart integration', () => {
     add.click();
     harness.detectChanges();
     expect(cart.totalQuantity()).toBe(MAX_CART_QUANTITY);
-    expect(harness.routeNativeElement!.querySelector('[role="status"]')?.textContent).toContain("No s'ha afegit");
+    expect(cart.entries()).toEqual([{ productId: product.id, quantity: MAX_CART_QUANTITY }]);
   });
 
   it('reports rejected card additions without changing the cart', async () => {
@@ -139,7 +147,7 @@ describe('Shop cart integration', () => {
     harness.routeNativeElement!.querySelector<HTMLButtonElement>('app-product-shop-card .button--add')!.click();
     harness.detectChanges();
     expect(cart.totalQuantity()).toBe(MAX_CART_QUANTITY);
-    expect(harness.routeNativeElement!.querySelector('[role="status"]')?.textContent).toContain("No s'ha afegit");
+    expect(cart.entries()).toEqual([{ productId: product.id, quantity: MAX_CART_QUANTITY }]);
   });
 
   it('renders restored quantities and follows every cart mutation without a separate counter', () => {

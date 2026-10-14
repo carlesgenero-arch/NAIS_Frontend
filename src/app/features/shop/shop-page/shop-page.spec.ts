@@ -9,22 +9,28 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../../app.routes';
 import { ProductGrid } from '../product-grid/product-grid';
 import { ProductService } from '../../../services/product.service';
+import { CartService } from '../../../services/cart.service';
+import { Navbar } from '../../../core/shared/base/navbar/navbar';
 
+const originalScrollIntoView = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollIntoView');
+beforeEach(() => Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: vi.fn() }));
+afterEach(() => {
+  if (originalScrollIntoView) Object.defineProperty(Element.prototype, 'scrollIntoView', originalScrollIntoView);
+  else Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+});
 beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('Product routes', () => {
   beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter(routes), provideLocationMocks()] }));
 
-  it('renders the first product above the complete catalogue and forwards quantities without navigating', async () => {
+  it('renders only the complete catalogue, then selects the product added from the grid', async () => {
     const harness = await RouterTestingHarness.create('/products');
     const element = harness.routeNativeElement!;
     const products = TestBed.inject(ProductService).activeProducts;
     const grid = harness.routeDebugElement!.query(By.directive(ProductGrid)).componentInstance as ProductGrid;
     const added = vi.fn();
     grid.addRequested.subscribe(added);
-    const detail = element.querySelector('app-product-selected-detail')!;
-    expect(detail.querySelector('h1')?.textContent).toBe(products[0].name);
-    expect(detail.compareDocumentPosition(element.querySelector('app-product-grid')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(element.querySelector('app-product-selected-detail')).toBeNull();
     const cards = element.querySelectorAll('app-product-shop-card');
     expect(cards.length).toBe(products.length);
     cards.forEach((card, index) => {
@@ -35,10 +41,49 @@ describe('Product routes', () => {
     expect(cards[0].querySelector('output')?.textContent).toBe('1');
     expect(cards[1].querySelector('output')?.textContent).toBe('2');
     cards[1].querySelector<HTMLButtonElement>('.button--add')!.click();
+    await harness.fixture.whenStable();
     harness.detectChanges();
     expect(added).toHaveBeenCalledWith({ product: products[1], quantity: 2 });
-    expect(TestBed.inject(Router).url).toBe('/products');
-    expect(element.querySelector('[role="status"]')?.textContent).toContain(products[1].name);
+    expect(TestBed.inject(Router).url).toBe(`/products/${products[1].slug}`);
+    expect(TestBed.inject(CartService).entries()).toContainEqual({ productId: products[1].id, quantity: 2 });
+  });
+
+  it('opens the unselected catalogue through the real Botiga navigation from Home', async () => {
+    const harness = await RouterTestingHarness.create('/home');
+    const navbar = TestBed.createComponent(Navbar);
+    navbar.detectChanges();
+    const router = TestBed.inject(Router);
+    const navigation = firstValueFrom(router.events.pipe(filter(event => event instanceof NavigationEnd)));
+    navbar.nativeElement.querySelector('button.shop').click();
+    await navigation;
+    harness.detectChanges();
+    expect(router.url).toBe('/products');
+    expect(harness.routeNativeElement!.querySelector('app-product-selected-detail')).toBeNull();
+    expect(harness.routeNativeElement!.querySelectorAll('app-product-shop-card').length)
+      .toBe(TestBed.inject(ProductService).activeProducts.length);
+  });
+
+  it('uses only the route to select a detail, preserving catalogue/detail states through back and forward', async () => {
+    const harness = await RouterTestingHarness.create('/products?selected=orange-spritz#shop-heading');
+    const router = TestBed.inject(Router);
+    router.setUpLocationChangeListener();
+    const location = TestBed.inject(Location);
+    expect(harness.routeNativeElement!.querySelector('app-product-selected-detail')).toBeNull();
+    await harness.navigateByUrl('/products/passion-hugo');
+    expect(harness.routeNativeElement!.querySelector('h1')?.textContent).toBe('PASSION HUGO');
+    await harness.navigateByUrl('/products');
+    expect(harness.routeNativeElement!.querySelector('app-product-selected-detail')).toBeNull();
+    const back = firstValueFrom(router.events.pipe(filter(event => event instanceof NavigationEnd)));
+    location.back();
+    await back;
+    harness.detectChanges();
+    expect(harness.routeNativeElement!.querySelector('h1')?.textContent).toBe('PASSION HUGO');
+    const forward = firstValueFrom(router.events.pipe(filter(event => event instanceof NavigationEnd)));
+    location.forward();
+    await forward;
+    harness.detectChanges();
+    expect(router.url).toBe('/products');
+    expect(harness.routeNativeElement!.querySelector('app-product-selected-detail')).toBeNull();
   });
 
   it('resolves every slug, updates reused detail views, and keeps nutrition and cart data', async () => {
@@ -57,7 +102,7 @@ describe('Product routes', () => {
       expect(Array.from(element.querySelectorAll('tbody tr'), row => row.querySelector('td')?.textContent)).toEqual((product.nutrition ?? []).map(entry => entry.value));
       element.querySelector<HTMLButtonElement>('.selected-detail__add')!.click();
       harness.detectChanges();
-      expect(element.querySelector('[role="status"]')?.textContent).toContain(product.name);
+      expect(TestBed.inject(CartService).entries().some(entry => entry.productId === product.id)).toBe(true);
     }
   });
 
@@ -126,7 +171,7 @@ describe('Product routes', () => {
     expect(harness.routeNativeElement!.querySelectorAll('app-product-shop-card').length).toBe(5);
     await harness.navigateByUrl('/products/not-a-product');
     expect(TestBed.inject(Router).url).toBe('/products');
-    expect(harness.routeNativeElement!.querySelector('app-product-selected-detail h1')?.textContent).toBe(TestBed.inject(ProductService).products[0].name);
+    expect(harness.routeNativeElement!.querySelector('app-product-selected-detail')).toBeNull();
     expect(harness.routeNativeElement!.querySelectorAll('app-product-shop-card').length).toBe(5);
   });
 });
