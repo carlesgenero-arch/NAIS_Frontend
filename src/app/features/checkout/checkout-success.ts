@@ -8,6 +8,7 @@ import { isCheckoutSessionId, PublicOrderSummary } from '../../../shared/order-s
 import { OrderLookupService } from '../../services/order-lookup.service';
 import { CartService } from '../../services/cart.service';
 import { VerifiedOrderCartService } from '../../services/verified-order-cart.service';
+import { PromotionModal } from '../../services/promotion-modal';
 
 const PENDING_RETRY_DELAYS_MS = [1000, 2000, 4000, 6000] as const;
 
@@ -30,6 +31,7 @@ export class CheckoutSuccess {
   private readonly lookup = inject(OrderLookupService);
   private readonly cart = inject(CartService);
   private readonly verifiedCart = inject(VerifiedOrderCartService);
+  private readonly promotionModal = inject(PromotionModal);
   /** Untrusted reference only. Its presence never confirms payment. */
   readonly sessionId = toSignal(
     this.route.queryParamMap.pipe(map(params => params.get('session_id'))),
@@ -43,7 +45,12 @@ export class CheckoutSuccess {
       if (!isCheckoutSessionId(sessionId)) return of<OrderState>({ status: 'invalid' });
       const requestedCart = this.cart.getPayload().items;
       return this.findOrder(sessionId).pipe(
-        tap(order => { if (order?.paymentStatus === 'paid') this.verifiedCart.clearOnce(order, requestedCart); }),
+        tap(order => {
+          if (order?.paymentStatus === 'paid') {
+            this.promotionModal.suppressAfterPurchase();
+            this.verifiedCart.clearOnce(order, requestedCart);
+          }
+        }),
         map((order): OrderState => !order ? { status: 'pending' }
           : order.paymentStatus === 'paid' ? { status: 'verified', order } : { status: 'not-paid' }),
         catchError(() => of<OrderState>({ status: 'error' })),

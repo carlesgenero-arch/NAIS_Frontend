@@ -21,6 +21,11 @@ describe('HomePage product placement', () => {
     expect(cards.map(card => card.querySelector('h2')?.textContent)).toEqual([
       'ORANGE SPRITZ', 'PASSION HUGO', 'GINGER CRUSH', 'TROPICAL HOPS',
     ]);
+    for (const card of cards) {
+      expect(card.querySelector('.product-ingredients')).toBeNull();
+      expect(card.querySelector('.product-description')?.textContent?.trim()).not.toBe('');
+      expect(card.querySelector('a.button--buy')).not.toBeNull();
+    }
   });
 
   it('selects featured and seasonal products only, including products with both flags once', async () => {

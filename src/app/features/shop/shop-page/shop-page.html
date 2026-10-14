@@ -8,7 +8,7 @@
     <p role="alert">{{ 'ui.no_hem_pogut_carregar_aquest_producte_torna_a_carregar_la_pagina_per_provar_ho_d' | t }}</p>
   } @else if (selectedProduct(); as product) {
     <div class="shop-detail">
-      <app-product-selected-detail [product]="product" (addRequested)="requestSelectedProductAdd($event)" />
+      <app-product-selected-detail [product]="product" [focusOnArrival]="focusDetail()" (addRequested)="requestSelectedProductAdd($event)" />
     </div>
   }
   <p class="cart-status" role="status">{{ cartMessage() }}</p>

@@ -76,7 +76,7 @@ describe('Shop cart integration', () => {
     const harness = await RouterTestingHarness.create('/products/orange-spritz');
     const { header, dialog, show, close } = createDrawer();
     const cart = TestBed.inject(CartService);
-    const add = harness.routeNativeElement!.querySelector<HTMLButtonElement>('app-product-selected-detail .button--add')!;
+    const add = harness.routeNativeElement!.querySelector<HTMLButtonElement>('app-product-selected-detail .selected-detail__add')!;
     add.click();
     header.detectChanges();
     expect(dialog.open).toBe(true);
@@ -121,7 +121,7 @@ describe('Shop cart integration', () => {
     const product = TestBed.inject(ProductService).products[1];
     const harness = await RouterTestingHarness.create(`/products/${product.slug}`);
     const cart = TestBed.inject(CartService);
-    const add = harness.routeNativeElement!.querySelector<HTMLButtonElement>('app-product-selected-detail .button--add')!;
+    const add = harness.routeNativeElement!.querySelector<HTMLButtonElement>('app-product-selected-detail .selected-detail__add')!;
     add.click();
     expect(cart.entries()).toEqual([{ productId: product.id, quantity: 1 }]);
     cart.setQuantity(product.id, MAX_CART_QUANTITY);

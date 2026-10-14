@@ -128,7 +128,7 @@ export const CA = {
   "ui.sal": "Sal",
   "ui.pack_16_llaunes_x_250ml": "pack 16 llaunes x 250ml",
   "ui.pack_16_llaunes_x_250_ml": "pack 16 llaunes x 250 ml",
-  "ui.taronja_llimona_gerds_genciana": "TARONJA, LLIMONA, GERDS, GENCIANA",
+  "product.orangeSpritz.ingredients": "TARONJA, HIBISC, GERDS, GENCIANA",
   "ui.llimona_menta_flor_de_sauc_poma_fruita_de_la_passio": "LLIMONA, MENTA, FLOR DE SAÜC, POMA, FRUITA DE LA PASSIÓ",
   "ui.llimona_poma_gingebre_mango": "LLIMONA, POMA, GINGEBRE, MANGO",
   "ui.pinya_raim_mango_mandarina_civada_sense_gluten_llimona_llupol_citra": "PINYA, RAÏM, MANGO, MANDARINA, CIVADA SENSE GLUTEN, LLIMONA, LLÚPOL CITRA",

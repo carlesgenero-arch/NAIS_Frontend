@@ -7,6 +7,7 @@ import { CheckoutCancel } from '../features/checkout/checkout-cancel';
 import { TranslatePipe } from './translate.pipe';
 import { CA, type TranslationKey } from './ca';
 import { ES } from './es';
+import { PRODUCT_PRESENTATION } from '../services/product-presentation';
 import { LANGUAGE_STORAGE_KEY, TranslationService } from './translation.service';
 
 @Component({ imports: [LanguageSelector, TranslatePipe], template: `<app-language-selector /><p>{{ 'ui.la_cistella_es_buida' | t }}</p><span>{{ 'cart.add' | t: { product: name } }}</span>` })
@@ -61,6 +62,14 @@ describe('Storefront translations', () => {
       expect(ES[key].trim()).not.toBe('');
       expect(ES[key].match(/\{\w+\}/g)?.sort()).toEqual(CA[key].match(/\{\w+\}/g)?.sort());
     }
+  });
+  it('shows hibiscus for Orange Spritz in both languages without changing other recipes', () => {
+    const service = TestBed.inject(TranslationService);
+    const ingredients = PRODUCT_PRESENTATION['orange-spritz'].ingredients;
+    expect(service.text(ingredients)).toBe('TARONJA, HIBISC, GERDS, GENCIANA');
+    service.setLanguage('es');
+    expect(service.text(ingredients)).toBe('NARANJA, HIBISCO, FRAMBUESAS, GENCIANA');
+    expect(service.text(PRODUCT_PRESENTATION['passion-hugo'].ingredients)).toContain('LIMÓN');
   });
   it('translates known catalogue copy but never overrides unknown API data or identifiers', () => {
     const service = TestBed.inject(TranslationService);

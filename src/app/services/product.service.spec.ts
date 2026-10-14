@@ -31,6 +31,25 @@ describe('API product catalogue', () => {
   });
   afterEach(() => { http.verify(); TestBed.resetTestingModule(); vi.restoreAllMocks(); });
 
+  it('hides unavailable Tropical Hops on Home/Shop, rejects its detail and removes it from restored cart', async () => {
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([{ productId: 'tropical-hops', quantity: 1 }]));
+    const cart = TestBed.inject(CartService);
+    const harness = await RouterTestingHarness.create('/home');
+    http.expectOne('/api/products').flush(active.filter(p => p.id !== 'tropical-hops'));
+    harness.detectChanges();
+    expect(harness.routeNativeElement!.querySelector('a[href="/products/tropical-hops"]')).toBeNull();
+    expect(cart.entries()).toEqual([]);
+    expect(cart.addItem('tropical-hops')).toBe(false);
+    expect(window.localStorage.getItem(CART_STORAGE_KEY)).toBeNull();
+    await harness.navigateByUrl('/products');
+    expect(harness.routeNativeElement!.querySelector('a[href="/products/tropical-hops"]')).toBeNull();
+    expect(harness.routeNativeElement!.querySelectorAll('app-product-shop-card').length).toBe(4);
+    await harness.navigateByUrl('/products/tropical-hops');
+    http.expectOne('/api/products/tropical-hops').flush({ status: 'not_found' }, { status: 404, statusText: 'Not Found' });
+    await harness.fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/products');
+  });
+
   it('loads once, preserves editorial order and derives names/prices/images from the API', () => {
     const service = TestBed.inject(ProductService);
     expect(service.loading()).toBe(true);

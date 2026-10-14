@@ -129,7 +129,7 @@ export const ES: Record<TranslationKey, string> = {
   "ui.sal": "Sal",
   "ui.pack_16_llaunes_x_250ml": "pack 16 latas x 250ml",
   "ui.pack_16_llaunes_x_250_ml": "pack 16 latas x 250 ml",
-  "ui.taronja_llimona_gerds_genciana": "NARANJA, LIMÓN, FRAMBUESAS, GENCIANA",
+  "product.orangeSpritz.ingredients": "NARANJA, HIBISCO, FRAMBUESAS, GENCIANA",
   "ui.llimona_menta_flor_de_sauc_poma_fruita_de_la_passio": "LIMÓN, MENTA, FLOR DE SAÚCO, MANZANA, FRUTA DE LA PASIÓN",
   "ui.llimona_poma_gingebre_mango": "LIMÓN, MANZANA, JENGIBRE, MANGO",
   "ui.pinya_raim_mango_mandarina_civada_sense_gluten_llimona_llupol_citra": "PIÑA, UVA, MANGO, MANDARINA, AVENA SIN GLUTEN, LIMÓN, LÚPULO CITRA",

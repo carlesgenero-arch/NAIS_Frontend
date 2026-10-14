@@ -6,6 +6,7 @@ import { filter, map } from 'rxjs';
 import { Header } from './core/shared/base/header/header';
 import { Footer } from './core/shared/base/footer/footer';
 import { Promotion } from './features/components/promotion/promotion';
+import { PromotionModal } from './services/promotion-modal';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,14 @@ import { Promotion } from './features/components/promotion/promotion';
 })
 export class App {
   private readonly router = inject(Router);
+  protected readonly promotionModal = inject(PromotionModal);
+  protected readonly isCheckoutSuccess = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(event => event.urlAfterRedirects.split(/[?#]/)[0] === '/checkout/success'),
+    ),
+    { initialValue: this.router.url.split(/[?#]/)[0] === '/checkout/success' },
+  );
   protected readonly isAdmin = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),

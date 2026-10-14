@@ -7,6 +7,7 @@ import { routes } from '../../app.routes';
 import { CheckoutSuccess } from './checkout-success';
 import { CheckoutCancel } from './checkout-cancel';
 import { CartService, CART_STORAGE_KEY } from '../../services/cart.service';
+import { PromotionModal, PROMOTION_PURCHASE_KEY } from '../../services/promotion-modal';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 
@@ -49,6 +50,8 @@ describe('Checkout return pages', () => {
       expect(harness.routeNativeElement?.textContent).not.toContain('untrusted_reference');
       expect(harness.routeNativeElement?.querySelector('a')?.getAttribute('href')).toBe('/products');
       expect(clear).not.toHaveBeenCalled();
+      expect(TestBed.inject(PromotionModal).purchaseSuppressed()).toBe(false);
+      expect(localStorage.getItem(PROMOTION_PURCHASE_KEY)).toBeNull();
       expect(cart.getPayload()).toEqual(before);
       expect(localStorage.getItem(CART_STORAGE_KEY)).toBe(saved);
     },
@@ -85,12 +88,15 @@ describe('Checkout return pages', () => {
     const page = await harness.navigateByUrl(`/checkout/success?session_id=${sessionId}`, CheckoutSuccess);
     expect(page.state().status).toBe('loading');
     expect(clear).not.toHaveBeenCalled();
+    expect(TestBed.inject(PromotionModal).purchaseSuppressed()).toBe(false);
     const request = TestBed.inject(HttpTestingController).expectOne(endpoint);
     expect(request.request.method).toBe('GET');
     expect(request.request.body).toBeNull();
     request.flush(summary);
     harness.detectChanges();
     expect(page.state().status).toBe('verified');
+    expect(TestBed.inject(PromotionModal).purchaseSuppressed()).toBe(true);
+    expect(localStorage.getItem(PROMOTION_PURCHASE_KEY)).toBe('1');
     expect(harness.routeNativeElement?.textContent).toContain('Pagament confirmat');
     expect(harness.routeNativeElement?.textContent).toContain('NAIS-TEST');
     expect(harness.routeNativeElement?.textContent).toContain('Orange Spritz');
@@ -114,6 +120,7 @@ describe('Checkout return pages', () => {
     TestBed.inject(HttpTestingController).expectOne(endpoint).flush({ status: 'pending' }, { status, statusText: 'Unavailable' });
     harness.detectChanges();
     expect(page.state().status).toBe(status === 404 ? 'loading' : 'error');
+    expect(localStorage.getItem(PROMOTION_PURCHASE_KEY)).toBeNull();
     expect(harness.routeNativeElement?.textContent).not.toContain('Pagament confirmat');
     expect(localStorage.getItem(CART_STORAGE_KEY)).toBe(saved);
   });
@@ -136,6 +143,7 @@ describe('Checkout return pages', () => {
       const page = await harness.navigateByUrl(`/checkout/success?session_id=${sessionId}`, CheckoutSuccess);
       TestBed.inject(HttpTestingController).expectOne(endpoint).flush(response);
       expect(page.state().status).not.toBe('verified');
+      expect(localStorage.getItem(PROMOTION_PURCHASE_KEY)).toBeNull();
       expect(cart.totalQuantity()).toBe(1);
     },
   );

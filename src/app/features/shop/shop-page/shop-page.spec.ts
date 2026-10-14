@@ -52,9 +52,9 @@ describe('Product routes', () => {
       expect(element.querySelectorAll('app-product-shop-card').length).toBe(products.length);
       expect(element.querySelector('h1')?.textContent).toBe(product.name);
       expect(element.querySelector('.selected-detail')?.getAttribute('data-variant')).toBe(product.variant);
-      expect(element.querySelector('.selected-detail__ingredients')?.textContent).toBe(product.ingredients);
+      expect(element.querySelector('.selected-detail__ingredients')?.textContent?.toLocaleUpperCase('ca').replaceAll(' · ', ', ')).toBe(product.ingredients);
       expect(Array.from(element.querySelectorAll('tbody tr'), row => row.querySelector('td')?.textContent)).toEqual((product.nutrition ?? []).map(entry => entry.value));
-      element.querySelector<HTMLButtonElement>('.button--add')!.click();
+      element.querySelector<HTMLButtonElement>('.selected-detail__add')!.click();
       harness.detectChanges();
       expect(element.querySelector('[role="status"]')?.textContent).toContain(product.name);
     }

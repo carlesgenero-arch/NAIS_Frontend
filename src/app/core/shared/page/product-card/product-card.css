@@ -148,10 +148,6 @@
   font-size: var(--card-title-size);
 }
 
-.product-card:not(.catalogue) .product-ingredients {
-  margin-block-start: calc(var(--card-gap) - var(--card-content-gap) / 2);
-}
-
 .content .button--buy {
   align-self: flex-start;
   margin-top: calc(var(--card-content-gap) / 2);

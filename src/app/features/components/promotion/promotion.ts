@@ -38,10 +38,11 @@ export class Promotion {
       try {
         dismissed = this.document.defaultView?.sessionStorage.getItem(PROMOTION_SESSION_KEY) === '1';
       } catch { /* Storage is optional; this component still opens only once per mount. */ }
-      if (!dismissed) this.modal().open();
+      if (!dismissed) this.open();
     });
   }
   open(): void {
+    if (this.promotionModal.purchaseSuppressed()) return;
     this.result.set(null);
     this.error.set('');
     this.modal().open();

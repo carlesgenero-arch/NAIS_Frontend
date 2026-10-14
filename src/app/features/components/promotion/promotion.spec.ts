@@ -1,6 +1,7 @@
 import { PromoSignupService } from '../../../services/promo-signup.service';
 import { TestBed } from '@angular/core/testing';
 import { Promotion, PROMOTION_SESSION_KEY } from './promotion';
+import { PromotionModal, PROMOTION_PURCHASE_KEY } from '../../../services/promotion-modal';
 
 describe('Promotion', () => {
   const register = vi.fn();
@@ -20,6 +21,7 @@ describe('Promotion', () => {
       clear: () => values.clear(),
     };
     vi.spyOn(window, 'sessionStorage', 'get').mockReturnValue(storage);
+    vi.spyOn(window, 'localStorage', 'get').mockReturnValue({ getItem: () => null, setItem: vi.fn() } as unknown as Storage);
     showDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal');
     closeDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close');
     Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: function(this: HTMLDialogElement) { this.setAttribute('open', ''); } });
@@ -56,6 +58,35 @@ describe('Promotion', () => {
     expect(document.activeElement).toBe(element.querySelector('.modal-close'));
     fixture.detectChanges();
     expect(window.location.href).toBe(url);
+  });
+
+  it('never opens automatically or through the promo control after a confirmed purchase', async () => {
+    const store = new Map<string, string>();
+    vi.spyOn(window, 'localStorage', 'get').mockReturnValue({
+      getItem: key => store.get(key) ?? null,
+      setItem: (key, value) => { store.set(key, value); },
+    } as Storage);
+    const promo = TestBed.inject(PromotionModal);
+    promo.suppressAfterPurchase();
+    const { element } = await create();
+    promo.open();
+    expect(element.querySelector('dialog')!.open).toBe(false);
+    expect([...store]).toEqual([[PROMOTION_PURCHASE_KEY, '1']]);
+  });
+
+  it('restores only the non-sensitive suppression flag after a refresh', async () => {
+    vi.spyOn(window, 'localStorage', 'get').mockReturnValue({
+      getItem: key => key === PROMOTION_PURCHASE_KEY ? '1' : null,
+    } as Storage);
+    const { element } = await create();
+    expect(element.querySelector('dialog')!.open).toBe(false);
+  });
+
+  it('keeps purchase suppression in memory if storage is unavailable', async () => {
+    vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => { throw Error('Storage unavailable'); });
+    const promo = TestBed.inject(PromotionModal);
+    expect(() => promo.suppressAfterPurchase()).not.toThrow();
+    expect((await create()).element.querySelector('dialog')!.open).toBe(false);
   });
 
   it.each(['button', 'escape', 'overlay'])('persists dismissal through %s and does not reopen on remount', async method => {

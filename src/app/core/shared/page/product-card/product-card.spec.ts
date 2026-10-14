@@ -19,6 +19,7 @@ describe('ProductCard', () => {
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('a.button--buy')).toBeNull();
+    expect(element.querySelector('.product-ingredients')?.textContent).toBe(products[0].ingredients);
     const button = element.querySelector<HTMLButtonElement>('button.button--add')!;
     expect(button.type).toBe('button');
     button.click();
@@ -44,7 +45,7 @@ describe('ProductCard', () => {
       await fixture.whenStable();
       expect(element.querySelector('h2')?.textContent).toBe(product.name);
       expect(element.querySelector('.product-description')?.textContent).toBe(product.description);
-      expect(element.querySelector('.product-ingredients')?.textContent).toBe(product.ingredients);
+      expect(element.querySelector('.product-ingredients')).toBeNull();
       expect(element.querySelector('img')?.getAttribute('src')).toBe(product.imageUrl);
       expect(element.querySelector('img')?.getAttribute('alt')).toBe(product.imageAlt);
       const preview = element.querySelector<HTMLElement>('.visual');
@@ -70,7 +71,7 @@ describe('ProductCard', () => {
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('h2')?.textContent).toBe('ORANGE SPRITZ');
     expect(element.querySelector('.product-description')?.textContent).toBe(firstProduct.description);
-    expect(element.querySelector('.product-ingredients')?.textContent).toBe(firstProduct.ingredients);
+    expect(element.querySelector('.product-ingredients')).toBeNull();
     expect(element.querySelector('article')?.getAttribute('data-variant')).toBe('citrus');
     expect(element.querySelector('img')?.getAttribute('src')).toBe(firstProduct.imageUrl);
     expect(element.querySelector('img')?.getAttribute('alt')).toBe(firstProduct.imageAlt);

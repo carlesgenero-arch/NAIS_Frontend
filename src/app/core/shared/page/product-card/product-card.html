@@ -2,17 +2,13 @@
   <div class="content">
     <h2>{{ (product().name) | t }}</h2>
     <p class="product-description">{{ (product().description) | t }}</p>
-    @if (product().ingredients) {
-      @if (presentation() === 'catalogue') {
-        <p class="product-ingredients">{{ (product().ingredients) | t }}</p>
-      } @else {
-        <h1 class="product-ingredients">{{ (product().ingredients) | t }}</h1>
-      }
+    @if (presentation() === 'catalogue' && product().ingredients) {
+      <p class="product-ingredients">{{ (product().ingredients) | t }}</p>
     }
     @if (presentation() === 'catalogue') {
       <button class="button--add" type="button" [attr.aria-label]="addLabel()" (click)="addRequested.emit(product())">{{ 'ui.afegir' | t }}</button>
     } @else {
-      <a class="button--buy" [routerLink]="['/products', product().slug]">{{ 'ui.comprar' | t }}</a>
+      <a class="button--buy" [routerLink]="['/products', product().slug]" [info]="'focus-product-detail'">{{ 'ui.comprar' | t }}</a>
     }
   </div>
   <figure class="visual" [attr.tabindex]="product().fruitImage ? 0 : null" [attr.aria-label]="(product().name) | t">

@@ -26,6 +26,13 @@ export class ShopPage {
   protected readonly catalogue = inject(ProductService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  // Transient navigation info is not restored from history on back/forward.
+  protected readonly focusDetail = computed(() => {
+    const navigation = this.router.currentNavigation() ?? this.router.lastSuccessfulNavigation();
+    return navigation?.trigger === 'imperative'
+      && navigation.extras.info === 'focus-product-detail'
+      && !this.route.snapshot.fragment;
+  });
   protected readonly detail = toSignal(this.route.paramMap.pipe(
     map(params => params.get('slug')),
     distinctUntilChanged(),
