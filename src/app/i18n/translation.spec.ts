@@ -71,6 +71,18 @@ describe('Storefront translations', () => {
     expect(service.text(ingredients)).toBe('NARANJA, HIBISCO, FRAMBUESAS, GENCIANA');
     expect(service.text(PRODUCT_PRESENTATION['passion-hugo'].ingredients)).toContain('LIMÓN');
   });
+  it('describes the assorted pack as three flavours in both languages', () => {
+    const service = TestBed.inject(TranslationService);
+    const pack = PRODUCT_PRESENTATION['pack-variat'];
+    expect(service.text(pack.format)).toBe('Pack variat de 3 sabors (16 x 250ml)');
+    expect(service.text(pack.imageAlt)).not.toContain('Tropical Hops');
+    service.setLanguage('es');
+    expect(service.text(pack.format)).toBe('Pack variado de 3 sabores (16 x 250ml)');
+    expect(service.text(pack.imageAlt)).not.toContain('Tropical Hops');
+    expect(service.text('Un pack amb Orange Spritz, Passion Hugo i Ginger Crush.'))
+      .toBe('Un pack con Orange Spritz, Passion Hugo y Ginger Crush.');
+  });
+
   it('translates known catalogue copy but never overrides unknown API data or identifiers', () => {
     const service = TestBed.inject(TranslationService);
     service.setLanguage('es');

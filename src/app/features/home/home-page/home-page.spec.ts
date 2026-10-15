@@ -35,7 +35,7 @@ describe('HomePage product placement', () => {
     const packLink = promotion?.querySelector('a.pack-feature');
     expect(packLink?.getAttribute('href')).toBe('/products/pack-variat');
     expect(packLink?.getAttribute('aria-label')).toBeTruthy();
-    expect(packLink?.querySelector('img')?.getAttribute('src')).toBe('images/products/pack_sf.png');
+    expect(packLink?.querySelector('img')?.getAttribute('src')).toBe('images/products/pack_3.png');
     const stickers = promotion?.querySelector('.pack-botanicals');
     expect(stickers?.previousElementSibling?.classList.contains('pack-cta')).toBe(true);
     expect(packLink?.contains(stickers ?? null)).toBe(false);
@@ -46,15 +46,15 @@ describe('HomePage product placement', () => {
     translations.setLanguage('ca');
     fixture.detectChanges();
     expect(promotion?.querySelector('h2')?.textContent).toBe('DESCOBREIX TOTS ELS SABORS');
-    expect(promotion?.textContent).toContain('La millor manera de tastar NAIS.');
+    expect(promotion?.textContent).toContain('La millor manera de conèixer NAIS.');
     expect(promotion?.querySelector('.pack-cta')?.textContent).toBe('COMPRAR PACK VARIAT');
-    expect(promotion?.querySelector('.pack-tagline')?.textContent).toBe('4 sabors. 1 pack.');
+    expect(promotion?.querySelector('.pack-tagline')?.textContent).toBe('3 sabors. 1 pack.');
     translations.setLanguage('es');
     fixture.detectChanges();
     expect(promotion?.querySelector('h2')?.textContent).toBe('DESCUBRE TODOS LOS SABORES');
     expect(promotion?.textContent).toContain('La mejor manera de probar NAIS.');
     expect(promotion?.querySelector('.pack-cta')?.textContent).toBe('COMPRAR PACK VARIADO');
-    expect(promotion?.querySelector('.pack-tagline')?.textContent).toBe('4 sabores. 1 pack.');
+    expect(promotion?.querySelector('.pack-tagline')?.textContent).toBe('3 sabores. 1 pack.');
     expect(promotion?.querySelector('a')?.getAttribute('href')).toBe('/products/pack-variat');
     translations.setLanguage('ca');
   });
