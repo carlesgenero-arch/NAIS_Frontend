@@ -3,7 +3,7 @@ import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { DOCUMENT } from '@angular/common';
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { PromoSignupService } from '../../../services/promo-signup.service';
+import { PromoSignupService, type PromoSignupResult } from '../../../services/promo-signup.service';
 import { Modal } from '../../../core/shared/modal/modal';
 import { PromotionModal } from '../../../services/promotion-modal';
 import { PromoTurnstile } from './promo-turnstile';
@@ -21,7 +21,7 @@ export class Promotion {
   private readonly document = inject(DOCUMENT);
   private readonly modal = viewChild.required(Modal);
   private readonly signup = inject(PromoSignupService);
-  protected readonly challengeActive = signal(false);
+  protected readonly challengeAttempts = signal<readonly number[]>([]);
   private verificationEmail: string | null = null;
   private attempt = 0;
   private readonly destroyRef = inject(DestroyRef);
@@ -61,7 +61,7 @@ export class Promotion {
     this.form.reset();
   }
 
-  protected async submit(): Promise<void> {
+  protected submit(): void {
     if (this.pending()) return;
     const email = this.form.controls.email.value.trim();
     this.form.controls.email.setValue(email);
@@ -70,24 +70,27 @@ export class Promotion {
     if (this.form.invalid) return;
     this.pending.set(true);
     this.verificationEmail = email;
-    this.challengeActive.set(true);
+    this.challengeAttempts.set([++this.attempt]);
   }
 
-  protected verificationFailed(): void {
-    if (!this.verificationEmail) return;
+  protected verificationFailed(attempt: number): void {
+    if (attempt !== this.attempt || !this.verificationEmail) return;
     this.cancelAttempt();
     this.error.set(CA['promo.verification.error']);
   }
 
-  protected async verified(token: string): Promise<void> {
-    if (!token || !this.verificationEmail || !this.pending()) return;
+  protected async verified(token: string, attempt: number): Promise<void> {
+    if (attempt !== this.attempt || !token || !this.verificationEmail || !this.pending()) return;
     const email = this.verificationEmail;
     this.verificationEmail = null;
-    const attempt = this.attempt;
-    const result = await this.signup.register(email, token);
+    // Remove the completed widget now; keep submission locked until the API returns.
+    this.challengeAttempts.set([]);
+    let result: PromoSignupResult;
+    try { result = await this.signup.register(email, token); }
+    catch { result = 'unavailable'; }
     if (this.destroyRef.destroyed || attempt !== this.attempt) return;
     this.pending.set(false);
-    this.challengeActive.set(false);
+    this.challengeAttempts.set([]);
     if (result === 'registered' || result === 'already_registered') {
       this.modal().focusClose();
       this.result.set(result);
@@ -103,7 +106,7 @@ export class Promotion {
   private cancelAttempt(): void {
     this.attempt++;
     this.verificationEmail = null;
-    this.challengeActive.set(false);
+    this.challengeAttempts.set([]);
     this.pending.set(false);
   }
 

@@ -48,12 +48,44 @@ export class TurnstileService {
       throw new Error('Verification unavailable');
     }
     const api = await this.load();
+    // One widget execution owns one result. Late callbacks cannot revive a failed/removed attempt.
+    let state: 'ready' | 'running' | 'settled' | 'destroyed' = 'ready';
+    const fail = () => {
+      if (state === 'settled' || state === 'destroyed') return;
+      state = 'settled';
+      failed();
+    };
     const id = api.render(container, { sitekey: config.siteKey, action: 'promo_signup',
       execution: 'execute', size: 'compact', appearance: 'interaction-only', theme: 'light', language: language === 'es' ? 'es' : 'auto',
-      'response-field': false, callback: token,
-      'expired-callback': () => { token(''); failed(); }, 'timeout-callback': () => { token(''); failed(); },
-      'error-callback': () => { token(''); failed(); },
+      // The form owns retries. Do not let Cloudflare refresh a consumed or failed execution.
+      retry: 'never', 'refresh-expired': 'never', 'refresh-timeout': 'never',
+      'response-field': false,
+      callback: (value: string) => {
+        if (state !== 'running') return;
+        if (typeof value !== 'string' || !value.trim()) { fail(); return; }
+        state = 'settled';
+        token(value);
+      },
+      'expired-callback': fail, 'timeout-callback': fail,
+      'error-callback': () => { fail(); return true; },
     });
-    return { execute: () => api.execute(id), reset: () => { token(''); api.reset(id); }, destroy: () => api.remove(id) };
+    return {
+      execute: () => {
+        if (state !== 'ready') return;
+        state = 'running';
+        try { api.execute(id); } catch { fail(); }
+      },
+      reset: () => {
+        if (state === 'destroyed') return;
+        state = 'ready';
+        token('');
+        api.reset(id);
+      },
+      destroy: () => {
+        if (state === 'destroyed') return;
+        state = 'destroyed';
+        api.remove(id);
+      },
+    };
   }
 }

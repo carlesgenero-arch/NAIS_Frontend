@@ -137,11 +137,15 @@ describe('Promotion', () => {
     expect([...values]).toEqual([[PROMOTION_SESSION_KEY, '1']]);
   });
 
-  it('executes only on valid submission, waits for a token and blocks duplicate attempts', async () => {
+  it('waits for a visible challenge, then submits automatically exactly once', async () => {
     let receiveToken!: (value: string) => void;
     const execute = vi.fn(); const destroy = vi.fn();
-    const mount = vi.fn(async (_container: HTMLElement, _language: string, token: (value: string) => void) => {
+    const mount = vi.fn(async (container: HTMLElement, _language: string, token: (value: string) => void) => {
       receiveToken = token;
+      // Simulate the provider's visible compact frame, without contacting/solving Turnstile.
+      const frame = document.createElement('iframe');
+      frame.title = 'Security verification'; frame.width = '150'; frame.height = '140';
+      container.appendChild(frame);
       return { execute, reset: vi.fn(), destroy };
     });
     TestBed.overrideProvider(TurnstileService, { useValue: { mount } });
@@ -156,6 +160,7 @@ describe('Promotion', () => {
     form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     fixture.detectChanges(); await fixture.whenStable();
     expect(execute).toHaveBeenCalledOnce();
+    expect(element.querySelector('iframe')?.getAttribute('title')).toBe('Security verification');
     expect(register).not.toHaveBeenCalled();
     form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     expect(mount).toHaveBeenCalledOnce();
@@ -164,6 +169,7 @@ describe('Promotion', () => {
     await fixture.whenStable(); fixture.detectChanges();
     expect(register).toHaveBeenCalledExactlyOnceWith('user@example.com', 'valid-token');
     expect(destroy).toHaveBeenCalledOnce();
+    expect(element.querySelector('iframe')).toBeNull();
   });
 
   it('allows a fresh submission after verification fails and cleans up on close', async () => {
@@ -187,6 +193,78 @@ describe('Promotion', () => {
     expect(mount).toHaveBeenCalledTimes(2);
     element.querySelector<HTMLButtonElement>('.modal-close')!.click(); fixture.detectChanges();
     expect(destroy).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries with a new widget/token and ignores callbacks from the failed attempt even before a render', async () => {
+    const callbacks: { token: (value: string) => void; failed: () => void }[] = [];
+    const destroy = vi.fn();
+    TestBed.overrideProvider(TurnstileService, { useValue: {
+      mount: vi.fn(async (_container: HTMLElement, _language: string, token: (value: string) => void, failed: () => void) => {
+        callbacks.push({ token, failed });
+        return { execute: vi.fn(), reset: vi.fn(), destroy };
+      }),
+    } });
+    const { fixture, element } = await create();
+    const input = element.querySelector('input')!;
+    input.value = 'user@example.com'; input.dispatchEvent(new Event('input'));
+    const submit = () => element.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    submit(); fixture.detectChanges(); await fixture.whenStable();
+    callbacks[0].failed();
+    // Retry in the same change detection turn: a boolean @if used to retain the failed widget.
+    submit(); callbacks[0].token('stale-token'); callbacks[0].failed();
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(callbacks).toHaveLength(2); expect(register).not.toHaveBeenCalled();
+    callbacks[1].token('fresh-token'); callbacks[1].token('duplicate-token');
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(register).toHaveBeenCalledExactlyOnceWith('user@example.com', 'fresh-token');
+    expect(element.querySelector('.promotion-success')).not.toBeNull();
+    expect(element.querySelector('app-promo-turnstile')).toBeNull();
+  });
+
+  it('removes a completed challenge while awaiting the provider, then retries API failure with a fresh token', async () => {
+    const callbacks: ((token: string) => void)[] = [];
+    TestBed.overrideProvider(TurnstileService, { useValue: {
+      mount: async (_container: HTMLElement, _language: string, token: (value: string) => void) => {
+        callbacks.push(token); return { execute: vi.fn(), reset: vi.fn(), destroy: vi.fn() };
+      },
+    } });
+    let complete!: (result: string) => void;
+    register.mockReturnValueOnce(new Promise<string>(resolve => { complete = resolve; }));
+    const { fixture, element } = await create();
+    const input = element.querySelector('input')!;
+    input.value = 'user@example.com'; input.dispatchEvent(new Event('input'));
+    const submit = () => element.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    submit(); fixture.detectChanges(); await fixture.whenStable();
+    callbacks[0]('first-token'); fixture.detectChanges();
+    expect(element.querySelector('app-promo-turnstile')).toBeNull();
+    expect(element.querySelector<HTMLButtonElement>('button[type=submit]')!.disabled).toBe(true);
+    complete('unavailable'); await fixture.whenStable(); fixture.detectChanges();
+    submit(); fixture.detectChanges(); await fixture.whenStable();
+    callbacks[1]('second-token'); await fixture.whenStable(); fixture.detectChanges();
+    expect(register.mock.calls).toEqual([['user@example.com', 'first-token'], ['user@example.com', 'second-token']]);
+    expect(element.querySelector('.promotion-success')).not.toBeNull();
+  });
+
+  it('ignores a late token after closing while widget mounting is still pending', async () => {
+    let resolveMount!: (handle: { execute: () => void; reset: () => void; destroy: () => void }) => void;
+    let token!: (value: string) => void;
+    const execute = vi.fn(); const destroy = vi.fn();
+    TestBed.overrideProvider(TurnstileService, { useValue: {
+      mount: (_container: HTMLElement, _language: string, receive: (value: string) => void) => {
+        token = receive;
+        return new Promise(resolve => { resolveMount = resolve; });
+      },
+    } });
+    const { fixture, element } = await create();
+    const input = element.querySelector('input')!;
+    input.value = 'user@example.com'; input.dispatchEvent(new Event('input'));
+    element.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    fixture.detectChanges();
+    element.querySelector<HTMLButtonElement>('.modal-close')!.click(); fixture.detectChanges();
+    resolveMount({ execute, reset: vi.fn(), destroy }); token('late-token');
+    await fixture.whenStable();
+    expect(execute).not.toHaveBeenCalled(); expect(destroy).toHaveBeenCalledOnce();
+    expect(register).not.toHaveBeenCalled();
   });
 
   it('shows a neutral duplicate response without exposing or storing the email', async () => {

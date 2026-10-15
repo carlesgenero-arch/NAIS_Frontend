@@ -53,7 +53,13 @@ reserves no challenge space. The compact managed widget uses
 CAT/CAST copy and safe generic errors remain translated. Script/network failure
 offers another submission through the existing CTA; dismissal removes the widget
 and ignores stale results. Submission remains disabled throughout verification
-and registration; the token is consumed once and the widget removed afterward. Existing promotion eligibility and
+and registration. Each keyed attempt accepts a single token/result and ignores
+late callbacks from prior attempts. The widget is removed as soon as its token
+is handed to the signup request, so no completed challenge occupies form space.
+Provider retry/refresh is `never`: the form owns fresh-widget retries after errors.
+The browser request allows up to 120 seconds for serial Siteverify, Stripe SDK
+calls/retries and email delivery, rather than aborting a valid registration at 15
+seconds. It never automatically replays the HTTP request or reuses a token. Existing promotion eligibility and
 delivery idempotency remain unchanged.
 
 If adding CSP later, allow the official Turnstile script/frame at

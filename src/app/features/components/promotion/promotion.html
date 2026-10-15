@@ -21,8 +21,8 @@
             @if (form.controls.email.touched && form.controls.email.invalid) { {{ 'ui.introdueix_un_correu_electronic_valid' | t }} }
             @if (error()) { {{ (error()) | t }} }
           </p>
-          @if (challengeActive()) {
-            <app-promo-turnstile (tokenChange)="verified($event)" (verificationFailed)="verificationFailed()" />
+          @for (attempt of challengeAttempts(); track attempt) {
+            <app-promo-turnstile (tokenChange)="verified($event, attempt)" (verificationFailed)="verificationFailed(attempt)" />
           }
           <button class="button--buy" type="submit" [disabled]="pending()">{{ (pending() ? 'ui.enviant' : 'ui.obten_el_codi') | t }}</button>
           <p id="promotion-legal" class="promotion-legal">{{ 'ui.newsletter_legal_text' | t }}</p>

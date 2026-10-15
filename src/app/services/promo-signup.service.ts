@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 
 export type PromoSignupResult = 'registered' | 'already_registered' | 'invalid_email' | 'unavailable';
 
+// Siteverify + two Stripe operations (including bounded retries) + email delivery run serially.
+const PROMO_REQUEST_TIMEOUT_MS = 120_000;
+
 @Injectable({ providedIn: 'root' })
 export class PromoSignupService {
   async register(email: string, turnstileToken: string): Promise<PromoSignupResult> {
@@ -10,7 +13,7 @@ export class PromoSignupService {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, turnstileToken }),
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(PROMO_REQUEST_TIMEOUT_MS),
       });
       const payload: unknown = await response.json();
       if (!payload || typeof payload !== 'object' || !('status' in payload)) return 'unavailable';
