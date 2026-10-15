@@ -15,6 +15,26 @@ describe('PromoSignupService', () => {
     },
   );
 
+  it('allows the serial verification/Stripe/email work to finish beyond the old 15-second cutoff', async () => {
+    vi.useFakeTimers();
+    try {
+      let requestSignal!: AbortSignal;
+      vi.stubGlobal('fetch', vi.fn((_url, options) => {
+        requestSignal = options.signal;
+        return new Promise<Response>(resolve => {
+          setTimeout(() => resolve(Response.json({ status: 'registered' }, { status: 201 })), 20_000);
+        });
+      }));
+      const timeout = vi.spyOn(AbortSignal, 'timeout');
+      const result = new PromoSignupService().register('user@example.com', 'fresh-token');
+      await vi.advanceTimersByTimeAsync(20_000);
+      expect(await result).toBe('registered');
+      expect(requestSignal.aborted).toBe(false);
+      expect(timeout).toHaveBeenCalledWith(120_000);
+      timeout.mockRestore();
+    } finally { vi.useRealTimers(); }
+  });
+
   it('fails safely on network errors or malformed responses', async () => {
     const fetchMock = vi.fn().mockRejectedValueOnce(new Error('offline'))
       .mockResolvedValueOnce(new Response('not json'))
