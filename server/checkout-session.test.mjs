@@ -13,6 +13,7 @@ beforeEach(t => {
 let sqlite;
 const env = {
   STRIPE_SECRET_KEY: 'sk_test_placeholder', SITE_URL: 'https://naisdrinks.com/',
+  CHECKOUT_RATE_LIMITER: { async fetch() { return new Response(null, { status: 204 }); } },
 };
 const item = (quantity, productId = 'orange-spritz') => ({ productId, quantity });
 const request = (items = [item(1)], extra = {}, headers = {}) => new Request('https://naisdrinks.com/api/checkout', {

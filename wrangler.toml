@@ -8,3 +8,8 @@ binding = "PROMO_DB"
 database_name = "nais-promo-production"
 database_id = "dad4fa15-507c-4164-aa37-fa468d75bfe0"
 preview_database_id = "PROMO_DB"
+
+# Local service binding. Production remains configured in the Pages Dashboard.
+[[services]]
+binding = "CHECKOUT_RATE_LIMITER"
+service = "nais-checkout-rate-limiter"

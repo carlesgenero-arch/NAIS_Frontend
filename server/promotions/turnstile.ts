@@ -1,5 +1,6 @@
 export interface TurnstileEnvironment {
   TURNSTILE_SECRET_KEY?: string;
+  TURNSTILE_EXPECTED_ACTION?: string;
   SITE_URL?: string;
 }
 
@@ -7,6 +8,9 @@ export interface TurnstileEnvironment {
 export async function verifyPromoToken(token: unknown, request: Request, env: TurnstileEnvironment,
   send: typeof fetch = fetch): Promise<'valid' | 'invalid' | 'unavailable'> {
   if (!env.TURNSTILE_SECRET_KEY?.trim()) return 'unavailable';
+  const expectedAction = env.TURNSTILE_EXPECTED_ACTION ?? 'promo_signup';
+  // Explicit, server-owned configuration; no wildcard or empty-action acceptance.
+  if (expectedAction !== 'promo_signup' && expectedAction !== 'test') return 'unavailable';
   if (typeof token !== 'string' || !token.trim() || token.length > 2048) return 'invalid';
   try {
     const hosts = new Set([new URL(request.url).hostname]);
@@ -19,7 +23,7 @@ export async function verifyPromoToken(token: unknown, request: Request, env: Tu
     if (!response.ok) return 'unavailable';
     const value: unknown = await response.json();
     if (!value || typeof value !== 'object' || !('success' in value)) return 'unavailable';
-    return value.success === true && 'action' in value && value.action === 'promo_signup'
+    return value.success === true && 'action' in value && value.action === expectedAction
       && 'hostname' in value && typeof value.hostname === 'string' && hosts.has(value.hostname)
       ? 'valid' : 'invalid';
   } catch { return 'unavailable'; }

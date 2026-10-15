@@ -77,3 +77,40 @@ test('public configuration exposes only site key, not other bindings; GET only a
   assert.equal(config({ request: new Request('https://naisdrinks.com/api/promo-config'), env: {} }).status, 503);
   assert.equal(config({ request: new Request('https://naisdrinks.com/api/promo-config', { method: 'POST' }), env: bindings }).status, 405);
 });
+
+test('official local dummy action passes only when explicitly configured, with hostname still checked', async () => {
+  const localRequest = new Request('http://127.0.0.1:8788/api/promo-signup');
+  const localEnv = { TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA',
+    TURNSTILE_EXPECTED_ACTION: 'test', SITE_URL: 'http://localhost:4200' };
+  const dummy = { success: true, action: 'test', hostname: 'localhost' };
+  assert.equal(await verifyPromoToken('XXXX.DUMMY.TOKEN.XXXX', localRequest, localEnv, async () => Response.json(dummy)), 'valid');
+  for (const response of [{ ...dummy, action: 'promo_signup' }, { ...dummy, action: 'other' },
+    { ...dummy, hostname: 'evil.example' }, { ...dummy, success: false }, { success: true, hostname: 'localhost' }]) {
+    assert.equal(await verifyPromoToken('token', localRequest, localEnv, async () => Response.json(response)), 'invalid');
+  }
+});
+
+test('production configured or default action requires promo_signup and rejects dummy action', async () => {
+  for (const bindings of [env, { ...env, TURNSTILE_EXPECTED_ACTION: 'promo_signup' }]) {
+    assert.equal(await verifyPromoToken('token', request(), bindings, async () => Response.json(valid)), 'valid');
+    assert.equal(await verifyPromoToken('token', request(), bindings, async () => Response.json({ ...valid, action: 'test' })), 'invalid');
+    assert.equal(await verifyPromoToken('token', request(), bindings, async () => Response.json({ ...valid, hostname: 'localhost' })), 'invalid');
+  }
+});
+
+test('empty, arbitrary or malformed expected action configuration fails closed before Siteverify', async () => {
+  for (const action of ['', ' ', '*', 'checkout', ' promo_signup ', null, 1]) {
+    assert.equal(await verifyPromoToken('token', request(), { ...env, TURNSTILE_EXPECTED_ACTION: action },
+      () => { throw Error('Must not fetch'); }), 'unavailable');
+  }
+});
+
+test('local dummy responses with missing action or unexpected hostname remain rejected', async () => {
+  const local = new Request('http://127.0.0.1:8788/api/promo-signup');
+  const bindings = { ...env, TURNSTILE_EXPECTED_ACTION: 'test', SITE_URL: 'http://localhost:4200' };
+  for (const value of [
+    { success: true, hostname: 'example.com' },
+    { success: true, hostname: 'localhost' },
+    { success: true, action: 'test', hostname: 'example.com' },
+  ]) assert.equal(await verifyPromoToken('XXXX.DUMMY.TOKEN.XXXX', local, bindings, async () => Response.json(value)), 'invalid');
+});
