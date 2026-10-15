@@ -16,8 +16,7 @@ webhook or admin authentication behavior changes. No dependency or migration is 
    `TURNSTILE_SECRET_KEY` as a secret. They must belong to the same widget.
 6. Deploy frontend and Pages Functions together. `GET /api/promo-config` must
    return only `{ "siteKey": "..." }`; never the secret or other environment values.
-7. Open the popup, complete verification if prompted, and submit a controlled
-   inbox. Expect the existing registered/email flow. With a fresh challenge,
+7. Open the popup and submit a controlled inbox. Complete verification if prompted. Expect the existing registered/email flow. With a fresh challenge,
    submit the same normalized email: expect already_registered and no new code.
 8. Use Turnstile Analytics to confirm Siteverify validations. Do not put tokens,
    secrets, email addresses or provider bodies in logs/screenshots.
@@ -46,11 +45,15 @@ expected hostname. Cloudflare enforces token expiry (5 minutes) and single use.
 Invalid tokens return generic `verification_failed`; configuration/network errors
 return generic `unavailable`. No provider diagnostics are returned.
 
-The compact managed widget appears only when interaction is required. Its
+The widget is mounted only after a valid form submission, then explicitly run
+with `execution=execute`. Opening the popup makes no Turnstile request and
+reserves no challenge space. The compact managed widget uses
+`appearance=interaction-only`, so Cloudflare displays any required interaction. Its
 150px-wide challenge fits narrow popup content without scaling controls. Existing
 CAT/CAST copy and safe generic errors remain translated. Script/network failure
-offers a retry action; dismissal removes the widget; every submission consumes
-the local token and resets the challenge. Existing promotion eligibility and
+offers another submission through the existing CTA; dismissal removes the widget
+and ignores stale results. Submission remains disabled throughout verification
+and registration; the token is consumed once and the widget removed afterward. Existing promotion eligibility and
 delivery idempotency remain unchanged.
 
 If adding CSP later, allow the official Turnstile script/frame at

@@ -6,20 +6,23 @@ describe('TurnstileService', () => {
 
   it('renders a compact contextual widget, clears expired/error tokens and supports reset/removal', async () => {
     const render = vi.fn().mockReturnValue('widget');
-    const reset = vi.fn(); const remove = vi.fn(); const token = vi.fn(); const failed = vi.fn();
-    Object.assign(window, { turnstile: { render, reset, remove } });
+    const execute = vi.fn(); const reset = vi.fn(); const remove = vi.fn(); const token = vi.fn(); const failed = vi.fn();
+    Object.assign(window, { turnstile: { render, execute, reset, remove } });
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ siteKey: 'public-key' })));
     const handle = await TestBed.inject(TurnstileService).mount(document.createElement('div'), 'es', token, failed);
     const options = render.mock.calls[0][1];
     expect(options).toMatchObject({ sitekey: 'public-key', size: 'compact', action: 'promo_signup',
-      appearance: 'interaction-only', language: 'es', 'response-field': false });
+      execution: 'execute', appearance: 'interaction-only', language: 'es', 'response-field': false });
     expect(JSON.stringify(options)).not.toContain('SECRET');
+    expect(execute).not.toHaveBeenCalled();
+    handle.execute();
+    expect(execute).toHaveBeenCalledWith('widget');
     options.callback('token');
     expect(token).toHaveBeenLastCalledWith('token');
     options['expired-callback']();
     expect(token).toHaveBeenLastCalledWith('');
     options['error-callback']();
-    expect(failed).toHaveBeenCalledOnce();
+    expect(failed).toHaveBeenCalledTimes(2);
     handle.reset(); handle.destroy();
     expect(reset).toHaveBeenCalledWith('widget'); expect(remove).toHaveBeenCalledWith('widget');
   });

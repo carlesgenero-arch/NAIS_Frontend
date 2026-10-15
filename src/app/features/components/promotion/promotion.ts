@@ -21,9 +21,9 @@ export class Promotion {
   private readonly document = inject(DOCUMENT);
   private readonly modal = viewChild.required(Modal);
   private readonly signup = inject(PromoSignupService);
-  private readonly challenge = viewChild(PromoTurnstile);
   protected readonly challengeActive = signal(false);
-  protected readonly turnstileToken = signal('');
+  private verificationEmail: string | null = null;
+  private attempt = 0;
   private readonly destroyRef = inject(DestroyRef);
   private readonly promotionModal = inject(PromotionModal)
   protected readonly result = signal<'registered' | 'already_registered' | null>(null);
@@ -49,16 +49,14 @@ export class Promotion {
     if (this.promotionModal.purchaseSuppressed()) return;
     this.result.set(null);
     this.error.set('');
-    this.turnstileToken.set('');
+    this.cancelAttempt();
     this.modal().open();
-    this.challenge()?.reset();
-    this.challengeActive.set(true);
+
   }
 
 
   protected dismiss(): void {
-    this.challengeActive.set(false);
-    this.turnstileToken.set('');
+    this.cancelAttempt();
     this.remember();
     this.form.reset();
   }
@@ -70,17 +68,26 @@ export class Promotion {
     this.form.markAllAsTouched();
     this.error.set('');
     if (this.form.invalid) return;
-    const token = this.turnstileToken();
-    if (!token) {
-      this.error.set(CA['promo.verification.error']);
-      return;
-    }
     this.pending.set(true);
-    this.turnstileToken.set('');
+    this.verificationEmail = email;
+    this.challengeActive.set(true);
+  }
+
+  protected verificationFailed(): void {
+    if (!this.verificationEmail) return;
+    this.cancelAttempt();
+    this.error.set(CA['promo.verification.error']);
+  }
+
+  protected async verified(token: string): Promise<void> {
+    if (!token || !this.verificationEmail || !this.pending()) return;
+    const email = this.verificationEmail;
+    this.verificationEmail = null;
+    const attempt = this.attempt;
     const result = await this.signup.register(email, token);
-    if (this.destroyRef.destroyed) return;
+    if (this.destroyRef.destroyed || attempt !== this.attempt) return;
     this.pending.set(false);
-    this.challenge()?.reset();
+    this.challengeActive.set(false);
     if (result === 'registered' || result === 'already_registered') {
       this.modal().focusClose();
       this.result.set(result);
@@ -91,6 +98,13 @@ export class Promotion {
     } else {
       this.error.set(CA['ui.no_hem_pogut_confirmar_el_registre_torna_ho_a_provar_mes_tard']);
     }
+  }
+
+  private cancelAttempt(): void {
+    this.attempt++;
+    this.verificationEmail = null;
+    this.challengeActive.set(false);
+    this.pending.set(false);
   }
 
   private remember(): void {

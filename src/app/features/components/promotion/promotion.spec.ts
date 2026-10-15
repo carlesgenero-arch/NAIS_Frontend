@@ -27,7 +27,7 @@ describe('Promotion', () => {
     closeDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close');
     Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: function(this: HTMLDialogElement) { this.setAttribute('open', ''); } });
     Object.defineProperty(HTMLDialogElement.prototype, 'close', { configurable: true, value: function(this: HTMLDialogElement) { this.removeAttribute('open'); this.dispatchEvent(new Event('close')); } });
-    TestBed.configureTestingModule({ imports: [Promotion], providers: [{ provide: PromoSignupService, useValue: { register } }, { provide: TurnstileService, useValue: { mount: async (_container: HTMLElement, _language: string, token: (value: string) => void) => { token('test-token'); return { reset: () => token('fresh-token'), destroy: vi.fn() }; } } }] });
+    TestBed.configureTestingModule({ imports: [Promotion], providers: [{ provide: PromoSignupService, useValue: { register } }, { provide: TurnstileService, useValue: { mount: async (_container: HTMLElement, _language: string, token: (value: string) => void) => { return { execute: () => token('test-token'), reset: vi.fn(), destroy: vi.fn() }; } } }] });
   });
 
   afterEach(() => {
@@ -55,6 +55,8 @@ describe('Promotion', () => {
     expect(dialog.getAttribute('aria-label')).toBe('ACONSEGUEIX UN 10% DE DESCOMPTE');
     expect(element.querySelector('h2')?.textContent).toContain('ACONSEGUEIX UN 10% DE DESCOMPTE');
     expect(element.querySelector('img')).toBeNull();
+    expect(element.querySelector('app-promo-turnstile')).toBeNull();
+    expect(element.querySelector<HTMLButtonElement>('button[type=submit]')!.disabled).toBe(false);
     expect(dialog.classList.contains('promotion')).toBe(true);
     expect(document.activeElement).toBe(element.querySelector('.modal-close'));
     fixture.detectChanges();
@@ -126,6 +128,8 @@ describe('Promotion', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
     expect(register).toHaveBeenCalledExactlyOnceWith('person@example.com', 'test-token');
     expect(element.querySelector('[role="status"]')?.textContent).toContain('Revisa el teu correu');
     expect(element.querySelector('input')).toBeNull();
@@ -133,30 +137,56 @@ describe('Promotion', () => {
     expect([...values]).toEqual([[PROMOTION_SESSION_KEY, '1']]);
   });
 
-  it('cannot submit without verification, or after its token expires', async () => {
+  it('executes only on valid submission, waits for a token and blocks duplicate attempts', async () => {
     let receiveToken!: (value: string) => void;
-    TestBed.overrideProvider(TurnstileService, { useValue: {
-      mount: async (_container: HTMLElement, _language: string, token: (value: string) => void) => {
-        receiveToken = token;
-        return { reset: vi.fn(), destroy: vi.fn() };
-      },
-    } });
+    const execute = vi.fn(); const destroy = vi.fn();
+    const mount = vi.fn(async (_container: HTMLElement, _language: string, token: (value: string) => void) => {
+      receiveToken = token;
+      return { execute, reset: vi.fn(), destroy };
+    });
+    TestBed.overrideProvider(TurnstileService, { useValue: { mount } });
+    const { fixture, element } = await create();
+    expect(mount).not.toHaveBeenCalled();
+    const form = element.querySelector('form')!;
+    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(mount).not.toHaveBeenCalled();
+    const input = element.querySelector('input')!;
+    input.value = 'user@example.com'; input.dispatchEvent(new Event('input'));
+    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(execute).toHaveBeenCalledOnce();
+    expect(register).not.toHaveBeenCalled();
+    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    expect(mount).toHaveBeenCalledOnce();
+    receiveToken(''); expect(register).not.toHaveBeenCalled();
+    receiveToken('valid-token'); receiveToken('valid-token');
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(register).toHaveBeenCalledExactlyOnceWith('user@example.com', 'valid-token');
+    expect(destroy).toHaveBeenCalledOnce();
+  });
+
+  it('allows a fresh submission after verification fails and cleans up on close', async () => {
+    let fail!: () => void;
+    const destroy = vi.fn();
+    const mount = vi.fn(async (_container: HTMLElement, _language: string, _token: (value: string) => void, failed: () => void) => {
+      fail = failed;
+      return { execute: vi.fn(), reset: vi.fn(), destroy };
+    });
+    TestBed.overrideProvider(TurnstileService, { useValue: { mount } });
     const { fixture, element } = await create();
     const input = element.querySelector('input')!;
-    input.value = 'user@example.com';
-    input.dispatchEvent(new Event('input'));
-    const submit = element.querySelector<HTMLButtonElement>('button[type="submit"]')!;
-    const form = element.querySelector('form')!;
-    fixture.detectChanges();
-    expect(submit.disabled).toBe(true);
-    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    input.value = 'user@example.com'; input.dispatchEvent(new Event('input'));
+    const submit = () => element.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    submit(); fixture.detectChanges(); await fixture.whenStable();
+    fail(); fixture.detectChanges();
     expect(register).not.toHaveBeenCalled();
-    receiveToken('valid-token'); fixture.detectChanges();
-    expect(submit.disabled).toBe(false);
-    receiveToken(''); fixture.detectChanges();
-    expect(submit.disabled).toBe(true);
-    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-    expect(register).not.toHaveBeenCalled();
+    expect(element.querySelector<HTMLButtonElement>('button[type=submit]')!.disabled).toBe(false);
+    expect(element.querySelector('#promotion-error')!.textContent!.trim()).not.toBe('');
+    submit(); fixture.detectChanges(); await fixture.whenStable();
+    expect(mount).toHaveBeenCalledTimes(2);
+    element.querySelector<HTMLButtonElement>('.modal-close')!.click(); fixture.detectChanges();
+    expect(destroy).toHaveBeenCalledTimes(2);
   });
 
   it('shows a neutral duplicate response without exposing or storing the email', async () => {
@@ -197,6 +227,7 @@ describe('Promotion', () => {
     form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     fixture.detectChanges();
+    await fixture.whenStable();
     expect(register).toHaveBeenCalledTimes(1);
     expect(element.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(true);
     expect(element.querySelector('.promotion-success')).toBeNull();

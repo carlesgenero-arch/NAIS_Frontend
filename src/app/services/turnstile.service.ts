@@ -3,10 +3,11 @@ import { inject, Injectable } from '@angular/core';
 
 interface TurnstileApi {
   render(container: HTMLElement, options: Record<string, unknown>): string;
+  execute(id: string): void;
   reset(id: string): void;
   remove(id: string): void;
 }
-export interface TurnstileHandle { reset(): void; destroy(): void }
+export interface TurnstileHandle { execute(): void; reset(): void; destroy(): void }
 @Injectable({ providedIn: 'root' })
 export class TurnstileService {
   private readonly document = inject(DOCUMENT);
@@ -48,11 +49,11 @@ export class TurnstileService {
     }
     const api = await this.load();
     const id = api.render(container, { sitekey: config.siteKey, action: 'promo_signup',
-      size: 'compact', appearance: 'interaction-only', theme: 'light', language: language === 'es' ? 'es' : 'auto',
+      execution: 'execute', size: 'compact', appearance: 'interaction-only', theme: 'light', language: language === 'es' ? 'es' : 'auto',
       'response-field': false, callback: token,
-      'expired-callback': () => token(''), 'timeout-callback': () => { token(''); failed(); },
+      'expired-callback': () => { token(''); failed(); }, 'timeout-callback': () => { token(''); failed(); },
       'error-callback': () => { token(''); failed(); },
     });
-    return { reset: () => { token(''); api.reset(id); }, destroy: () => api.remove(id) };
+    return { execute: () => api.execute(id), reset: () => { token(''); api.reset(id); }, destroy: () => api.remove(id) };
   }
 }

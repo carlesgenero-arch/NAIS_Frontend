@@ -22,9 +22,9 @@
             @if (error()) { {{ (error()) | t }} }
           </p>
           @if (challengeActive()) {
-            <app-promo-turnstile (tokenChange)="turnstileToken.set($event)" />
+            <app-promo-turnstile (tokenChange)="verified($event)" (verificationFailed)="verificationFailed()" />
           }
-          <button class="button--buy" type="submit" [disabled]="pending() || !turnstileToken()">{{ (pending() ? 'ui.enviant' : 'ui.obten_el_codi') | t }}</button>
+          <button class="button--buy" type="submit" [disabled]="pending()">{{ (pending() ? 'ui.enviant' : 'ui.obten_el_codi') | t }}</button>
           <p id="promotion-legal" class="promotion-legal">{{ 'ui.newsletter_legal_text' | t }}</p>
         </form>
       }
