@@ -6,6 +6,7 @@ import { onRequest } from '../functions/api/promo-signup.ts';
 import { deliverPromo, promoMessage } from './promotions/promo-email.ts';
 import { promoSignup } from './promotions/promo-signup.ts';
 
+const validVerification = async () => Response.json({ success: true, action: 'promo_signup', hostname: 'naisdrinks.com' });
 const originalFetch = globalThis.fetch;
 beforeEach(() => { globalThis.fetch = async () => { throw new Error('Real network calls forbidden'); }; });
 afterEach(() => { globalThis.fetch = originalFetch; });
@@ -20,6 +21,7 @@ function setup(t) {
   const calls = [];
   const emails = [];
   globalThis.fetch = async (url, options) => {
+    if (String(url).includes('/turnstile/v0/siteverify')) return validVerification();
     assert.equal(String(url), 'https://api.resend.com/emails');
     emails.push(JSON.parse(options.body));
     return Response.json({ id: 'provider-test' });
@@ -31,15 +33,15 @@ function setup(t) {
       return { id: `promo_test_${calls.length}`, code: `NAIS${calls.length}` };
     } },
   };
-  const env = { RESEND_API_KEY: 're_test', EMAIL_FROM: 'NAIS <sender@example.com>', STRIPE_SECRET_KEY: 'test-placeholder', STRIPE_PROMO_COUPON_ID: 'coupon_test', PROMO_DB: { prepare(sql) {
+  const env = { TURNSTILE_SECRET_KEY: 'turnstile-test-secret', RESEND_API_KEY: 're_test', EMAIL_FROM: 'NAIS <sender@example.com>', STRIPE_SECRET_KEY: 'test-placeholder', STRIPE_PROMO_COUPON_ID: 'coupon_test', PROMO_DB: { prepare(sql) {
     return { bind(...values) { return { async first() { return db.prepare(sql).get(...values) ?? null; }, async run() {
       const result = db.prepare(sql).run(...values);
       return { success: true, meta: { changes: Number(result.changes) } };
     } }; } };
   } } };
   const request = (value, options = {}) => promoSignup(new Request('https://naisdrinks.com/api/promo-signup', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value), ...options,
-  }), env, () => client);
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value && typeof value === 'object' && !Array.isArray(value) ? { ...value, turnstileToken: 'test-token' } : value), ...options,
+  }), env, () => client, validVerification);
   return { db, env, request, calls, client, emails };
 }
 
@@ -93,7 +95,7 @@ for (const value of [null, [], 'string', {}, { email: null }, { email: 42 }, { e
 test('rejects malformed JSON and oversized streaming payloads', async t => {
   const { request } = setup(t);
   assert.equal((await request(null, { body: '{broken' })).status, 400);
-  assert.equal((await request(null, { body: ' '.repeat(2049) })).status, 400);
+  assert.equal((await request(null, { body: ' '.repeat(4097) })).status, 400);
 });
 
 test('simultaneous duplicate attempts yield exactly one new registration', async t => {
@@ -109,7 +111,7 @@ test('unique constraint survives new handler instances; different emails remain 
   const { db, env, request } = setup(t);
   await request({ email: 'user@example.com' });
   const duplicate = await onRequest({ env: { ...env }, request: new Request('https://naisdrinks.com/api/promo-signup', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"email":"user@example.com"}',
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"email":"user@example.com","turnstileToken":"test-token"}',
   }) });
   assert.equal(duplicate.status, 200);
   assert.equal((await request({ email: 'second@example.com' })).status, 201);
@@ -126,7 +128,7 @@ test('rejects cross-origin, unsupported method and content type', async t => {
 test('storage failure or missing binding fails closed without database details', async () => {
   for (const env of [{}, { STRIPE_SECRET_KEY: 'test-placeholder', STRIPE_PROMO_COUPON_ID: 'coupon_test', PROMO_DB: { prepare() { throw new Error('internal database detail'); } } }]) {
     const response = await onRequest({ env, request: new Request('https://naisdrinks.com/api/promo-signup', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"email":"user@example.com"}',
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"email":"user@example.com","turnstileToken":"test-token"}',
     }) });
     assert.equal(response.status, 503);
     assert.deepEqual(await response.json(), { status: 'unavailable' });
@@ -219,6 +221,7 @@ test('Pages handler uses official Stripe SDK with mocked transport only', async 
   const { env, db } = setup(t);
   const requests = [];
   globalThis.fetch = async (url, options) => {
+    if (String(url).includes('/turnstile/v0/siteverify')) return validVerification();
     requests.push({ url: String(url), options });
     if (String(url) === 'https://api.resend.com/emails') return Response.json({ id: 'test-email' });
     if (String(url).endsWith('/coupons/coupon_test')) {
@@ -235,7 +238,7 @@ test('Pages handler uses official Stripe SDK with mocked transport only', async 
     return Response.json({ id: 'promo_transport', code: 'NAISTRANSPORT' });
   };
   const result = await onRequest({ env, request: new Request('https://naisdrinks.com/api/promo-signup', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"email":"user@example.com"}',
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"email":"user@example.com","turnstileToken":"test-token"}',
   }) });
   assert.equal(result.status, 201);
   assert.equal(requests.length, 3);

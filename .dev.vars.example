@@ -1,4 +1,7 @@
 # Local Pages Functions bindings only. Copy to .dev.vars (gitignored).
+# Public site key and server-only secret from a separate development Turnstile widget.
+TURNSTILE_SITE_KEY=REPLACE_WITH_PUBLIC_TURNSTILE_SITE_KEY
+TURNSTILE_SECRET_KEY=REPLACE_WITH_SERVER_TURNSTILE_SECRET
 # Replace placeholders with TEST-mode values. Never copy these into Angular.
 STRIPE_SECRET_KEY=REPLACE_WITH_STRIPE_TEST_SECRET
 # Existing valid 10% coupon in the same Stripe mode/account as the secret key.

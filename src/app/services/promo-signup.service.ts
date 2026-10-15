@@ -4,12 +4,12 @@ export type PromoSignupResult = 'registered' | 'already_registered' | 'invalid_e
 
 @Injectable({ providedIn: 'root' })
 export class PromoSignupService {
-  async register(email: string): Promise<PromoSignupResult> {
+  async register(email: string, turnstileToken: string): Promise<PromoSignupResult> {
     try {
       const response = await fetch('/api/promo-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken }),
         signal: AbortSignal.timeout(15000),
       });
       const payload: unknown = await response.json();

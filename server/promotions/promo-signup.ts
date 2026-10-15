@@ -2,6 +2,7 @@ import type Stripe from 'stripe';
 import { createStripeClient } from '../stripe/stripe-client.ts';
 import type { EmailEnvironment } from '../email/email.types.ts';
 import { deliverPromo } from './promo-email.ts';
+import { verifyPromoToken, type TurnstileEnvironment } from './turnstile.ts';
 
 /** Minimal D1 contract: implemented by the Pages PROMO_DB binding. */
 export interface PromoDatabase {
@@ -13,7 +14,7 @@ export interface PromoDatabase {
   };
 }
 
-export interface PromoEnvironment extends EmailEnvironment {
+export interface PromoEnvironment extends EmailEnvironment, TurnstileEnvironment {
   PROMO_DB?: PromoDatabase;
   STRIPE_SECRET_KEY?: string;
   STRIPE_PROMO_COUPON_ID?: string;
@@ -27,7 +28,7 @@ export interface PromoStripeClient {
 }
 type PromoClientFactory = (env: { STRIPE_SECRET_KEY: string }) => PromoStripeClient;
 
-const MAX_BODY_BYTES = 2048;
+const MAX_BODY_BYTES = 4096;
 
 function response(status: number, result: string): Response {
   return Response.json({ status: result }, {
@@ -81,6 +82,7 @@ async function readPayload(request: Request): Promise<unknown> {
 
 export async function promoSignup(
   request: Request, env: PromoEnvironment, clientFactory: PromoClientFactory = createStripeClient,
+  verificationFetch: typeof fetch = fetch,
 ): Promise<Response> {
   if (request.method !== 'POST') return response(405, 'method_not_allowed');
   // No cross-origin browser submissions; no CORS permission is exposed.
@@ -95,9 +97,13 @@ export async function promoSignup(
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return response(400, 'invalid_payload');
   const fields = payload as Record<string, unknown>;
   // Reject client-supplied eligibility flags rather than persisting them.
-  if (Object.keys(fields).length !== 1 || !Object.hasOwn(fields, 'email')) return response(400, 'invalid_payload');
+  if (Object.keys(fields).some(key => key !== 'email' && key !== 'turnstileToken')
+    || !Object.hasOwn(fields, 'email')) return response(400, 'invalid_payload');
   const email = normalizeEmail(fields['email']);
   if (!email) return response(400, 'invalid_email');
+  const verification = await verifyPromoToken(fields['turnstileToken'], request, env, verificationFetch);
+  if (verification !== 'valid') return verification === 'invalid'
+    ? response(400, 'verification_failed') : response(503, 'unavailable');
   if (!env.PROMO_DB) return response(503, 'unavailable');
   try {
     if (!env.STRIPE_SECRET_KEY?.trim() || !env.STRIPE_PROMO_COUPON_ID?.trim()) {

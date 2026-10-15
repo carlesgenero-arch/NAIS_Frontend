@@ -1,3 +1,4 @@
+import { TurnstileService } from '../../../services/turnstile.service';
 import { PromoSignupService } from '../../../services/promo-signup.service';
 import { TestBed } from '@angular/core/testing';
 import { Promotion, PROMOTION_SESSION_KEY } from './promotion';
@@ -26,7 +27,7 @@ describe('Promotion', () => {
     closeDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close');
     Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: function(this: HTMLDialogElement) { this.setAttribute('open', ''); } });
     Object.defineProperty(HTMLDialogElement.prototype, 'close', { configurable: true, value: function(this: HTMLDialogElement) { this.removeAttribute('open'); this.dispatchEvent(new Event('close')); } });
-    TestBed.configureTestingModule({ imports: [Promotion], providers: [{ provide: PromoSignupService, useValue: { register } }] });
+    TestBed.configureTestingModule({ imports: [Promotion], providers: [{ provide: PromoSignupService, useValue: { register } }, { provide: TurnstileService, useValue: { mount: async (_container: HTMLElement, _language: string, token: (value: string) => void) => { token('test-token'); return { reset: () => token('fresh-token'), destroy: vi.fn() }; } } }] });
   });
 
   afterEach(() => {
@@ -125,11 +126,37 @@ describe('Promotion', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(register).toHaveBeenCalledExactlyOnceWith('person@example.com');
+    expect(register).toHaveBeenCalledExactlyOnceWith('person@example.com', 'test-token');
     expect(element.querySelector('[role="status"]')?.textContent).toContain('Revisa el teu correu');
     expect(element.querySelector('input')).toBeNull();
     expect(document.activeElement).toBe(element.querySelector('.modal-close'));
     expect([...values]).toEqual([[PROMOTION_SESSION_KEY, '1']]);
+  });
+
+  it('cannot submit without verification, or after its token expires', async () => {
+    let receiveToken!: (value: string) => void;
+    TestBed.overrideProvider(TurnstileService, { useValue: {
+      mount: async (_container: HTMLElement, _language: string, token: (value: string) => void) => {
+        receiveToken = token;
+        return { reset: vi.fn(), destroy: vi.fn() };
+      },
+    } });
+    const { fixture, element } = await create();
+    const input = element.querySelector('input')!;
+    input.value = 'user@example.com';
+    input.dispatchEvent(new Event('input'));
+    const submit = element.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const form = element.querySelector('form')!;
+    fixture.detectChanges();
+    expect(submit.disabled).toBe(true);
+    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    expect(register).not.toHaveBeenCalled();
+    receiveToken('valid-token'); fixture.detectChanges();
+    expect(submit.disabled).toBe(false);
+    receiveToken(''); fixture.detectChanges();
+    expect(submit.disabled).toBe(true);
+    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    expect(register).not.toHaveBeenCalled();
   });
 
   it('shows a neutral duplicate response without exposing or storing the email', async () => {

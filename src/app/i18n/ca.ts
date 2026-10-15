@@ -1,4 +1,6 @@
 export const CA = {
+  "promo.verification.label": "Verificació de seguretat",
+  "promo.verification.error": "No s’ha pogut completar la verificació de seguretat. Torna-ho a provar.",
   "cart.shipping.label": "Enviament",
   "cart.shipping.freeLabel": "Gratuït",
   "cart.shipping.info": "Enviament gratuït a partir de {boxes} caixes.",
