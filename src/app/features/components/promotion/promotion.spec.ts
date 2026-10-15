@@ -1,3 +1,4 @@
+import { TranslationService } from '../../../i18n/translation.service';
 import { TurnstileService } from '../../../services/turnstile.service';
 import { PromoSignupService } from '../../../services/promo-signup.service';
 import { TestBed } from '@angular/core/testing';
@@ -46,6 +47,20 @@ describe('Promotion', () => {
     await fixture.whenStable();
     return { fixture, element: fixture.nativeElement as HTMLElement };
   }
+
+  it.each([
+    ['ca', 'Utilitzarem el teu email únicament per gestionar i enviar-te aquest codi promocional.'],
+    ['es', 'Utilizaremos tu email únicamente para gestionar y enviarte este código promocional.'],
+  ] as const)('shows a dedicated one-time promo privacy notice in %s', async (language, notice) => {
+    TestBed.inject(TranslationService).setLanguage(language);
+    const { element } = await create();
+    const legal = element.querySelector('#promotion-legal')!;
+    expect(legal.textContent?.trim()).toBe(notice);
+    expect(element.querySelector('input')?.getAttribute('aria-describedby')).toContain('promotion-legal');
+    expect(element.querySelector('input[type="checkbox"]')).toBeNull();
+    expect(legal.querySelector('a')).toBeNull();
+    expect(register).not.toHaveBeenCalled();
+  });
 
   it('opens once with HTML copy over the background and no URL change', async () => {
     const url = window.location.href;

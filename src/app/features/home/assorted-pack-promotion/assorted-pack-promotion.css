@@ -74,7 +74,7 @@ h2 {
   min-width: 0;
   grid-area: visual;
   margin: 1rem 0 0;
-  padding: 4rem 0.75rem;
+  padding: 1.5rem 0.5rem;
   border-radius: var(--radius-card);
   color: inherit;
 }
@@ -86,12 +86,12 @@ h2 {
 
 .pack-image {
   display: block;
-  width: 78%;
-  max-width: 24rem;
-  margin-inline: 12% 10%;
+  width: 100%;
+  max-width: 44rem;
+  margin-inline: auto;
   height: auto;
   object-fit: contain;
-  transform: rotate(-2deg);
+  transform: rotate(4deg);
   filter: drop-shadow(0.3rem 0.65rem 0.55rem rgb(24 24 26 / 13%));
 }
 
@@ -164,8 +164,8 @@ h2 {
 
   .pack-feature {
     align-self: center;
-    margin: 0 0 2rem;
-    padding: 5.25rem 1rem;
+    margin: 0;
+    padding: 2rem 0.5rem;
     transform: none;
   }
 

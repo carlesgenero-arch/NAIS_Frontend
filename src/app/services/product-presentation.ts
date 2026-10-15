@@ -166,8 +166,8 @@ export const PRODUCT_PRESENTATION: Readonly<Record<string, Presentation>> = {
   },
   "pack-variat": {
     "variant": "assorted",
-    "format": CA['ui.pack_variat_de_4_sabors_16_x_250ml'],
-    "imageAlt": CA['ui.pack_variat_de_nais_drinks_amb_orange_spritz_passion_hugo_ginger_crush_i_tropica'],
+    "format": CA['product.assortedPack.format'],
+    "imageAlt": CA['product.assortedPack.imageAlt'],
     "detailsPending": true
   },
   "tropical-hops-harvest": {

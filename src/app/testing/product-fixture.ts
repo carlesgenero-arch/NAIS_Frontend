@@ -199,12 +199,12 @@ export class MockProductService {
     "slug": "pack-variat",
     "name": "PACK VARIAT",
     "variant": "assorted",
-    "format": "Pack variat de 4 sabors (16 x 250ml)",
+    "format": "Pack variat de 3 sabors (16 x 250ml)",
     "price": 36,
-    "description": "Un pack amb Orange Spritz, Passion Hugo, Ginger Crush i Tropical Hops.",
-    "imageUrl": "images/products/pack_sf.png",
-    "cardImageUrl": "images/products/pack_sf.png",
-    "imageAlt": "Pack variat de NAIS Drinks amb Orange Spritz, Passion Hugo, Ginger Crush i Tropical Hops",
+    "description": "Un pack amb Orange Spritz, Passion Hugo i Ginger Crush.",
+    "imageUrl": "images/products/pack_3.png",
+    "cardImageUrl": "images/products/pack_3.png",
+    "imageAlt": "Pack variat de NAIS Drinks amb Orange Spritz, Passion Hugo i Ginger Crush",
     "detailsPending": true
   },
   {
