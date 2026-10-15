@@ -1,5 +1,7 @@
 import type { TranslationKey } from './ca';
 export const ES: Record<TranslationKey, string> = {
+  "promo.verification.label": "Verificación de seguridad",
+  "promo.verification.error": "No se ha podido completar la verificación de seguridad. Inténtalo de nuevo.",
   "cart.shipping.label": "Envío",
   "cart.shipping.freeLabel": "Gratis",
   "cart.shipping.info": "Envío gratuito a partir de {boxes} cajas.",

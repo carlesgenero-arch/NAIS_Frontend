@@ -6,13 +6,14 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PromoSignupService } from '../../../services/promo-signup.service';
 import { Modal } from '../../../core/shared/modal/modal';
 import { PromotionModal } from '../../../services/promotion-modal';
+import { PromoTurnstile } from './promo-turnstile';
 
 export const PROMOTION_SESSION_KEY = 'nais.promotion.dismissed.v1';
 
 @Component({
   selector: 'app-promotion',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, Modal, ReactiveFormsModule],
+  imports: [TranslatePipe, Modal, ReactiveFormsModule, PromoTurnstile],
   templateUrl: './promotion.html',
   styleUrl: './promotion.css',
 })
@@ -20,6 +21,9 @@ export class Promotion {
   private readonly document = inject(DOCUMENT);
   private readonly modal = viewChild.required(Modal);
   private readonly signup = inject(PromoSignupService);
+  private readonly challenge = viewChild(PromoTurnstile);
+  protected readonly challengeActive = signal(false);
+  protected readonly turnstileToken = signal('');
   private readonly destroyRef = inject(DestroyRef);
   private readonly promotionModal = inject(PromotionModal)
   protected readonly result = signal<'registered' | 'already_registered' | null>(null);
@@ -45,11 +49,16 @@ export class Promotion {
     if (this.promotionModal.purchaseSuppressed()) return;
     this.result.set(null);
     this.error.set('');
+    this.turnstileToken.set('');
     this.modal().open();
+    this.challenge()?.reset();
+    this.challengeActive.set(true);
   }
 
 
   protected dismiss(): void {
+    this.challengeActive.set(false);
+    this.turnstileToken.set('');
     this.remember();
     this.form.reset();
   }
@@ -61,10 +70,17 @@ export class Promotion {
     this.form.markAllAsTouched();
     this.error.set('');
     if (this.form.invalid) return;
+    const token = this.turnstileToken();
+    if (!token) {
+      this.error.set(CA['promo.verification.error']);
+      return;
+    }
     this.pending.set(true);
-    const result = await this.signup.register(email);
+    this.turnstileToken.set('');
+    const result = await this.signup.register(email, token);
     if (this.destroyRef.destroyed) return;
     this.pending.set(false);
+    this.challenge()?.reset();
     if (result === 'registered' || result === 'already_registered') {
       this.modal().focusClose();
       this.result.set(result);
