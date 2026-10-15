@@ -79,6 +79,7 @@ export const ES: Record<TranslationKey, string> = {
   "ui.segueix_nos_de_prop": "Síguenos de cerca",
   "ui.introdueix_el_teu_email": "Introduce tu email",
   "ui.subscriute": "Suscríbete",
+  "promo.privacy_notice": "Utilizaremos tu email únicamente para gestionar y enviarte este código promocional.",
   "ui.newsletter_legal_text": "*Al proporcionarnos tu email, aceptas recibir comunicaciones sobre nuevos lanzamientos, promociones y novedades exclusivas.",
   "ui.aconsegueix_un_10_de_descompte": "CONSIGUE UN 10% DE DESCUENTO",
   "ui.amb_la_primera_comanda": "CON EL PRIMER PEDIDO",

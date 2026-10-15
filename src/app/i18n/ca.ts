@@ -78,6 +78,7 @@ export const CA = {
   "ui.segueix_nos_de_prop": "Segueix-nos de prop",
   "ui.introdueix_el_teu_email": "Introdueix el teu email",
   "ui.subscriute": "Subscriu‑te",
+  "promo.privacy_notice": "Utilitzarem el teu email únicament per gestionar i enviar-te aquest codi promocional.",
   "ui.newsletter_legal_text": "*Proporcionant-nos el teu email, acceptes rebre comunicacions sobre nous llançaments, promocions i novetats exclusives.",
   "ui.aconsegueix_un_10_de_descompte": "ACONSEGUEIX UN 10% DE DESCOMPTE",
   "ui.amb_la_primera_comanda": "AMB LA PRIMERA COMANDA",
