@@ -2,6 +2,11 @@
 # Public site key and server-only secret from a separate development Turnstile widget.
 TURNSTILE_SITE_KEY=REPLACE_WITH_PUBLIC_TURNSTILE_SITE_KEY
 TURNSTILE_SECRET_KEY=REPLACE_WITH_SERVER_TURNSTILE_SECRET
+TURNSTILE_EXPECTED_ACTION=promo_signup
+# For the official dummy keys ONLY (including forced interactive sitekey), use instead:
+# TURNSTILE_SITE_KEY=3x00000000000000000000FF
+# TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+# TURNSTILE_EXPECTED_ACTION=test
 # Replace placeholders with TEST-mode values. Never copy these into Angular.
 STRIPE_SECRET_KEY=REPLACE_WITH_STRIPE_TEST_SECRET
 # Existing valid 10% coupon in the same Stripe mode/account as the secret key.

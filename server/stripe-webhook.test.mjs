@@ -365,8 +365,9 @@ test('missing snapshot fields or fractional money fail without partial orders', 
   assert.equal(db.prepare('SELECT count(*) n FROM orders').get().n, 0);
 });
 
-test('actual Pages handler uses mocked Stripe HTTP transport with real signature verification', async t => {
+test('actual Pages webhook verifies signatures and persists orders without consulting the checkout limiter', async t => {
   const { env, request, session, line, db } = setup(t);
+  Object.defineProperty(env, 'CHECKOUT_RATE_LIMITER', { get() { throw Error('Webhook must never access checkout limiter'); } });
   globalThis.fetch = async url => {
     assert.ok(String(url).startsWith('https://api.stripe.com/v1/checkout/sessions/cs_test_fixture'));
     return Response.json(String(url).includes('/line_items') ? { object: 'list', data: [line], has_more: false } : session);
