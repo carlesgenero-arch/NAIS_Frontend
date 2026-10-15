@@ -3,6 +3,8 @@
 .promotion-content { min-width: 0; text-align: center; }
 .promotion-subtitle { margin: 0 0 var(--page-gutter); font-weight: 700; }
 form { display: grid; gap: 0.75rem; }
+/* Half the usual form gap on each side; an automatic hidden challenge adds no extra row space. */
+app-promo-turnstile { margin-block: -0.375rem; }
 label { text-align: left; }
 input { box-sizing: border-box; width: 100%; min-width: 0; min-height: var(--control-min-size); padding: 0.9rem 1rem; border: 2px solid var(--color-negro); border-radius: var(--radius-pill); background: var(--surface-card); color: var(--color-negro); font: inherit; }
 input:focus-visible { outline: 3px solid var(--button-focus-color); outline-offset: 3px; }
