@@ -1,4 +1,6 @@
 import { adminGuard } from './features/admin/admin.guard';
+import { inject } from '@angular/core';
+import { IS_PAGES_PREVIEW } from './prelaunch-context';
 import { Routes } from '@angular/router';
 import { productResolver } from './features/shop/product.resolver';
 
@@ -22,7 +24,9 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    loadComponent: () => import('./features/prelaunch/prelaunch-landing/prelaunch-landing').then(module => module.PrelaunchLanding),
+    loadComponent: () => inject(IS_PAGES_PREVIEW)
+      ? import('./features/home/home-page/home-page').then(module => module.HomePage)
+      : import('./features/prelaunch/prelaunch-landing/prelaunch-landing').then(module => module.PrelaunchLanding),
   },
   {
     // Keep the original homepage available while the temporary landing is active.

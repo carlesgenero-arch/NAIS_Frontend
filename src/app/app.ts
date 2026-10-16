@@ -1,3 +1,4 @@
+import { IS_PAGES_PREVIEW } from './prelaunch-context';
 import { LEGAL_PAGES } from './features/legal/legal-pages';
 import { LanguageSelector } from './core/shared/base/language-selector/language-selector';
 import { Component, inject } from '@angular/core';
@@ -18,6 +19,7 @@ import { PromotionModal } from './services/promotion-modal';
 })
 export class App {
   private readonly router = inject(Router);
+  private readonly isPagesPreview = inject(IS_PAGES_PREVIEW);
   protected readonly promotionModal = inject(PromotionModal);
   protected readonly isCheckoutSuccess = toSignal(
     this.router.events.pipe(
@@ -43,8 +45,8 @@ export class App {
   protected readonly isPrelaunch = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(event => event.urlAfterRedirects.split(/[?#]/)[0] === '/'),
+      map(event => !this.isPagesPreview && event.urlAfterRedirects.split(/[?#]/)[0] === '/'),
     ),
-    { initialValue: this.router.url.split(/[?#]/)[0] === '/' },
+    { initialValue: !this.isPagesPreview && this.router.url.split(/[?#]/)[0] === '/' },
   );
 }
