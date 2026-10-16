@@ -1,6 +1,6 @@
 import { findAdminProducts, findAdminProductById } from './product.repository.ts';
 import type { AdminProduct } from './product.types.ts';
-import { findProductBySlug, findProductsByStatus, findCheckoutProductsByIds, type ProductDatabase } from './product.repository.ts';
+import { findProductBySlug, findProductsByStatus, findPublicProducts, findCheckoutProductsByIds, type ProductDatabase } from './product.repository.ts';
 import type { CatalogueProduct, PublicCatalogueProduct, PurchasableProduct } from './product.types.ts';
 
 export function isProductSlug(value: unknown): value is string {
@@ -18,7 +18,7 @@ function readProduct(value: unknown): CatalogueProduct {
   if (!isProductSlug(row['id']) || !isProductSlug(row['slug'])
     || typeof row['name'] !== 'string' || !row['name'].trim()
     || !nullableText(row['description']) || !nullableText(row['imageUrl']) || !nullableText(row['featureImageUrl'])
-    || (status !== 'active' && status !== 'coming-soon' && status !== 'draft' && status !== 'archived')
+    || (status !== 'active' && status !== 'sold-out' && status !== 'coming-soon' && status !== 'draft' && status !== 'archived')
     || typeof row['priceCents'] !== 'number' || !Number.isSafeInteger(row['priceCents']) || row['priceCents'] < 0
     || typeof row['currency'] !== 'string' || !/^[a-z]{3}$/.test(row['currency'])) {
     throw new Error('Invalid catalogue data');
@@ -32,16 +32,23 @@ function readProduct(value: unknown): CatalogueProduct {
 }
 
 function isPublic(product: CatalogueProduct): product is PublicCatalogueProduct {
-  return product.status === 'active';
+  return product.status === 'active' || product.status === 'sold-out';
 }
 
-/** Coming-soon, draft and archived products are not public or purchasable. */
+/** Active-only compatibility query; public visibility is a separate rule. */
 export async function listActiveProducts(db: ProductDatabase): Promise<readonly PublicCatalogueProduct[]> {
   try {
-    return (await findProductsByStatus(db, 'active')).map(readProduct).filter(isPublic);
+    return (await findProductsByStatus(db, 'active')).map(readProduct).filter((product): product is PublicCatalogueProduct => product.status === 'active');
   } catch {
     throw new Error('Catalogue unavailable');
   }
+}
+
+/** Sold-out is visible for discovery but is never purchasable. */
+export async function listPublicProducts(db: ProductDatabase): Promise<readonly PublicCatalogueProduct[]> {
+  try {
+    return (await findPublicProducts(db)).map(readProduct).filter(isPublic);
+  } catch { throw new Error('Catalogue unavailable'); }
 }
 
 export async function getPublicProductBySlug(db: ProductDatabase, slug: string): Promise<PublicCatalogueProduct | null> {
@@ -68,7 +75,7 @@ export async function getPurchasableProducts(db: ProductDatabase, ids: readonly 
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid checkout configuration');
     const row = value as Record<string, unknown>;
     if (!isProductSlug(row['id']) || !ids.includes(row['id']) || products.has(row['id'])) throw new Error('Invalid checkout configuration');
-    if (row['status'] === 'coming-soon' || row['status'] === 'draft' || row['status'] === 'archived') {
+    if (row['status'] === 'sold-out' || row['status'] === 'coming-soon' || row['status'] === 'draft' || row['status'] === 'archived') {
       throw new UnavailableCheckoutProductError();
     }
     if (row['status'] !== 'active' || typeof row['stripePriceId'] !== 'string'

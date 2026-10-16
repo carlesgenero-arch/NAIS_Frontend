@@ -4,7 +4,7 @@ export interface PublicProduct {
   readonly slug: string;
   readonly name: string;
   readonly description: string | null;
-  readonly status: 'active' | 'coming-soon';
+  readonly status: 'active' | 'sold-out' | 'coming-soon';
   readonly priceCents: number;
   readonly currency: string;
   readonly imageUrl: string | null;

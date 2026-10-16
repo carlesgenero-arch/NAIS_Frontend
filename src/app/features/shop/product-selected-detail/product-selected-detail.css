@@ -31,7 +31,8 @@
   object-fit: contain;
   object-position: center;
   border-radius: var(--radius-panel);
-  transform: none;
+  transform: rotate(4deg);
+  transform-origin: center;
   filter: none;
 }
 

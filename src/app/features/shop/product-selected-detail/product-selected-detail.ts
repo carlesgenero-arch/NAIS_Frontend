@@ -27,6 +27,10 @@ export class ProductSelectedDetail {
     });
   }
 
+  protected requestAdd(): void {
+    if (this.product().status === 'active') this.addRequested.emit(this.product());
+  }
+
   readonly product = input.required<Product>();
   readonly addRequested = output<Product>();
   protected readonly ingredientsText = computed(() => {

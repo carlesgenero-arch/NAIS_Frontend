@@ -34,7 +34,7 @@
             <div class="quantity-controls" role="group" [attr.aria-label]="'cart.quantity' | t: { product: (item.product.name | t) }">
               <button class="button--quantity" type="button"
                 [attr.aria-label]="(item.quantity === 1 ? 'cart.remove' : 'cart.reduce') | t: { product: (item.product.name | t) }"
-                (click)="decreaseQuantity(item.product.id, item.quantity, heading)">−</button>
+                (click)="decreaseQuantity(item.product.id, item.quantity, heading)">&minus;</button>
               <output aria-live="polite" [attr.aria-label]="'cart.quantity' | t: { product: (item.product.name | t) }">{{ item.quantity }}</output>
               <button class="button--quantity" type="button" [disabled]="item.quantity >= maxQuantity"
                 [attr.aria-label]="'cart.increase' | t: { product: (item.product.name | t) }"

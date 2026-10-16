@@ -18,7 +18,7 @@
   } @else if (catalogue.error()) {
     <p role="alert">{{ (catalogue.error()) | t }}</p>
     <button type="button" class="button--buy" (click)="catalogue.load()">{{ 'ui.tornar_ho_a_provar' | t }}</button>
-  } @else if (!catalogue.activeProducts.length) {
+  } @else if (!catalogue.publicProducts.length) {
     <p role="status">{{ 'ui.no_hi_ha_productes_disponibles_ara_mateix' | t }}</p>
   }
   @for (product of featuredProducts(); track product.id) {

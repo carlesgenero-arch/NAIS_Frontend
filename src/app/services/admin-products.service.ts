@@ -41,7 +41,7 @@ function readProduct(value: unknown): AdminProductSummary {
   const nullableText = (value: unknown): value is string | null => value === null || typeof value === 'string';
   if (typeof row['id'] !== 'string' || !row['id'] || typeof row['slug'] !== 'string' || !row['slug']
     || typeof row['name'] !== 'string' || !row['name'].trim()
-    || (status !== 'active' && status !== 'coming-soon' && status !== 'draft' && status !== 'archived')
+    || (status !== 'active' && status !== 'sold-out' && status !== 'coming-soon' && status !== 'draft' && status !== 'archived')
     || typeof row['priceCents'] !== 'number' || !Number.isSafeInteger(row['priceCents']) || row['priceCents'] < 0
     || typeof row['currency'] !== 'string' || !/^[a-z]{3}$/.test(row['currency'])
     || !nullableText(row['stripeProductId']) || !nullableText(row['stripePriceId'])

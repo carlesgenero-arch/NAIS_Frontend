@@ -124,10 +124,14 @@ describe('ProductSelectedDetail', () => {
       expect(element.querySelector('.selected-detail__fruit')?.getAttribute('alt')).toBe(product.featureBackgroundImageUrl ? undefined : product.fruitImage?.alt);
       expect(element.querySelector('section')?.getAttribute('data-variant')).toBe(product.variant);
       const button = element.querySelector<HTMLButtonElement>('.selected-detail__add')!;
+      if (product.status !== 'active') {
+        expect(button).toBeNull();
+        continue;
+      }
       expect(button.getAttribute('aria-label')).toContain(product.name);
       button.click();
     }
-    expect(received).toEqual(products);
+    expect(received).toEqual(products.filter(product => product.status === 'active'));
     fixture.componentRef.setInput('product', { status: 'active', id: 'missing', slug: 'missing', name: 'Sense dades', description: '' } satisfies Product);
     await fixture.whenStable();
     expect(element.querySelector('.selected-detail__ingredients')?.textContent).toBe('Informació dels ingredients no disponible');

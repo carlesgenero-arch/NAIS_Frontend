@@ -1,3 +1,4 @@
+import { provideRouter } from '@angular/router';
 import { TranslationService } from '../../../i18n/translation.service';
 import { TurnstileService } from '../../../services/turnstile.service';
 import { PromoSignupService } from '../../../services/promo-signup.service';
@@ -28,7 +29,7 @@ describe('Promotion', () => {
     closeDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close');
     Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: function(this: HTMLDialogElement) { this.setAttribute('open', ''); } });
     Object.defineProperty(HTMLDialogElement.prototype, 'close', { configurable: true, value: function(this: HTMLDialogElement) { this.removeAttribute('open'); this.dispatchEvent(new Event('close')); } });
-    TestBed.configureTestingModule({ imports: [Promotion], providers: [{ provide: PromoSignupService, useValue: { register } }, { provide: TurnstileService, useValue: { mount: async (_container: HTMLElement, _language: string, token: (value: string) => void) => { return { execute: () => token('test-token'), reset: vi.fn(), destroy: vi.fn() }; } } }] });
+    TestBed.configureTestingModule({ imports: [Promotion], providers: [provideRouter([]), { provide: PromoSignupService, useValue: { register } }, { provide: TurnstileService, useValue: { mount: async (_container: HTMLElement, _language: string, token: (value: string) => void) => { return { execute: () => token('test-token'), reset: vi.fn(), destroy: vi.fn() }; } } }] });
   });
 
   afterEach(() => {
@@ -55,10 +56,10 @@ describe('Promotion', () => {
     TestBed.inject(TranslationService).setLanguage(language);
     const { element } = await create();
     const legal = element.querySelector('#promotion-legal')!;
-    expect(legal.textContent?.trim()).toBe(notice);
+    expect(legal.textContent?.trim()).toContain(notice);
     expect(element.querySelector('input')?.getAttribute('aria-describedby')).toContain('promotion-legal');
     expect(element.querySelector('input[type="checkbox"]')).toBeNull();
-    expect(legal.querySelector('a')).toBeNull();
+    expect(legal.querySelector('a')?.getAttribute('href')).toBe('/privacy');
     expect(register).not.toHaveBeenCalled();
   });
 

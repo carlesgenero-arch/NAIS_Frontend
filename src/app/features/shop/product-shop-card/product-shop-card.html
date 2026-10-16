@@ -20,6 +20,10 @@
 
     <p class="product-price">{{ priceLabel() }}</p>
 
+    @if (product().status === 'sold-out') {
+      <p class="product-sold-out">{{ 'product.soldOut' | t }}</p>
+    }
+    @if (product().status === 'active') {
     <div class="product-actions">
       <div class="product-quantity" role="group" [attr.aria-label]="'cart.quantity' | t: { product: (product().name | t) }">
         <button
@@ -41,10 +45,11 @@
         class="button--add"
         type="button"
         [attr.aria-label]="addLabel()"
-        (click)="addRequested.emit({ product: product(), quantity: quantity() })"
+        (click)="requestAdd()"
       >
         {{ 'ui.afegir' | t }}
       </button>
     </div>
+    }
   </div>
 </article>

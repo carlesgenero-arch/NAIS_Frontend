@@ -1,4 +1,4 @@
-import { listActiveProducts } from '../../../server/catalogue/product.service.ts';
+import { listPublicProducts } from '../../../server/catalogue/product.service.ts';
 import type { ProductDatabase } from '../../../server/catalogue/product.repository.ts';
 
 export async function onRequest(context: {
@@ -11,6 +11,6 @@ export async function onRequest(context: {
   }
   if (!context.env.PROMO_DB) return reply(503, { status: 'unavailable' });
   try {
-    return reply(200, await listActiveProducts(context.env.PROMO_DB));
+    return reply(200, await listPublicProducts(context.env.PROMO_DB));
   } catch { return reply(503, { status: 'unavailable' }); }
 }

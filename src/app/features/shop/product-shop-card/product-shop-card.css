@@ -85,14 +85,18 @@
   object-fit: contain;
   object-position: center;
   border-radius: var(--radius-panel);
-  transform: none;
+  transform: rotate(3.5deg);
+  transform-origin: center;
   filter: none;
 }
 
 
 @media (hover: hover) and (pointer: fine) {
   .product-visual:hover img {
-    transform: scale(1.16);
+    transform: scale(1.38);
+  }
+    .product-shop-card[data-variant='assorted'] .product-visual:hover img {
+    transform: rotate(3.5deg) scale(1.08);
   }
 }
 
@@ -232,3 +236,6 @@
 .product-shop-card--featured .product-visual img {
  filter: brightness(1.15);
 }
+
+/* Keep the existing Harvest image zoom inside its clickable visual area. */
+.product-shop-card--featured .product-visual { overflow: hidden; }

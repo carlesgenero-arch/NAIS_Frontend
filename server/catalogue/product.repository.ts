@@ -23,6 +23,13 @@ export async function findProductsByStatus(db: ProductDatabase, status: ProductS
   return result.results;
 }
 
+/** Only discoverable statuses; checkout uses its own active-only validation. */
+export async function findPublicProducts(db: ProductDatabase): Promise<unknown[]> {
+  const result = await db.prepare(`SELECT ${PRODUCT_COLUMNS} FROM products WHERE status IN ('active', 'sold-out') ORDER BY slug`).all<unknown>();
+  if (!result.success || !Array.isArray(result.results)) throw new Error('Catalogue query failed');
+  return result.results;
+}
+
 export async function findProductBySlug(db: ProductDatabase, slug: string): Promise<unknown | null> {
   return db.prepare(`SELECT ${PRODUCT_COLUMNS} FROM products WHERE slug = ?1`)
     .bind(slug).first<unknown>();

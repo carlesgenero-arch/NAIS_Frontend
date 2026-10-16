@@ -1,5 +1,7 @@
+import { LEGAL_ES } from './legal.es';
 import type { TranslationKey } from './ca';
 export const ES: Record<TranslationKey, string> = {
+  ...LEGAL_ES,
   "promo.verification.label": "Verificación de seguridad",
   "promo.verification.error": "No se ha podido completar la verificación de seguridad. Inténtalo de nuevo.",
   "cart.shipping.label": "Envío",
@@ -7,6 +9,7 @@ export const ES: Record<TranslationKey, string> = {
   "cart.shipping.info": "Envío gratuito a partir de {boxes} cajas.",
   "cart.shipping.addBox": "Añade 1 caja más y tendrás envío gratis.",
   "cart.shipping.free": "Envío gratuito aplicado.",
+  "product.soldOut": "SOLD OUT",
   "home.assortedPack.title": "DESCUBRE TODOS LOS SABORES",
   "home.assortedPack.tagline": "3 sabores. 1 pack.",
   "home.assortedPack.description": "La mejor manera de probar NAIS.",

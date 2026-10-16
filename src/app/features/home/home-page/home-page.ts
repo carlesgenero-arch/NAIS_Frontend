@@ -21,11 +21,11 @@ import { AssortedPackPromotion } from '../assorted-pack-promotion/assorted-pack-
 export class HomePage {
   protected readonly carouselImages = homeCarouselImages;
   protected readonly catalogue = inject(ProductService);
-  protected readonly assortedPack = computed(() => this.catalogue.activeProducts.find(
+  protected readonly assortedPack = computed(() => this.catalogue.publicProducts.find(
     product => product.variant === 'assorted'));
-  protected readonly featuredProducts = computed(() => this.catalogue.activeProducts.filter(
+  protected readonly featuredProducts = computed(() => this.catalogue.publicProducts.filter(
     product => product.isFeatured || product.isSeasonal));
-  protected readonly products = computed(() => this.catalogue.activeProducts.filter(
+  protected readonly products = computed(() => this.catalogue.publicProducts.filter(
     product => product.variant !== 'assorted' && !product.isFeatured && !product.isSeasonal));
   protected readonly infoCards: readonly InfoCardContent[] = [
     {

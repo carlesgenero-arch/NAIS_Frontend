@@ -27,7 +27,7 @@
           <textarea id="product-description" formControlName="description" maxlength="10000" rows="4"></textarea>
           <label for="product-status">Estat</label>
           <select id="product-status" formControlName="status">
-            <option value="draft">Esborrany</option><option value="coming-soon">Properament</option>
+            <option value="sold-out">SOLD OUT</option><option value="draft">Esborrany</option><option value="coming-soon">Properament</option>
             <option value="active" [disabled]="!product()">Actiu</option><option value="archived">Arxivat</option>
           </select>
           <label for="product-price">Preu en EUR</label>

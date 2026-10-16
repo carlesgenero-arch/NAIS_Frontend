@@ -267,7 +267,9 @@ describe('Cart page', () => {
     expect(dialog.querySelector('.cart-image')?.getAttribute('src')).toBe(product.cardImageUrl ?? product.imageUrl);
     expect(dialog.textContent).not.toContain('Preu unitari');
     expect(dialog.querySelector('.line-total')?.textContent).toContain(euros(product.price! * 2));
-    expect(dialog.querySelector('.cart-summary, .clear-cart, a')).toBeNull();
+    expect(dialog.querySelector('.cart-summary, .clear-cart')).toBeNull();
+    expect(dialog.querySelector('.cart-legal')).toBeNull();
+    expect(dialog.textContent).not.toContain('Abans de pagar, consulta:');
     expect(dialog.querySelector('.drawer-total')?.textContent).toBe(euros(product.price! * 2));
     expect(JSON.parse(stored.get(CART_STORAGE_KEY)!)).toEqual([{ productId: product.id, quantity: 2 }]);
   });
@@ -302,7 +304,7 @@ describe('Cart page', () => {
     fixture.detectChanges();
     expect(cart.isEmpty()).toBe(true);
     expect(element.querySelector('.empty-cart')?.textContent).toContain('La cistella és buida');
-    expect(element.querySelector('.cart-items, .cart-summary, a')).toBeNull();
+    expect(element.querySelector('.cart-items, .cart-summary')).toBeNull();
     expect(element.querySelector<HTMLButtonElement>('.checkout')?.disabled).toBe(true);
   });
   function drawer() {

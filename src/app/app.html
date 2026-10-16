@@ -8,7 +8,7 @@
   <router-outlet />
 </main>
 @if (!isPrelaunch() && !isAdmin()) {
-  @if (!isCheckoutSuccess() && !promotionModal.purchaseSuppressed()) {
+  @if (!isCheckoutSuccess() && !isLegal() && !promotionModal.purchaseSuppressed()) {
     <app-promotion />
   }
 }

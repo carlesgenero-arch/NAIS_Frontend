@@ -1,4 +1,6 @@
+import { LEGAL_CA } from './legal.ca';
 export const CA = {
+  ...LEGAL_CA,
   "promo.verification.label": "Verificació de seguretat",
   "promo.verification.error": "No s’ha pogut completar la verificació de seguretat. Torna-ho a provar.",
   "cart.shipping.label": "Enviament",
@@ -6,6 +8,7 @@ export const CA = {
   "cart.shipping.info": "Enviament gratuït a partir de {boxes} caixes.",
   "cart.shipping.addBox": "Afegeix 1 caixa més i tens enviament gratis.",
   "cart.shipping.free": "Enviament gratuït aplicat.",
+  "product.soldOut": "SOLD OUT",
   "home.assortedPack.title": "DESCOBREIX TOTS ELS SABORS",
   "home.assortedPack.tagline": "3 sabors. 1 pack.",
   "home.assortedPack.description": "La millor manera de conèixer NAIS.",

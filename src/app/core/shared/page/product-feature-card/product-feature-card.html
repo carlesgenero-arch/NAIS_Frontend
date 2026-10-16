@@ -8,7 +8,9 @@
     }
   </div>
   <div class="product-feature__content">
-    <!--<span class="product-feature__badge">{{ badge() }}</span>-->
+    @if (product().status === 'sold-out') {
+      <span class="product-sold-out">{{ 'product.soldOut' | t }}</span>
+    }
     <h2>{{ (product().name) | t }}</h2>
     <p>{{ (product().featureDescription ?? product().description) | t }}</p>
     <a class="button--buy product-feature__cta" [routerLink]="['/products', product().slug]"

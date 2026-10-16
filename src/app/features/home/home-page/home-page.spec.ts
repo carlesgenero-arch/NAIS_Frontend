@@ -67,7 +67,7 @@ describe('HomePage product placement', () => {
       { ...base, id: 'both', slug: 'both', isFeatured: true, isSeasonal: true },
     ];
     await TestBed.configureTestingModule({
-      imports: [HomePage], providers: [provideRouter([]), { provide: ProductService, useValue: { ...new MockProductService(), activeProducts: products } }],
+      imports: [HomePage], providers: [provideRouter([]), { provide: ProductService, useValue: { ...new MockProductService(), activeProducts: products, publicProducts: products } }],
     }).compileComponents();
     const fixture = TestBed.createComponent(HomePage);
     await fixture.whenStable();
