@@ -60,6 +60,27 @@ describe('Discoverable sold-out Harvest', () => {
     expect(TestBed.inject(Router).url).toBe('/products/' + harvest.slug);
   });
 
+  it.each(['active', 'sold-out', 'coming-soon'] as const)(
+    'selects the Harvest editorial block from the API when status is %s', async status => {
+      const harness = await RouterTestingHarness.create('/home');
+      http.expectOne('/api/products').flush([dto(active), { ...dto(harvest), status }]);
+      harness.detectChanges();
+      const root = harness.routeNativeElement!;
+      const feature = root.querySelector('app-product-feature-card');
+      expect(root.querySelector('app-product-card h2')?.textContent).toBe(active.name);
+      if (status === 'coming-soon') {
+        expect(feature).toBeNull();
+      } else {
+        expect(feature?.querySelector('h2')?.textContent).toBe(harvest.name);
+        expect(feature?.querySelector('a')?.getAttribute('href')).toBe('/products/' + harvest.slug);
+        expect(feature?.querySelector('.button--add, .selected-detail__add, .product-quantity')).toBeNull();
+        expect(feature?.querySelector('.product-sold-out')?.textContent ?? null)
+          .toBe(status === 'sold-out' ? 'SOLD OUT' : null);
+      }
+      if (status !== 'active') expect(TestBed.inject(CartService).addItem(harvest.id)).toBe(false);
+    },
+  );
+
   it('rejects direct additions and cleans injected persisted sold-out entries while active items work', () => {
     const cart = TestBed.inject(CartService);
     http.expectOne('/api/products').flush([dto(active), dto(harvest)]);

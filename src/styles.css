@@ -247,12 +247,12 @@ button, input, select, textarea {
   align-self: flex-start;
   box-sizing: border-box;
   max-width: 100%;
-  padding: 0.375rem 0.875rem;
+  padding: 0.6rem 1rem;
   border: var(--button-border-width) solid var(--color-negro);
   border-radius: var(--radius-pill);
   background: var(--color-negro);
   color: var(--surface-card);
-  font-size: 0.875rem;
+  font-size: 1.2rem;
   font-weight: 700;
   line-height: 1.4;
   letter-spacing: 0.04em;
