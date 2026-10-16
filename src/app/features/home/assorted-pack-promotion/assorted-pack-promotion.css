@@ -179,3 +179,9 @@ h2 {
     margin-block: 1.5rem 0;
   }
 }
+
+@media (max-width: 47.99rem) {
+  .pack-botanicals {
+    justify-content: center;
+  }
+}

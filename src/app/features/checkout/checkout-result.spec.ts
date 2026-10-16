@@ -1,3 +1,4 @@
+import { TranslationService } from '../../i18n/translation.service';
 import { MockProductService } from '../../testing/product-fixture';
 import { ProductService } from '../../services/product.service';
 import { TestBed } from '@angular/core/testing';
@@ -111,6 +112,25 @@ describe('Checkout return pages', () => {
     expect(cart.entries()[0].productId).toBe('ginger-crush');
   });
 
+  it.each(['ca', 'es'] as const)('keeps verified item amounts and total in dedicated summary fields in %s', async language => {
+    const translations = TestBed.inject(TranslationService);
+    translations.setLanguage(language);
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(`/checkout/success?session_id=${sessionId}`, CheckoutSuccess);
+    const productName = 'Pack Variat Orange Spritz Passion Hugo Ginger Crush';
+    TestBed.inject(HttpTestingController).expectOne(endpoint).flush({
+      ...summary, totalAmount: 4200,
+      items: [{ ...summary.items[0], productName }],
+    });
+    harness.detectChanges();
+    const element = harness.routeNativeElement!;
+    const money = (amount: number) => new Intl.NumberFormat(translations.locale(), { style: 'currency', currency: 'eur' }).format(amount / 100);
+    expect(element.querySelector('.order-items li')?.textContent).toContain(productName);
+    expect(element.querySelector('.order-items .order-amount')?.textContent).toBe(money(3600));
+    expect(element.querySelector('.order-total .order-amount')?.textContent).toBe(money(4200));
+    expect(element.querySelector('a')?.getAttribute('href')).toBe('/products');
+  });
+
   it.each([404, 503])('preserves cart for pending/error response %s', async status => {
     const cart = TestBed.inject(CartService);
     cart.addItem('orange-spritz');
@@ -159,7 +179,7 @@ describe('Checkout return pages', () => {
     expect(cart.totalQuantity()).toBe(1);
   });
 
-  it('retries pending then stops when paid and only then clears the cart', async () => {
+  it.each(['pending', 'not_found'])('retries %s then stops when paid and only then clears the cart', async pendingStatus => {
     const cart = TestBed.inject(CartService);
     cart.addItem('orange-spritz');
     const clear = vi.spyOn(cart, 'clearCart');
@@ -167,23 +187,34 @@ describe('Checkout return pages', () => {
     const page = await harness.navigateByUrl(`/checkout/success?session_id=${sessionId}`, CheckoutSuccess);
     vi.useFakeTimers();
     const http = TestBed.inject(HttpTestingController);
-    http.expectOne(endpoint).flush({ status: 'pending' }, { status: 404, statusText: 'Not Found' });
+    http.expectOne(endpoint).flush({ status: pendingStatus }, { status: 404, statusText: 'Not Found' });
     harness.detectChanges();
     expect(page.state().status).toBe('loading');
-    expect(harness.routeNativeElement?.textContent).toContain('Estem confirmant la teva comanda.');
+    expect(harness.routeNativeElement?.textContent).toContain('Estem confirmant el teu pagament…');
     expect(harness.routeNativeElement?.textContent).not.toContain('Torna a carregar');
+    expect(harness.routeNativeElement?.textContent).toContain('Això pot trigar uns segons.');
+    expect(harness.routeNativeElement?.querySelector('.verification-spinner')?.getAttribute('aria-hidden')).toBe('true');
+    expect(harness.routeNativeElement?.querySelector('[role="status"]')).not.toBeNull();
     expect(clear).not.toHaveBeenCalled();
+    const back = harness.routeNativeElement!.querySelector<HTMLAnchorElement>('a')!;
+    expect(back.classList.contains('checkout-return--secondary')).toBe(true);
+    back.focus();
     vi.advanceTimersByTime(999);
     http.expectNone(endpoint);
     vi.advanceTimersByTime(1);
     http.expectOne(endpoint).flush(summary);
     expect(page.state().status).toBe('verified');
     expect(clear).toHaveBeenCalledTimes(1);
+    harness.detectChanges();
+    expect(harness.routeNativeElement?.querySelector('.verification-spinner')).toBeNull();
+    expect(back.classList.contains('checkout-return--secondary')).toBe(false);
+    expect(document.activeElement).toBe(back);
     vi.advanceTimersByTime(20000);
     http.expectNone(endpoint);
   });
 
-  it('shows manual reload only after all five pending attempts', async () => {
+  it.each(['ca', 'es'] as const)('shows calm pending copy after all five attempts in %s', async language => {
+    TestBed.inject(TranslationService).setLanguage(language);
     const cart = TestBed.inject(CartService);
     cart.addItem('orange-spritz');
     const saved = localStorage.getItem(CART_STORAGE_KEY);
@@ -201,7 +232,12 @@ describe('Checkout return pages', () => {
     http.expectOne(endpoint).flush({ status: 'pending' }, { status: 404, statusText: 'Not Found' });
     harness.detectChanges();
     expect(page.state().status).toBe('pending');
-    expect(harness.routeNativeElement?.textContent).toContain('Torna a carregar');
+    const text = harness.routeNativeElement?.textContent;
+    expect(text).toContain(TestBed.inject(TranslationService).t('checkout.pending.title'));
+    expect(text).toContain(TestBed.inject(TranslationService).t('checkout.pending.hint'));
+    expect(text).not.toMatch(/torna a carregar|vuelve a cargar|recarga/i);
+    expect(harness.routeNativeElement?.querySelector('.verification-spinner')).toBeNull();
+    expect(harness.routeNativeElement?.querySelector('a')?.classList.contains('checkout-return--secondary')).toBe(true);
     expect(localStorage.getItem(CART_STORAGE_KEY)).toBe(saved);
     vi.advanceTimersByTime(20000);
     http.expectNone(endpoint);
@@ -214,6 +250,11 @@ describe('Checkout return pages', () => {
     const http = TestBed.inject(HttpTestingController);
     http.expectOne(endpoint).flush(status === 200 ? summary : {}, { status, statusText: 'Response' });
     expect(page.state().status).toBe(status === 200 ? 'verified' : 'error');
+    harness.detectChanges();
+    if (status === 503) {
+      expect(harness.routeNativeElement?.textContent).toContain('No hem pogut consultar');
+      expect(harness.routeNativeElement?.textContent).not.toContain('No cal que tornis a pagar');
+    }
     vi.advanceTimersByTime(20000);
     http.expectNone(endpoint);
   });

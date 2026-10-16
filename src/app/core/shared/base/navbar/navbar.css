@@ -40,6 +40,7 @@
   font-size: clamp(1rem, 4.5vw, 1.125rem);
   font-weight: 400;
   line-height: 1.25;
+   letter-spacing: -0.2em;
   transform: rotate(-12deg);
   box-shadow: 0 var(--shop-base-depth) 0 var(--color-negro), var(--shadow-soft);
   cursor: pointer;
@@ -92,7 +93,7 @@
 /* Main logo */
 .brand {
   display: block;
-  width: clamp(10rem, 55vw, 13rem);
+  width: clamp(11.25rem, 61.875vw, 24rem);
   max-width: var(--main-logo-width);
   min-width: 0;
   justify-self: center;
@@ -150,4 +151,17 @@
   .shop:active:not(:disabled) {
     transform: rotate(-12deg);
   }
+}
+
+/* Compact, graphic lettering without changing the oval or its interaction. */
+.shop__label {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 106%;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
+  text-shadow: 0.35px 0 currentColor, -0.35px 0 currentColor;
+  transform: translate(0.02em, -0.02em) rotate(-1.5deg) scaleX(0.92);
 }

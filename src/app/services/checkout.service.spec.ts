@@ -64,7 +64,7 @@ describe('CheckoutService', () => {
     await assertion;
   });
 
-  it.each([400, 403, 503, 502, 500])('surfaces a safe error for backend status %s', async status => {
+  it.each([400, 403, 429, 503, 502, 500])('surfaces a safe error for backend status %s', async status => {
     const result = firstValueFrom(service.createCheckout([]));
     const assertion = expect(result).rejects.toThrow(safeError);
     http.expectOne('/api/checkout').flush({ error: 'private Stripe details' }, { status, statusText: 'Failure' });

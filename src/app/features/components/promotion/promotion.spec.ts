@@ -58,8 +58,12 @@ describe('Promotion', () => {
     const legal = element.querySelector('#promotion-legal')!;
     expect(legal.textContent?.trim()).toContain(notice);
     expect(element.querySelector('input')?.getAttribute('aria-describedby')).toContain('promotion-legal');
+    const input = element.querySelector('input')!;
+    expect(input.labels?.[0]?.textContent?.trim()).toBe(TestBed.inject(TranslationService).t('ui.correu_electronic'));
+    expect(input.placeholder).toBe(TestBed.inject(TranslationService).t('ui.introdueix_el_teu_email'));
+    expect(input.labels?.[0]?.getAttribute('aria-hidden')).not.toBe('true');
     expect(element.querySelector('input[type="checkbox"]')).toBeNull();
-    expect(legal.querySelector('a')?.getAttribute('href')).toBe('/privacy');
+    expect(legal.querySelector('a')).toBeNull();
     expect(register).not.toHaveBeenCalled();
   });
 

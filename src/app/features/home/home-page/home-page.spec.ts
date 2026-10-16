@@ -14,6 +14,7 @@ describe('HomePage product placement', () => {
     const fixture = TestBed.createComponent(HomePage);
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelectorAll('h1')).toHaveLength(1);
     const cards = Array.from(element.querySelectorAll('app-product-card, app-product-feature-card'));
     expect(cards.map(card => card.tagName.toLowerCase())).toEqual([
       ...Array(4).fill('app-product-card'),

@@ -360,6 +360,13 @@
   transition: opacity 220ms ease;
 }
 
+/* Cap the mobile halo independently of the viewport and can dimensions. */
+@media (max-width: 47.99rem) {
+  :host(.product-card--joined) .visual::before {
+    width: min(96%, 17rem);
+  }
+}
+
 :host(.product-card--joined) .can {
   /* The source artwork has bottom clearance; a top origin protects the can rim. */
   transform-origin: center top;

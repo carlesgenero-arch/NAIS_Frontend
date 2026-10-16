@@ -182,5 +182,9 @@ export const ES: Record<TranslationKey, string> = {
   "product.view": "Ver {product}",
   "product.discover": "Descubre {product}",
   "product.nutrition": "Ver los valores nutricionales de {product}",
-  "product.can": "Lata de {product}"
+  "product.can": "Lata de {product}",
+  "checkout.verification.title": "Estamos confirmando tu pago…",
+  "checkout.verification.hint": "Esto puede tardar unos segundos.",
+  "checkout.pending.title": "El pago se está procesando.",
+  "checkout.pending.hint": "No hace falta que vuelvas a pagar. La confirmación puede tardar un poco más.",
 };
