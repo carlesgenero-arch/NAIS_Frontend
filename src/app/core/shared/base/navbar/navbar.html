@@ -1,7 +1,7 @@
 <nav class="navigation" [attr.aria-label]="'ui.navegacio_principal' | t">
   <button class="shop" type="button" routerLink="/products" routerLinkActive #shopLink="routerLinkActive"
     [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
-    [hidden]="shopLink.isActive" [attr.aria-label]="'ui.botiga' | t">{{ 'ui.botiga_' | t }}</button>
+    [hidden]="shopLink.isActive" [attr.aria-label]="'ui.botiga' | t"><span class="shop__label">{{ 'ui.botiga_' | t }}</span></button>
   <a class="brand" routerLink="/" [attr.aria-label]="'ui.nais_drinks_inici' | t">
     <picture>
       <source media="(max-width: 47.99rem)" srcset="images/brand/nais%20logos-03.svg" width="756" height="429" />
