@@ -13,7 +13,7 @@
       } @else {
         <form [attr.aria-busy]="pending()" [formGroup]="form" (ngSubmit)="submit()" novalidate>
           
-          <label for="promotion-email">{{ 'ui.correu_electronic' | t }}</label>
+          <label class="promotion-email-label" for="promotion-email">{{ 'ui.correu_electronic' | t }}</label>
           <input [readOnly]="pending()" id="promotion-email" type="email" formControlName="email" required autocomplete="email"
             [placeholder]="'ui.introdueix_el_teu_email' | t" aria-describedby="promotion-legal promotion-error"
             [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid" />
@@ -25,7 +25,7 @@
             <app-promo-turnstile (tokenChange)="verified($event, attempt)" (verificationFailed)="verificationFailed(attempt)" />
           }
           <button class="button--buy" type="submit" [disabled]="pending()">{{ (pending() ? 'ui.enviant' : 'ui.obten_el_codi') | t }}</button>
-          <p id="promotion-legal" class="promotion-legal">{{ 'promo.privacy_notice' | t }} <a routerLink="/privacy">{{ 'legal.privacy.title' | t }}</a></p>
+          <p id="promotion-legal" class="promotion-legal">{{ 'promo.privacy_notice' | t }}</p>
         </form>
       }
     </div>

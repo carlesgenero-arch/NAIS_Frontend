@@ -1,4 +1,3 @@
-import { RouterLink } from '@angular/router';
 import { CA } from '../../../i18n/ca';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { DOCUMENT } from '@angular/common';
@@ -14,7 +13,7 @@ export const PROMOTION_SESSION_KEY = 'nais.promotion.dismissed.v1';
 @Component({
   selector: 'app-promotion',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, Modal, ReactiveFormsModule, PromoTurnstile],
+  imports: [TranslatePipe, Modal, ReactiveFormsModule, PromoTurnstile],
   templateUrl: './promotion.html',
   styleUrl: './promotion.css',
 })

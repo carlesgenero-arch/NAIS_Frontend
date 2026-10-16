@@ -97,6 +97,9 @@ dialog.drawer[open] {
 }
 
 dialog.promotion {
+  padding: clamp(0.75rem, 2vw, 1.25rem);
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   width: min(32rem, calc(100% - var(--page-gutter) * 2));
   background-image: linear-gradient(
     to bottom,
@@ -108,10 +111,20 @@ dialog.promotion {
   background-position: center;
   background-repeat: no-repeat;
 }
-.promotion[open] { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--page-gutter); }
-.promotion h2 { grid-row: 2; margin: 0; text-align: center; font-size: clamp(1.75rem, 5vw, 2.5rem); }
-.promotion .modal-close { grid-row: 1; justify-self: end; margin: 0; padding: 0; width: var(--control-min-size); height: var(--control-min-size); border: 0; background: transparent; box-shadow: none; }
+.promotion[open] { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem; }
+.promotion h2 { grid-row: 2; margin: 0; text-align: center; font-size: clamp(1.75rem, 5vw, 2.5rem); overflow-wrap: normal; text-wrap: balance; }
+.promotion .modal-close { position: sticky; top: 0; z-index: 1; grid-row: 1; justify-self: end; margin: 0; padding: 0; width: var(--control-min-size); height: var(--control-min-size); border: 0; background: transparent; box-shadow: none; }
 .promotion .modal-content { grid-row: 3; min-width: 0; }
+.promotion .modal-close:focus-visible {
+  outline: 3px solid var(--color-negro);
+  outline-offset: 2px;
+}
+
+@media (max-width: 23.5rem) {
+  .promotion h2 {
+    font-size: clamp(1.5rem, 7vw, 1.75rem);
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   dialog.drawer[open] { animation: none; }
