@@ -40,7 +40,7 @@
   position: relative;
   display: grid;
   place-items: center;
-  gap: -10px;
+  gap: 0;
   min-width: 0;
   height: clamp(18rem, 42vw, 36rem);
   padding: var(--page-gutter);
@@ -99,7 +99,8 @@ h1 {
   font-size: clamp(1.75rem, 3vw, 3.25rem);
   line-height: 1.1;
   text-transform: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  text-wrap: balance;
 }
 
 h1:focus-visible {
@@ -151,6 +152,7 @@ p {
 .selected-detail__price {
   font-size: clamp(1.25rem, 2vw, 1.5rem);
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .selected-detail__add {
@@ -210,7 +212,7 @@ p {
 
 @media (min-width: 64rem) {
   .selected-detail__content {
-    padding: var(--surface-padding);
+    padding: clamp(1.5rem, 3vw, var(--surface-padding));
   }
 }
 

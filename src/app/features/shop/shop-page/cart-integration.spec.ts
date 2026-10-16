@@ -69,7 +69,10 @@ describe('Shop cart integration', () => {
         expect(dialog.querySelector('.title-count')?.textContent).toBe(String(quantity));
         const amount = new Intl.NumberFormat('ca-ES', { style: 'currency', currency: 'EUR' }).format(cart.subtotalCents()! / 100);
         expect(dialog.querySelector('.drawer-subtotal')?.textContent).toBe(amount);
-        expect(dialog.querySelector('.drawer-total')?.textContent).toBe(amount);
+        const shippingCents = quantity === 1 ? 600 : 0;
+        const euros = (cents: number) => new Intl.NumberFormat('ca-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100);
+        expect(dialog.querySelector('.drawer-shipping')?.textContent).toBe(quantity === 1 ? euros(600) : 'Gratuït');
+        expect(dialog.querySelector('.drawer-total')?.textContent).toBe(euros(cart.subtotalCents()! + shippingCents));
         expect(JSON.parse(window.localStorage.getItem(CART_STORAGE_KEY)!)).toEqual(cart.entries());
         expect(TestBed.inject(Router).url).toBe(`/products/${product.slug}?from=home`);
         expect(dialog.textContent).not.toContain('Preu unitari');

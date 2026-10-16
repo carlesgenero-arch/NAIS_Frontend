@@ -61,6 +61,11 @@ dialog.drawer[open] {
 .modal-close:focus-visible {
   outline: none;
 }
+.drawer .modal-close:focus-visible {
+  outline: 3px solid var(--color-negro);
+  outline-offset: 2px;
+}
+
 .title-count {
   display: inline-grid;
   place-items: center;

@@ -77,7 +77,7 @@
           {{ 'ui.seguir_comprant' | t }}
         </button>
         <button class="button--buy checkout" type="button" [disabled]="checkoutLoading() || cart.isEmpty() || cart.subtotalCents() === null"
-          [attr.aria-busy]="checkoutLoading()" aria-describedby="drawer-checkout-note" (click)="requestCheckout()">
+          [attr.aria-busy]="checkoutLoading()" (click)="requestCheckout()">
           {{ (checkoutLoading() ? 'ui.preparant_pagament' : 'ui.checkout') | t }}
         </button>
       </div>
