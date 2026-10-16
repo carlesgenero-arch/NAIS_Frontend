@@ -54,3 +54,11 @@ Actual Session creation and idempotency, payment confirmation/webhooks and fulfi
 Validation: npm run check:server; npm run test:checkout; npm run build.
 Sources: https://docs.stripe.com/payments/checkout/discounts
 and https://docs.stripe.com/payments/during-payment/charge-shipping
+
+## Launch verification TODO (internal)
+
+Before launch, verify that the production Stripe Checkout and shipping configuration
+actually accepts and fulfils deliveries to the Balearic Islands, as stated in the
+public legal pages. An ES country restriction alone does not verify regional
+delivery coverage. This is a manual verification task, not a change to shipping
+prices, calculations or checkout behavior. Do not publish this TODO in customer-facing copy.

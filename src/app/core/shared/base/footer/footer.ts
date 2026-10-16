@@ -1,4 +1,4 @@
-import { CA } from '../../../../i18n/ca';
+import { LEGAL_LINKS } from '../../../../features/legal/legal-pages';
 import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
@@ -19,10 +19,5 @@ export interface FooterLink {
 export class Footer {
   readonly year = new Date().getFullYear();
   readonly instagramUrl = input('https://www.instagram.com/naisdrinks/');
-  readonly legalLinks = input<readonly FooterLink[]>([
-    { label: CA['ui.avis_legal'] },
-    { label: CA['ui.politica_de_privacitat'] },
-    { label: 'cookies' },
-    { label: CA['ui.termes_i_condicions'] },
-  ]);
+  readonly legalLinks = input<readonly FooterLink[]>(LEGAL_LINKS);
 }

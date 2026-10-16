@@ -31,7 +31,7 @@
         @for (link of legalLinks(); track link.label) {
           <li>
             @if (link.url; as url) {
-              <a [href]="url">{{ (link.label) | t }}</a>
+              <a [routerLink]="url">{{ (link.label) | t }}</a>
             } @else {
               <span role="link" aria-disabled="true">{{ (link.label) | t }}</span>
             }
