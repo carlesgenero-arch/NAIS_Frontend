@@ -92,7 +92,7 @@
 /* Main logo */
 .brand {
   display: block;
-  width: clamp(10rem, 55vw, 13rem);
+  width: clamp(11.25rem, 61.875vw, 24rem);
   max-width: var(--main-logo-width);
   min-width: 0;
   justify-self: center;

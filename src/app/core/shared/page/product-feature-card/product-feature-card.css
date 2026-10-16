@@ -106,3 +106,29 @@
     transition: none;
   }
 }
+
+/* Compact the stacked Harvest composition while keeping the artwork uncropped. */
+@media (max-width: 47.99rem) {
+  .product-feature__visual {
+    padding: calc(var(--space-group) * 0.75);
+  }
+
+  .product-feature__image {
+    height: clamp(13rem, 52vw, 15rem);
+  }
+
+  .product-feature__content {
+    gap: calc(var(--space-group) / 2);
+    padding-block: calc(var(--space-group) * 0.75);
+  }
+
+  .product-feature h2 {
+    font-size: clamp(1.75rem, 7vw, 2rem);
+    text-wrap: balance;
+  }
+
+  .product-feature__cta {
+    width: 100%;
+    text-align: center;
+  }
+}

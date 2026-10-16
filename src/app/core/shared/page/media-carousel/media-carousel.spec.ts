@@ -17,6 +17,15 @@ describe('MediaCarousel', () => {
     return { fixture, element: fixture.nativeElement as HTMLElement };
   }
 
+  it('uses the provided accessible gallery name without changing its image list', async () => {
+    const { fixture, element } = await setup();
+    fixture.componentRef.setInput('label', 'Moments NAIS Drinks');
+    fixture.detectChanges();
+    expect(element.querySelector('section')?.getAttribute('aria-label')).toBe('Moments NAIS Drinks');
+    expect(element.querySelectorAll('.media-carousel__card')).toHaveLength(images.length);
+    expect(element.querySelectorAll('button')).toHaveLength(2);
+  });
+
   it('moves both ways, wraps at the ends, and retains focus on its controls', async () => {
     const { fixture, element } = await setup();
     const previous = element.querySelector<HTMLButtonElement>('[aria-label="Imatge anterior"]')!;

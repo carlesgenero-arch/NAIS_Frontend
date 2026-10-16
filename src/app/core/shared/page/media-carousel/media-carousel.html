@@ -1,5 +1,5 @@
 @if (images().length > 0) {
-  <section class="media-carousel" [attr.aria-roledescription]="'ui.carrusel' | t" (keydown)="onKeydown($event)">
+  <section class="media-carousel" [attr.aria-label]="label()" [attr.aria-roledescription]="'ui.carrusel' | t" (keydown)="onKeydown($event)">
 
     <!-- Fletxa esquerra -->
     <button

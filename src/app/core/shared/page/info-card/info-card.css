@@ -67,3 +67,25 @@
 }
 
 
+
+@media (prefers-reduced-motion: reduce) {
+  .info-card__image { animation: none; transition: none; }
+}
+
+/* Keep the floating bubbles compact without changing larger editorial layouts. */
+@media (max-width: 47.99rem) {
+  .info-card {
+    gap: calc(var(--space-group) * 0.375);
+  }
+
+  .info-card__image {
+    width: 75%;
+    max-width: clamp(10rem, 55vw, 15rem);
+  }
+
+  .info-card h2 {
+    min-height: 0;
+    font-size: clamp(1.125rem, 4.8vw, 1.375rem);
+    text-wrap: balance;
+  }
+}
