@@ -1,4 +1,4 @@
-  <app-newsletter/>
+  <!-- Newsletter stays unmounted until the subscription backend is ready. -->
   <footer class="footer" [attr.aria-label]="'ui.peu_de_pagina' | t">
   <div class="footer__main">
     <div class="footer__social">
@@ -31,7 +31,7 @@
         @for (link of legalLinks(); track link.label) {
           <li>
             @if (link.url; as url) {
-              <a [href]="url">{{ (link.label) | t }}</a>
+              <a [routerLink]="url">{{ (link.label) | t }}</a>
             } @else {
               <span role="link" aria-disabled="true">{{ (link.label) | t }}</span>
             }

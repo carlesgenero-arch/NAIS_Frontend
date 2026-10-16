@@ -1,0 +1,15 @@
+<article class="legal-page" aria-labelledby="legal-heading" [attr.lang]="i18n.language()">
+  <a class="legal-back" routerLink="/">{{ 'legal.home' | t }}</a>
+  <h1 id="legal-heading">{{ page().title | t }}</h1>
+  @for (section of page().sections; track section.title) {
+    <section [attr.aria-labelledby]="section.title">
+      <h2 [id]="section.title">{{ section.title | t }}</h2>
+      <p>{{ section.body | t: params() }}</p>
+    </section>
+  }
+  <a class="legal-email" href="mailto:info@naisdrinks.com">{{ 'legal.email' | t }}: info&#64;naisdrinks.com</a>
+  @if (page().title === 'legal.purchase.title') {
+    <p><a routerLink="/shipping-returns">{{ 'legal.shipping' | t }}</a></p>
+  }
+  <aside [attr.aria-label]="'legal.related' | t"><app-legal-navigation /></aside>
+</article>

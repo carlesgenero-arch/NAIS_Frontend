@@ -3,6 +3,13 @@ import { Routes } from '@angular/router';
 import { productResolver } from './features/shop/product.resolver';
 
 export const routes: Routes = [
+  { path: 'legal', data: { legalPage: 'legal' }, loadComponent: () => import('./features/legal/legal-page').then(m => m.LegalPage) },
+  { path: 'privacy', data: { legalPage: 'privacy' }, loadComponent: () => import('./features/legal/legal-page').then(m => m.LegalPage) },
+  { path: 'cookies', data: { legalPage: 'cookies' }, loadComponent: () => import('./features/legal/legal-page').then(m => m.LegalPage) },
+  { path: 'purchase-conditions', data: { legalPage: 'purchase-conditions' }, loadComponent: () => import('./features/legal/legal-page').then(m => m.LegalPage) },
+  { path: 'shipping-returns', data: { legalPage: 'shipping-returns' }, loadComponent: () => import('./features/legal/legal-page').then(m => m.LegalPage) },
+  { path: 'contact', data: { legalPage: 'contact' }, loadComponent: () => import('./features/legal/legal-page').then(m => m.LegalPage) },
+
   { path: 'admin/login', title: 'Accés | NAIS', loadComponent: () => import('./features/admin/admin-login').then(m => m.AdminLogin) },
   { path: 'admin', title: 'Backoffice | NAIS', canActivate: [adminGuard], canActivateChild: [adminGuard],
     loadComponent: () => import('./features/admin/admin-shell').then(m => m.AdminShell), children: [
