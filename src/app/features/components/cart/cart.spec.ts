@@ -359,6 +359,26 @@ describe('Cart page', () => {
     expect(createCheckout).toHaveBeenCalledTimes(2);
   });
 
+  it('shows an associated safe error if same-tab navigation fails, preserving the cart', async () => {
+    const cart = TestBed.inject(CartService);
+    cart.addItem('orange-spritz');
+    const saved = stored.get(CART_STORAGE_KEY);
+    redirect.mockImplementation(() => { throw new Error('private navigation detail'); });
+    const { fixture, button } = drawer();
+    button.click();
+    response.next({ url: 'https://checkout.stripe.com/c/pay/test' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(button.disabled).toBe(false);
+    expect(button.getAttribute('aria-busy')).toBe('false');
+    const message = fixture.nativeElement.querySelector('#drawer-checkout-error');
+    expect(button.getAttribute('aria-describedby')).toBe(message.id);
+    expect(message.textContent).toContain('Torna-ho a provar');
+    expect(fixture.nativeElement.textContent).not.toContain('private navigation detail');
+    expect(cart.totalQuantity()).toBe(1);
+    expect(stored.get(CART_STORAGE_KEY)).toBe(saved);
+  });
+
   it('cannot submit an empty cart even before the button disabled state updates', () => {
     const cart = TestBed.inject(CartService);
     cart.addItem('orange-spritz');

@@ -181,6 +181,10 @@ export const CA = {
   "product.view": "Veure {product}",
   "product.discover": "Descobreix {product}",
   "product.nutrition": "Veure els valors nutricionals de {product}",
-  "product.can": "Llauna de {product}"
+  "product.can": "Llauna de {product}",
+  "checkout.verification.title": "Estem confirmant el teu pagament…",
+  "checkout.verification.hint": "Això pot trigar uns segons.",
+  "checkout.pending.title": "El pagament s’està processant.",
+  "checkout.pending.hint": "No cal que tornis a pagar. La confirmació pot trigar una mica més.",
 } as const;
 export type TranslationKey = keyof typeof CA;

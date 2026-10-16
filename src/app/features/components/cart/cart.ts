@@ -70,7 +70,13 @@ export class Cart {
       return;
     }
     // Keep submissions disabled while the browser leaves for the validated Stripe URL.
-    if (!this.destroyRef.destroyed) this.redirect(checkoutUrl);
+    if (this.destroyRef.destroyed) return;
+    try {
+      this.redirect(checkoutUrl);
+    } catch {
+      this.checkoutLoading.set(false);
+      this.checkoutMessage.set(CA['ui.no_s_ha_pogut_iniciar_el_pagament_torna_ho_a_provar']);
+    }
   }
 
   protected decreaseQuantity(productId: string, quantity: number, focusTarget: HTMLElement): void {

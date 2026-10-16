@@ -1,12 +1,16 @@
 <section class="checkout-result" aria-labelledby="checkout-heading">
   <h1 id="checkout-heading">{{ 'ui.gracies_per_triar_nais' | t }}</h1>
   @let result = state();
-  <div aria-live="polite" aria-atomic="true" [attr.aria-busy]="result.status === 'loading'">
+  <div class="checkout-state" role="status" aria-live="polite" aria-atomic="true">
     @switch (result.status) {
-      @case ('loading') { <p>{{ 'ui.estem_confirmant_la_teva_comanda' | t }}</p> }
+      @case ('loading') {
+        <span class="verification-spinner" aria-hidden="true"></span>
+        <p class="verification-title">{{ 'checkout.verification.title' | t }}</p>
+        <p>{{ 'checkout.verification.hint' | t }}</p>
+      }
       @case ('pending') {
-        <p>{{ 'ui.estem_confirmant_la_teva_comanda' | t }}</p>
-        <p>{{ 'ui.encara_no_podem_confirmar_el_pagament_torna_a_carregar_aquesta_pagina_daqui_a_un' | t }}</p>
+        <p class="verification-title">{{ 'checkout.pending.title' | t }}</p>
+        <p>{{ 'checkout.pending.hint' | t }}</p>
       }
       @case ('verified') {
         <p>{{ 'ui.pagament_confirmat_gracies_per_la_teva_comanda' | t }}</p>
@@ -15,16 +19,16 @@
           @for (item of result.order.items; track $index) {
             <li>
               <span>{{ item.productName }} × {{ item.quantity }}</span>
-              <span>{{ formatAmount(item.lineTotalAmount, result.order.currency) }}</span>
+              <span class="order-amount">{{ formatAmount(item.lineTotalAmount, result.order.currency) }}</span>
             </li>
           }
         </ul>
-        <p><strong>{{ 'ui.total' | t }} {{ formatAmount(result.order.totalAmount, result.order.currency) }}</strong></p>
+        <p class="order-total"><strong>{{ 'ui.total' | t }}</strong><strong class="order-amount">{{ formatAmount(result.order.totalAmount, result.order.currency) }}</strong></p>
       }
       @case ('error') { <p>{{ 'ui.no_hem_pogut_consultar_la_comanda_torna_a_carregar_la_pagina_per_provar_ho_de_no' | t }}</p> }
       @case ('not-paid') { <p>{{ 'ui.no_podem_mostrar_aquesta_comanda_com_a_pagament_confirmat_hem_conservat_la_teva_' | t }}</p> }
       @default { <p>{{ 'ui.aquesta_pagina_no_confirma_cap_pagament_sense_una_comanda_verificada_hem_conserv' | t }}</p> }
     }
   </div>
-  <a class="button--buy" routerLink="/products">{{ 'ui.tornar_a_la_botiga' | t }}</a>
+  <a class="button--buy" [class.checkout-return--secondary]="result.status !== 'verified'" routerLink="/products">{{ 'ui.tornar_a_la_botiga' | t }}</a>
 </section>
