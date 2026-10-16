@@ -12,6 +12,6 @@ import { ProductService } from '../../../services/product.service';
 })
 export class ProductGrid {
   private readonly catalogue = inject(ProductService);
-  protected readonly products = computed(() => this.catalogue.activeProducts);
+  protected readonly products = computed(() => this.catalogue.publicProducts);
   readonly addRequested = output<AddProductRequest>();
 }

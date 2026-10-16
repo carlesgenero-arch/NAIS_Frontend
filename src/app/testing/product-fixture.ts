@@ -262,7 +262,8 @@ export class MockProductService {
  readonly loaded = signal(true);
  readonly loading = signal(false);
  readonly error = signal<string | null>(null);
+ get publicProducts() { return this.products.filter(product => product.status === 'active' || product.status === 'sold-out'); }
  get activeProducts() { return this.products.filter(product => product.status === 'active'); }
  load(): void {}
- findBySlug(slug: string) { return of(this.activeProducts.find(product => product.slug === slug) ?? null); }
+ findBySlug(slug: string) { return of(this.publicProducts.find(product => product.slug === slug) ?? null); }
 }

@@ -1,6 +1,6 @@
 export type ProductVariant = 'neutral' | 'citrus' | 'botanical' | 'ginger' | 'tropical' | 'assorted';
 
-export type ProductStatus = 'active' | 'coming-soon' | 'draft' | 'archived';
+export type ProductStatus = 'active' | 'sold-out' | 'coming-soon' | 'draft' | 'archived';
 
 export interface Product {
   status: ProductStatus;

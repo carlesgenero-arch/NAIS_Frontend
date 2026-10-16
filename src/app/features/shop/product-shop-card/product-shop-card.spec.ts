@@ -74,11 +74,15 @@ describe('ProductShopCard', () => {
       visual.focus();
       expect(document.activeElement).toBe(visual);
       const button = element.querySelector<HTMLButtonElement>('button.button--add')!;
+      if (product.status !== 'active') {
+        expect(button).toBeNull();
+        continue;
+      }
       expect(button.type).toBe('button');
-      expect(button.textContent).toBe('AFEGIR');
+      expect(button.textContent?.trim()).toBe('AFEGIR');
       button.click();
     }
-    expect(added).toEqual(products.map(product => ({ product, quantity: 1 })));
+    expect(added).toEqual(products.filter(product => product.status === 'active').map(product => ({ product, quantity: 1 })));
   });
 });
 

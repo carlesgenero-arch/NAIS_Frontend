@@ -13,7 +13,7 @@
   }
   <!--<p class="cart-status" role="status">{{ cartMessage() }}</p>-->
   <h2 id="shop-heading">{{ 'ui.tots_els_productes' | t }}</h2>
-  @if (catalogue.loaded() && !catalogue.activeProducts.length) {
+  @if (catalogue.loaded() && !catalogue.publicProducts.length) {
     <p role="status">{{ 'ui.no_hi_ha_productes_disponibles_ara_mateix' | t }}</p>
   }
   <app-product-grid (addRequested)="requestGridAdd($event)" />

@@ -1,7 +1,9 @@
+import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { PrelaunchLanding } from './prelaunch-landing';
 
 describe('PrelaunchLanding composition', () => {
+  beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter([])] }));
   it('renders accessible image cards with an unobstructed logo and no shop controls', async () => {
     await TestBed.configureTestingModule({ imports: [PrelaunchLanding] }).compileComponents();
     const fixture = TestBed.createComponent(PrelaunchLanding);
@@ -18,9 +20,10 @@ describe('PrelaunchLanding composition', () => {
       expect(image.getAttribute('alt')?.trim().length).toBeGreaterThan(0);
       expect(image.getAttribute('src')).toMatch(/^images\//);
     }
-    expect(element.querySelector('a, button, input, [tabindex], app-product-grid')).toBeNull();
+    expect(element.querySelector('button, input, app-product-grid')).toBeNull();
+    expect(element.querySelector('app-legal-navigation a[href="/privacy"]')).not.toBeNull();
     const section = element.querySelector('section')!;
-    expect(section.getAttribute('lang')).toBe('ca');
+    expect(document.documentElement.lang).toBe('ca');
     expect(section.getAttribute('aria-labelledby')).toBe(element.querySelector('h1')?.id);
     expect(element.querySelectorAll('h1').length).toBe(1);
     expect(element.querySelector('.prelaunch__message')?.textContent).toContain('Estem preparant la nostra nova web');

@@ -25,7 +25,7 @@
             <app-promo-turnstile (tokenChange)="verified($event, attempt)" (verificationFailed)="verificationFailed(attempt)" />
           }
           <button class="button--buy" type="submit" [disabled]="pending()">{{ (pending() ? 'ui.enviant' : 'ui.obten_el_codi') | t }}</button>
-          <p id="promotion-legal" class="promotion-legal">{{ 'promo.privacy_notice' | t }}</p>
+          <p id="promotion-legal" class="promotion-legal">{{ 'promo.privacy_notice' | t }} <a routerLink="/privacy">{{ 'legal.privacy.title' | t }}</a></p>
         </form>
       }
     </div>

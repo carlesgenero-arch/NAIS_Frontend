@@ -20,6 +20,10 @@ export class ProductShopCard {
     computation: () => 1,
   });
 
+  protected requestAdd(): void {
+    if (this.product().status === 'active') this.addRequested.emit({ product: this.product(), quantity: this.quantity() });
+  }
+
   protected decreaseQuantity(): void {
     this.quantity.update(quantity => Math.max(1, quantity - 1));
   }

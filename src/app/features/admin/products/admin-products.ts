@@ -50,7 +50,7 @@ export class AdminProducts {
   }
   protected readonly state = signal<ProductsState>({ kind: 'loading' });
   protected readonly statusLabels: Record<AdminProductSummary['status'], string> = {
-    active: 'Actiu', 'coming-soon': 'Properament', draft: 'Esborrany', archived: 'Arxivat',
+    active: 'Actiu', 'sold-out': 'SOLD OUT', 'coming-soon': 'Properament', draft: 'Esborrany', archived: 'Arxivat',
   };
   constructor() { this.load(); }
   protected load(): void {

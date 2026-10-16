@@ -57,6 +57,10 @@
         }
       </div>
     }
-    <button class="button--buy selected-detail__add" type="button" [attr.aria-label]="addLabel()" (click)="addRequested.emit(product())">{{ 'ui.afegir' | t }}</button>
+    @if (product().status === 'sold-out') {
+      <p class="product-sold-out">{{ 'product.soldOut' | t }}</p>
+    } @else if (product().status === 'active') {
+      <button class="button--buy selected-detail__add" type="button" [attr.aria-label]="addLabel()" (click)="requestAdd()">{{ 'ui.afegir' | t }}</button>
+    }
   </div>
 </section>

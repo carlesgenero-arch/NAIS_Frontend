@@ -23,7 +23,7 @@ function readProduct(value: unknown): Product {
   const row = value as Record<string, unknown>;
   if (!isSlug(row['id']) || !isSlug(row['slug']) || typeof row['name'] !== 'string' || !row['name'].trim()
     || (row['description'] !== null && typeof row['description'] !== 'string')
-    || (row['status'] !== 'active' && row['status'] !== 'coming-soon')
+    || (row['status'] !== 'active' && row['status'] !== 'sold-out' && row['status'] !== 'coming-soon')
     || typeof row['priceCents'] !== 'number' || !Number.isSafeInteger(row['priceCents']) || row['priceCents'] < 0
     // Existing storefront money formatting is EUR-only. Do not mislabel other currencies.
     || row['currency'] !== 'eur' || !isImageUrl(row['imageUrl']) || !isImageUrl(row['featureImageUrl'])) {
@@ -56,6 +56,7 @@ export class ProductService {
   readonly error = this.errorState.asReadonly();
   readonly loaded = this.loadedState.asReadonly();
   get products(): readonly Product[] { return this.catalogue(); }
+  get publicProducts(): readonly Product[] { return this.products.filter(product => product.status === 'active' || product.status === 'sold-out'); }
   get activeProducts(): readonly Product[] { return this.products.filter(product => product.status === 'active'); }
 
   constructor() { this.load(); }
@@ -93,7 +94,7 @@ export class ProductService {
       map(value => {
         const product = readProduct(value);
         if (product.slug !== slug) throw new Error(CATALOGUE_ERROR);
-        return product.status === 'active' ? product : null;
+        return product.status === 'active' || product.status === 'sold-out' ? product : null;
       }),
       catchError(error => error instanceof HttpErrorResponse && error.status === 404
         ? of(null) : throwError(() => new Error(CATALOGUE_ERROR))),

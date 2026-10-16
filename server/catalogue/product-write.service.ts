@@ -35,7 +35,7 @@ function validated(row: Record<string, unknown>): ManagedProduct {
   const name = row['name'].trim();
   const status = row['status'];
   if (!isProductSlug(slug) || !name || name.length > 200
-    || typeof status !== 'string' || !['active','coming-soon','draft','archived'].includes(status)
+    || typeof status !== 'string' || !['active','sold-out','coming-soon','draft','archived'].includes(status)
     || typeof row['priceCents'] !== 'number' || !Number.isSafeInteger(row['priceCents']) || row['priceCents'] < 0
     || row['currency'] !== 'eur' || (status === 'active' && row['priceCents'] === 0)) throw invalid();
   const description = row['description'];

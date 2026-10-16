@@ -1,5 +1,5 @@
 /** Backend catalogue types; no Angular dependency. */
-export type ProductStatus = 'active' | 'coming-soon' | 'draft' | 'archived';
+export type ProductStatus = 'active' | 'sold-out' | 'coming-soon' | 'draft' | 'archived';
 
 /** Validated projection of stored product data, without Stripe identifiers. */
 export interface CatalogueProduct {
@@ -14,7 +14,7 @@ export interface CatalogueProduct {
   readonly featureImageUrl: string | null;
 }
 
-export type PublicCatalogueProduct = CatalogueProduct & { readonly status: 'active' };
+export type PublicCatalogueProduct = CatalogueProduct & { readonly status: 'active' | 'sold-out' };
 
 /** Validated server-only checkout configuration. */
 export interface PurchasableProduct {

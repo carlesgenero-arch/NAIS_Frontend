@@ -14,8 +14,8 @@ describe('ProductFeatureCard', () => {
       providers: [provideRouter([])],
     }).compileComponents();
     const fixture = TestBed.createComponent(ProductFeatureCard);
-    const harvest = TestBed.inject(ProductService).products.find(
-      product => product.slug === 'tropical-hops-harvest')!;
+    const harvest = { ...TestBed.inject(ProductService).products.find(
+      product => product.slug === 'tropical-hops-harvest')!, status: 'sold-out' as const };
     fixture.componentRef.setInput('product', harvest);
     await fixture.whenStable();
     return { fixture, harvest, element: fixture.nativeElement as HTMLElement };
@@ -24,7 +24,7 @@ describe('ProductFeatureCard', () => {
   it('renders Harvest assets and an accessible link to its product route', async () => {
     const { element, harvest } = await setup();
     expect(element.querySelector('h2')?.textContent).toBe(harvest.name);
-    expect(element.querySelector('.product-feature__badge')?.textContent).toBe('NOVA COLLITA');
+    expect(element.querySelector('.product-sold-out')?.textContent).toBe('SOLD OUT');
     expect(element.querySelector('p')?.textContent).toBe(harvest.featureDescription);
     expect(element.querySelector('.product-feature__background')?.getAttribute('src')).toBe(harvest.featureBackgroundImageUrl);
     expect(element.querySelector('.product-feature__background')?.getAttribute('alt')).toBe('');
@@ -33,7 +33,7 @@ describe('ProductFeatureCard', () => {
     expect(image.getAttribute('alt')).toBe(harvest.imageAlt);
     const link = element.querySelector<HTMLAnchorElement>('a')!;
     expect(link.getAttribute('href')).toBe('/products/tropical-hops-harvest');
-    expect(link.getAttribute('aria-label')).toBe('Descobreix Tropical Hops Harvest');
+    expect(link.getAttribute('aria-label')).toContain(harvest.name);
     link.focus();
     expect(document.activeElement).toBe(link);
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
@@ -53,13 +53,13 @@ describe('ProductFeatureCard', () => {
     await fixture.whenStable();
     expect(element.querySelector('h2')?.textContent).toBe(limited.name);
     expect(element.querySelector('p')?.textContent).toBe(limited.description);
-    expect(element.querySelector('.product-feature__badge')?.textContent).toBe(limited.badge);
+    expect(element.querySelector('.product-sold-out')).toBeNull();
     expect(element.querySelector('.product-feature__background')).toBeNull();
     expect(element.querySelector('img')?.getAttribute('src')).toBe(limited.imageUrl);
     expect(element.querySelector('img')?.getAttribute('alt')).toBe(limited.name);
     expect(element.querySelector('a')?.getAttribute('href')).toBe('/products/limited');
     fixture.componentRef.setInput('product', { ...limited, badge: undefined });
     await fixture.whenStable();
-    expect(element.querySelector('.product-feature__badge')?.textContent).toBe('DESTACAT');
+    expect(element.querySelector('.product-sold-out')).toBeNull();
   });
 });

@@ -1,3 +1,4 @@
+import { LEGAL_PAGES } from './features/legal/legal-pages';
 import { LanguageSelector } from './core/shared/base/language-selector/language-selector';
 import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -24,6 +25,13 @@ export class App {
       map(event => event.urlAfterRedirects.split(/[?#]/)[0] === '/checkout/success'),
     ),
     { initialValue: this.router.url.split(/[?#]/)[0] === '/checkout/success' },
+  );
+  protected readonly isLegal = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(event => Object.hasOwn(LEGAL_PAGES, event.urlAfterRedirects.split(/[?#]/)[0].slice(1))),
+    ),
+    { initialValue: Object.hasOwn(LEGAL_PAGES, this.router.url.split(/[?#]/)[0].slice(1)) },
   );
   protected readonly isAdmin = toSignal(
     this.router.events.pipe(
