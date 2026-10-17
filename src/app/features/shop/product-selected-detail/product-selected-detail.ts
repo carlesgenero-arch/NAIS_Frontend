@@ -35,7 +35,10 @@ export class ProductSelectedDetail {
   readonly addRequested = output<Product>();
   protected readonly ingredientsText = computed(() => {
     const text = this.i18n.text(this.product().ingredients).split(',')
-      .map(ingredient => ingredient.trim().toLocaleLowerCase(this.i18n.locale()))
+      .map(ingredient => ingredient.trim())
+      // Normalize legacy all-caps lists without lowercasing authored proper names.
+      .map(ingredient => ingredient === ingredient.toLocaleUpperCase(this.i18n.locale())
+        ? ingredient.toLocaleLowerCase(this.i18n.locale()) : ingredient)
       .filter(Boolean).join(' · ');
     return text.charAt(0).toLocaleUpperCase(this.i18n.locale()) + text.slice(1);
   });

@@ -157,7 +157,7 @@ export const CA = {
   "ui.hop_on_a_purple_background": "hop on a purple background",
   "product.assortedPack.format": "Pack variat de 3 sabors (16 x 250ml)",
   "product.assortedPack.imageAlt": "Pack variat de NAIS Drinks amb Orange Spritz, Passion Hugo i Ginger Crush",
-  "ui.tropical_hops_fresh_hops_chinook_dels_camps_de_biolupulus_Girona": "TROPICAL HOPS + FRESH HOPS CHINOOK DELS CAMPS DE BIOLUPULUS-GIRONA",
+  "ui.tropical_hops_fresh_hops_chinook_dels_camps_de_biolupulus_Girona": "Tropical hops + fresh hops chinook dels camps de biolupulus-Girona",
   "ui.llauna_de_tropical_hops_harvest_amb_illustracions_blaves_i_verdes_de_llupol": "Llauna de Tropical Hops Harvest amb il·lustracions blaves i verdes de llúpol",
   "ui.nova_collita": "NOVA COLLITA",
   "ui.destacat": "DESTACAT",

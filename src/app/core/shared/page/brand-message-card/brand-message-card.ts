@@ -1,6 +1,6 @@
 import { CA } from '../../../../i18n/ca';
 import { TranslatePipe } from '../../../../i18n/translate.pipe';
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 
 @Component({
   imports: [TranslatePipe],
@@ -16,5 +16,8 @@ export class BrandMessageCard {
   readonly imageAlt = input<string>(CA['ui.pack_variat']);
   readonly ctaHref = input<string>('/shop');
 
-  protected readonly backgroundImage = computed(() => `url("${this.imageSrc()}")`);
+  protected readonly loadedSource = signal<string | null>(null);
+  protected readonly failedSource = signal<string | null>(null);
+  protected readonly imageReady = computed(() => this.loadedSource() === this.imageSrc() || this.failedSource() === this.imageSrc());
+  protected readonly imageFailed = computed(() => this.failedSource() === this.imageSrc());
 }

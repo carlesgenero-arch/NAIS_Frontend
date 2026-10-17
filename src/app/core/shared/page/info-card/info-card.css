@@ -16,6 +16,12 @@
   align-content: start;
 }
 
+.info-card__bubble {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
 .info-card__image {
   display: block;
   width: 100%;
@@ -23,35 +29,8 @@
   margin-inline: auto;
   border-radius: 50%;
   object-fit: cover;
-  animation: info-card-float 1.5s ease-in-out infinite;
-  transition:
-    transform 220ms ease,
-    box-shadow 220ms ease;
 }
 
-
-@keyframes info-card-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-0.35rem);
-  }
-}
-
-.info-card[data-colour='pink'] .info-card__image {
-  animation-delay: 10ms;
-}
-
-.info-card[data-colour='blue'] .info-card__image {
-  animation-delay: 280ms;
-}
-
-.info-card[data-colour='green'] .info-card__image {
-  animation-delay: 560ms;
-}
 
 .info-card h2 {
   max-width: 100%;
@@ -69,16 +48,17 @@
 
 
 @media (prefers-reduced-motion: reduce) {
-  .info-card__image { animation: none; transition: none; }
+  .info-card__image,
+  .info-card__bubble { animation: none; transition: none; }
 }
 
 /* Keep the floating bubbles compact without changing larger editorial layouts. */
-@media (max-width: 47.99rem) {
+@media (max-width: 63.99rem) {
   .info-card {
     gap: calc(var(--space-group) * 0.375);
   }
 
-  .info-card__image {
+  .info-card__bubble {
     width: 75%;
     max-width: clamp(10rem, 55vw, 15rem);
   }
@@ -87,5 +67,47 @@
     min-height: 0;
     font-size: clamp(1.125rem, 4.8vw, 1.375rem);
     text-wrap: balance;
+  }
+}
+
+/* Observe each vertically stacked item separately; off-screen mobile bubbles never finish early. */
+@media (prefers-reduced-motion: no-preference) {
+  :host(.home-motion-ready) .info-card { perspective: 600px; }
+  :host(.home-motion-ready) .info-card__image {
+    transform: rotateZ(calc(var(--bubble-rest, 0deg) * 0.6));
+    transition: opacity 850ms cubic-bezier(0.22, 1, 0.36, 1) var(--bubble-delay, 0ms),
+      transform 950ms cubic-bezier(0.22, 1, 0.36, 1) var(--bubble-delay, 0ms);
+  }
+  :host(.home-motion-ready:not(.home-motion-revealed)) .info-card__image {
+    opacity: 0;
+    transform: translateY(32px) rotateX(6deg) rotateY(-6deg)
+      rotateZ(calc(var(--bubble-entry, 0deg) * 0.6)) scale(0.86);
+  }
+  :host(.home-motion-ready) h2 {
+    transition: opacity 750ms ease-out calc(var(--bubble-delay, 0ms) + 120ms),
+      transform 800ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--bubble-delay, 0ms) + 120ms);
+  }
+  :host(.home-motion-ready:not(.home-motion-revealed)) h2 { opacity: 0; transform: translateY(20px); }
+}
+
+@media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
+  :host(.home-motion-ready) .info-card__image { transform: rotateZ(var(--bubble-rest, 0deg)); }
+  :host(.home-motion-ready:not(.home-motion-revealed)) .info-card__image {
+    transform: translateY(44px) rotateX(10deg) rotateY(-8deg) rotateZ(var(--bubble-entry, 0deg)) scale(0.86);
+  }
+}
+
+/* Exact idle values recovered from commit 34978fa; separate from the entrance layer. */
+@media (prefers-reduced-motion: no-preference) {
+  :host(.bubble-idle) .info-card__bubble {
+    animation: info-card-float 1.5s ease-in-out infinite;
+  }
+  .info-card[data-colour='pink'] .info-card__bubble { animation-delay: 10ms; }
+  .info-card[data-colour='blue'] .info-card__bubble { animation-delay: 280ms; }
+  .info-card[data-colour='green'] .info-card__bubble { animation-delay: 560ms; }
+
+  @keyframes info-card-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-0.35rem); }
   }
 }

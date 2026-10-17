@@ -8,70 +8,67 @@ const images: CarouselImage[] = [
   { src: 'three.jpeg', alt: 'Tercera fotografia' },
 ];
 
-describe('MediaCarousel', () => {
-  async function setup(initialImages: readonly CarouselImage[] = images) {
-    await TestBed.configureTestingModule({ imports: [MediaCarousel] }).compileComponents();
+describe('MediaCarousel strip', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  async function setup(reduced = false) {
+    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: reduced })));
+    TestBed.configureTestingModule({ imports: [MediaCarousel] });
     const fixture = TestBed.createComponent(MediaCarousel);
-    fixture.componentRef.setInput('images', initialImages);
+    fixture.componentRef.setInput('images', images);
     await fixture.whenStable();
-    return { fixture, element: fixture.nativeElement as HTMLElement };
+    const element = fixture.nativeElement as HTMLElement;
+    const scrolls = [...element.querySelectorAll<HTMLElement>('.media-carousel__card')].map(card => {
+      const scroll = vi.fn(); card.scrollIntoView = scroll; return scroll;
+    });
+    return { fixture, element, scrolls };
   }
 
-  it('uses the provided accessible gallery name without changing its image list', async () => {
+  it('preserves all images, optional links and accessible controls', async () => {
     const { fixture, element } = await setup();
-    fixture.componentRef.setInput('label', 'Moments NAIS Drinks');
-    fixture.detectChanges();
+    fixture.componentRef.setInput('label', 'Moments NAIS Drinks'); fixture.detectChanges();
     expect(element.querySelector('section')?.getAttribute('aria-label')).toBe('Moments NAIS Drinks');
-    expect(element.querySelectorAll('.media-carousel__card')).toHaveLength(images.length);
+    expect([...element.querySelectorAll('img')].map(img => img.getAttribute('src'))).toEqual(images.map(img => img.src));
+    expect(element.querySelector('a')?.getAttribute('href')).toBe(images[1].href);
     expect(element.querySelectorAll('button')).toHaveLength(2);
   });
 
-  it('moves both ways, wraps at the ends, and retains focus on its controls', async () => {
-    const { fixture, element } = await setup();
-    const previous = element.querySelector<HTMLButtonElement>('[aria-label="Imatge anterior"]')!;
-    const next = element.querySelector<HTMLButtonElement>('[aria-label="Imatge següent"]')!;
-    expect(element.querySelector('img')?.getAttribute('alt')).toBe(images[0].alt);
-    previous.focus();
-    previous.click();
-    await fixture.whenStable();
-    expect(element.querySelector('img')?.getAttribute('src')).toBe(images[2].src);
+  it('clamps at either end, retains focus and avoids vertical page jumps', async () => {
+    const { fixture, element, scrolls } = await setup();
+    const previous = element.querySelector<HTMLButtonElement>('.media-carousel__arrow--left')!;
+    const next = element.querySelector<HTMLButtonElement>('.media-carousel__arrow--right')!;
+    previous.focus(); previous.click(); await fixture.whenStable();
+    expect(scrolls[0]).toHaveBeenCalledWith({ behavior: 'smooth', inline: 'start', block: 'nearest' });
     expect(document.activeElement).toBe(previous);
-    next.click();
-    await fixture.whenStable();
-    expect(element.querySelector('[role="status"]')?.textContent).toBe('Imatge 1 de 3');
-    expect(element.querySelectorAll('img').length).toBe(1);
+    for (let i = 0; i < 4; i++) { next.click(); await fixture.whenStable(); }
+    expect(scrolls[2]).toHaveBeenCalledTimes(3);
+    expect(element.querySelectorAll('img')).toHaveLength(3);
   });
 
-  it('supports arrow, Home and End keys without intercepting Tab or modified shortcuts', async () => {
-    const { fixture, element } = await setup();
-    const next = element.querySelector<HTMLButtonElement>('[aria-label="Imatge següent"]')!;
-    for (const [key, expected] of [['ArrowRight', 1], ['End', 2], ['Home', 0], ['ArrowLeft', 2]] as const) {
+  it('uses instant scrolling for reduced motion', async () => {
+    const { fixture, element, scrolls } = await setup(true);
+    element.querySelector<HTMLButtonElement>('.media-carousel__arrow--right')!.click();
+    await fixture.whenStable();
+    expect(scrolls[1]).toHaveBeenCalledWith({ behavior: 'instant', inline: 'start', block: 'nearest' });
+  });
+
+  it('scrolls for arrows, Home and End without consuming Tab or modified shortcuts', async () => {
+    const { fixture, element, scrolls } = await setup();
+    const control = element.querySelector('button')!;
+    for (const [key, index] of [['ArrowRight', 1], ['End', 2], ['Home', 0], ['ArrowLeft', 0]] as const) {
       const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
-      next.dispatchEvent(event);
-      await fixture.whenStable();
+      control.dispatchEvent(event); await fixture.whenStable();
       expect(event.defaultPrevented).toBe(true);
-      expect(element.querySelector('img')?.getAttribute('src')).toBe(images[expected].src);
+      expect(scrolls[index]).toHaveBeenCalled();
     }
     for (const event of [new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }),
       new KeyboardEvent('keydown', { key: 'ArrowLeft', ctrlKey: true, bubbles: true, cancelable: true })]) {
-      next.dispatchEvent(event);
-      expect(event.defaultPrevented).toBe(false);
+      control.dispatchEvent(event); expect(event.defaultPrevented).toBe(false);
     }
   });
 
-  it('renders optional links and resets safely when the input changes or becomes empty', async () => {
+  it('handles empty image data without rendering controls', async () => {
     const { fixture, element } = await setup();
-    element.querySelector<HTMLButtonElement>('[aria-label="Imatge següent"]')!.click();
-    await fixture.whenStable();
-    expect(element.querySelector('a')?.getAttribute('href')).toBe(images[1].href);
-    expect(element.querySelector('a img')?.getAttribute('alt')).toBe(images[1].alt);
-    fixture.componentRef.setInput('images', [images[0]]);
-    await fixture.whenStable();
-    expect(element.querySelector('img')?.getAttribute('src')).toBe(images[0].src);
-    expect(element.querySelector('a')).toBeNull();
-    expect(element.querySelector('button')).toBeNull();
-    fixture.componentRef.setInput('images', []);
-    await fixture.whenStable();
+    fixture.componentRef.setInput('images', []); await fixture.whenStable();
     expect(element.querySelector('section')).toBeNull();
   });
 });

@@ -1,17 +1,17 @@
   <app-hero />
   <section class="info-section" aria-labelledby="info-heading">
-    <div class="info-introduction">
+    <div class="info-introduction" homeReveal>
       <h1>{{ 'ui.que_es_nais' | t }}</h1>
       <h2 id="info-heading">{{ 'ui.real_fruit_mocktails' | t }}</h2>
       <p>{{ 'ui.beguda_sense_alcohol_a_base_de_sucs_naturals_i_botanics' | t }}</p>
     </div>
     <div class="info-benefits">
       @for (card of infoCards; track card.colour) {
-        <app-info-card [content]="card" />
+        <app-info-card homeReveal [content]="card" />
       }
     </div>
   </section>
-  <app-brand-message-card/>
+  <app-brand-message-card homeReveal/>
   <app-animated-banner/>
   @if (catalogue.loading()) {
     <p role="status">{{ 'ui.estem_carregant_els_productes' | t }}</p>

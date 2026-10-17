@@ -1,5 +1,5 @@
 import { TranslatePipe } from '../../../../i18n/translate.pipe';
-import { ChangeDetectionStrategy, Component, computed, input, linkedSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, linkedSignal } from '@angular/core';
 import { CarouselImage } from '../../../../models/carousel-image.interface';
 
 @Component({
@@ -10,6 +10,7 @@ import { CarouselImage } from '../../../../models/carousel-image.interface';
   styleUrl: './media-carousel.css',
 })
 export class MediaCarousel {
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly images = input<readonly CarouselImage[]>([]);
   readonly label = input<string>('Galeria d’imatges');
@@ -40,12 +41,17 @@ export class MediaCarousel {
       return next;
     });
 
-    // Opcional: scroll automàtic a la targeta activa
+    this.scrollToActiveCard();
+  }
+
+  private scrollToActiveCard(): void {
     queueMicrotask(() => {
-      const track = document.querySelector('.media-carousel__track');
-      const cards = track?.querySelectorAll('.media-carousel__card');
-      const card = cards?.[this.activeIndex()];
-      card?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+      const cards = this.element.nativeElement.querySelectorAll('.media-carousel__card');
+      const reduceMotion = typeof window.matchMedia === 'function'
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      cards[this.activeIndex()]?.scrollIntoView({
+        behavior: reduceMotion ? 'instant' : 'smooth', inline: 'start', block: 'nearest',
+      });
     });
   }
 
@@ -56,8 +62,8 @@ export class MediaCarousel {
     switch (event.key) {
       case 'ArrowLeft': this.move(-1); break;
       case 'ArrowRight': this.move(1); break;
-      case 'Home': this.activeIndex.set(0); break;
-      case 'End': this.activeIndex.set(this.images().length - 1); break;
+      case 'Home': this.activeIndex.set(0); this.scrollToActiveCard(); break;
+      case 'End': this.activeIndex.set(this.images().length - 1); this.scrollToActiveCard(); break;
       default: return;
     }
 

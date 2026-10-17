@@ -1,3 +1,4 @@
+import { HomeReveal } from '../home-reveal.directive';
 import { CA } from '../../../i18n/ca';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { Component, computed, inject } from '@angular/core';
@@ -14,7 +15,7 @@ import { AssortedPackPromotion } from '../assorted-pack-promotion/assorted-pack-
 
 @Component({
   selector: 'app-home-page',
-  imports: [TranslatePipe, Hero, InfoCard, ProductCard, ProductFeatureCard, BrandMessageCard, MediaCarousel, AnimatedBanner, AssortedPackPromotion],
+  imports: [HomeReveal, TranslatePipe, Hero, InfoCard, ProductCard, ProductFeatureCard, BrandMessageCard, MediaCarousel, AnimatedBanner, AssortedPackPromotion],
   templateUrl: './home-page.html',
   styleUrl: './home-page.css'
 })
