@@ -240,11 +240,10 @@
   text-decoration: none;
 }
 
-.product-shop-card--featured .product-visual::before {
+.product-shop-card--featured .product-harvest-ribbon {
   grid-area: 1 / 1;
   align-self: start;
   z-index: 1;
-  content: "✦ COLLITA 2026 ✦";
   display: block;
   width: 100%;
   background: var(--color-fruta-3);
@@ -253,6 +252,7 @@
   font-size: clamp(1rem, 2vw, 1.5rem);
   font-weight: 700;
   text-align: center;
+  white-space: nowrap;
   
 }
 
@@ -317,7 +317,7 @@
     max-block-size: 3rem;
   }
 
-  .product-shop-card--featured .product-visual::before {
+  .product-shop-card--featured .product-harvest-ribbon {
     font-size: 0.875rem;
   }
 }

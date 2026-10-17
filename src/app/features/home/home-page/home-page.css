@@ -89,13 +89,6 @@ app-product-feature-card {
   margin-bottom: var(--space-section);
 }
 
-app-media-carousel {
-  display: block;
-  margin-block: 0 var(--space-section);
-  padding-block-start: clamp(var(--space-group), 6.25vw, calc(var(--space-group) * 3));
-  background: var(--surface-page);
-}
-
 /* Keep complete words readable inside the narrow mobile panel. */@media (max-width: 63.99rem) {
   .info-section {
     --info-section-gap: calc(var(--space-group) * 0.625);

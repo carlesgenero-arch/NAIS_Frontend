@@ -6,6 +6,9 @@
 
 >
   <a class="product-visual" [routerLink]="['/products', product().slug]" [attr.aria-label]="(product().name) | t">
+    @if (product().featureBackgroundImageUrl) {
+      <span class="product-harvest-ribbon">{{ 'product.harvestRibbon' | t }}</span>
+    }
     @if (product().cardImageUrl ?? product().imageUrl; as imageUrl) {
       <img [src]="imageUrl" [alt]="(imageAlt()) | t" loading="lazy" />
     }

@@ -1,0 +1,134 @@
+:host { display: block; min-width: 0; }
+
+.social-collage {
+  min-width: 0;
+  padding-block: clamp(3.5rem, 7vw, 6rem) var(--space-section);
+}
+
+.social-collage__statement { text-align: center; margin: 0 auto clamp(1.5rem, 3vw, 3rem); }
+.social-collage__statement h2 {
+  max-width: 22ch;
+  margin: 0 auto;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6.5vw, 5.85rem);
+  font-weight: 700;
+  line-height: 1.02;
+  text-wrap: balance;
+  overflow-wrap: normal;
+}
+.social-collage__photos:focus-visible,
+.social-collage__photo a:focus-visible { outline: 3px solid var(--color-negro); outline-offset: 4px; }
+
+/* Native horizontal browsing on mobile, in the original image order. */
+.social-collage__photos {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(8rem, 40vw, 14rem);
+  align-items: start;
+  gap: 1rem;
+  overflow-x: auto;
+  /* Reserve the 24px entrance travel so off-screen photos never add a vertical scrollbar. */
+  padding: 0.5rem 0.5rem 2rem;
+  scroll-snap-type: x proximity;
+}
+.social-collage__photo {
+  min-width: 0;
+  margin: 0;
+  aspect-ratio: 2 / 3;
+  scroll-snap-align: start;
+  --photo-angle: 0deg;
+}
+.social-collage__frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  translate: var(--photo-x, 0px) var(--photo-y, 0px);
+  transform: rotate(var(--photo-angle));
+}
+.social-collage__frame a { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+.social-collage__frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-panel);
+}
+
+/* Bounded named areas keep the central copy clear of every photograph. */
+@media (min-width: 48rem) {
+  .social-collage {
+    --photo-width: clamp(8rem, 16vw, 15rem);
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-rows: repeat(6, calc(var(--photo-width) * 0.75));
+    grid-template-areas:
+      'a a e e . . . .'
+      'a a e e . . b b'
+      '. . statement statement statement statement b b'
+      'c c statement statement statement statement . .'
+      'c c . . f f d d'
+      '. . . . f f d d';
+    gap: clamp(1rem, 2vw, 2rem);
+    padding-inline: 0.5rem;
+  }
+  .social-collage__statement {
+    grid-area: statement;
+    align-self: center;
+    min-width: 0;
+    margin: 0;
+    padding-inline: 0.25rem;
+  }
+  .social-collage__statement h2 { font-size: clamp(2.25rem, 5.5vw, 5.5rem); max-width: 16ch; }
+  .social-collage__photos { display: contents; }
+  .social-collage__photo {
+    width: var(--photo-width);
+    min-height: 0;
+    align-self: center;
+    justify-self: center;
+  }
+  /* Placement lives on the frame so entrance transforms remain independent.
+     One photo sits above the claim; the remaining cards descend asymmetrically.
+     Reserved two-row areas keep every frame equal and clear of the statement. */
+  .social-collage__photo:nth-child(1) {
+    grid-area: a; justify-self: start;
+    --photo-angle: -2deg; --photo-x: 0.5rem; --photo-y: 0.25rem;
+  }
+  .social-collage__photo:nth-child(2) {
+    grid-area: b; justify-self: start;
+    --photo-angle: 2deg; --photo-x: -0.25rem; --photo-y: 1.5rem;
+  }
+  .social-collage__photo:nth-child(3) {
+    grid-area: c; justify-self: end;
+    --photo-angle: -1deg; --photo-x: -0.25rem; --photo-y: -0.5rem;
+  }
+  .social-collage__photo:nth-child(4) {
+    grid-area: d; justify-self: end;
+    --photo-angle: 2deg; --photo-x: -1.25rem; --photo-y: 1.25rem;
+  }
+  .social-collage__photo:nth-child(5) {
+    grid-area: e; justify-self: end;
+    --photo-angle: -2deg; --photo-x: 1rem; --photo-y: -0.5rem;
+  }
+  .social-collage__photo:nth-child(6) {
+    grid-area: f; justify-self: start;
+    --photo-angle: 1deg; --photo-x: -0.75rem; --photo-y: -1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .social-collage__statement.home-motion-ready,
+  .social-collage__photo.home-motion-ready {
+    transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 850ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .social-collage__statement.home-motion-ready:not(.home-motion-revealed) { opacity: 0; transform: translateY(24px); }
+  .social-collage__photo.home-motion-ready:not(.home-motion-revealed) { opacity: 0; transform: translateY(24px); }
+  /* Short stagger within each visual group, rather than a long ten-image delay. */
+  .social-collage__photo:nth-child(3n + 2) { transition-delay: 80ms; }
+  .social-collage__photo:nth-child(3n) { transition-delay: 160ms; }
+  .social-collage__photo:focus-within { opacity: 1; transform: none; transition: none; }
+}

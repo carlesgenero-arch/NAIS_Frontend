@@ -1,6 +1,7 @@
 import { MockProductService } from '../../../testing/product-fixture';
 import { provideRouter, Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
+import { TranslationService } from '../../../i18n/translation.service';
 import { ProductShopCard } from './product-shop-card';
 import { ProductService } from '../../../services/product.service';
 import { AddProductRequest } from '../../../models/product.interface';
@@ -110,5 +111,26 @@ describe('Shop shared content rows', () => {
       }
       fixture.destroy();
     }
+  });
+});
+
+describe('Harvest ribbon localization', () => {
+  it('reacts to CAT/CAST changes without changing sold-out state or active cards', async () => {
+    await TestBed.configureTestingModule({ imports: [ProductShopCard], providers: [provideRouter([])] }).compileComponents();
+    const fixture = TestBed.createComponent(ProductShopCard);
+    const products = new MockProductService().products;
+    fixture.componentRef.setInput('product', { ...products.find(product => product.id === 'tropical-hops-harvest')!, status: 'sold-out' });
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    const i18n = TestBed.inject(TranslationService);
+    for (const [language, text] of [['ca', '✦ COLLITA 2026 ✦'], ['es', '✦ COSECHA 2026 ✦']] as const) {
+      i18n.setLanguage(language); fixture.detectChanges();
+      expect(element.querySelector('.product-harvest-ribbon')?.textContent).toBe(text);
+      expect(element.querySelector('.product-sold-out')?.textContent).toBe('SOLD OUT');
+      expect(element.querySelector('.product-quantity, .button--add')).toBeNull();
+    }
+    fixture.componentRef.setInput('product', products[0]); fixture.detectChanges();
+    expect(element.querySelector('.product-harvest-ribbon')).toBeNull();
+    i18n.setLanguage('ca');
   });
 });
