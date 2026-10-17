@@ -31,27 +31,35 @@ describe('HomePage product placement', () => {
     const promotion = element.querySelector('app-assorted-pack-promotion');
     expect(promotion).not.toBeNull();
     expect(promotion?.previousElementSibling).toBe(cards.at(-1));
-    expect(promotion?.nextElementSibling?.tagName.toLowerCase()).toBe('app-media-carousel');
+    const collage = promotion?.nextElementSibling;
+    expect(collage?.tagName.toLowerCase()).toBe('app-social-collage');
+    const statement = collage?.querySelector('h2');
+    expect(collage?.querySelector('header')?.hasAttribute('homeReveal')).toBe(true);
     expect(promotion?.querySelector('a')?.getAttribute('href')).toBe('/products/pack-variat');
     const packLink = promotion?.querySelector('a.pack-feature');
     expect(packLink?.getAttribute('href')).toBe('/products/pack-variat');
     expect(packLink?.getAttribute('aria-label')).toBeTruthy();
     expect(packLink?.querySelector('img')?.getAttribute('src')).toBe('images/products/pack_3.png');
     const stickers = promotion?.querySelector('.pack-botanicals');
-    expect(stickers?.previousElementSibling?.classList.contains('pack-cta')).toBe(true);
+    expect(stickers?.previousElementSibling?.classList.contains('pack-copy')).toBe(true);
+    expect(stickers?.nextElementSibling?.classList.contains('pack-cta')).toBe(true);
+    expect(stickers?.parentElement?.classList.contains('pack-content')).toBe(true);
     expect(packLink?.contains(stickers ?? null)).toBe(false);
     expect(Array.from(stickers?.querySelectorAll('img') ?? []).map(image => image.getAttribute('src')))
       .toEqual(['images/info-card/orange.png', 'images/info-card/mint.png',
-        'images/info-card/gingebre.png', 'images/info-card/mango.png']);
+        'images/info-card/gingebre.png', 'images/info-card/raspberries (1).png',
+        'images/info-card/lemon.jpg', 'images/info-card/mango.png']);
     const translations = TestBed.inject(TranslationService);
     translations.setLanguage('ca');
     fixture.detectChanges();
+    expect(statement?.textContent).toBe('NAIS es beu, es comparteix i es viu.');
     expect(promotion?.querySelector('h2')?.textContent).toBe('DESCOBREIX TOTS ELS SABORS');
     expect(promotion?.textContent).toContain('La millor manera de conèixer NAIS.');
     expect(promotion?.querySelector('.pack-cta')?.textContent).toBe('COMPRAR PACK VARIAT');
     expect(promotion?.querySelector('.pack-tagline')?.textContent).toBe('3 sabors. 1 pack.');
     translations.setLanguage('es');
     fixture.detectChanges();
+    expect(statement?.textContent).toBe('NAIS se bebe, se comparte y se vive.');
     expect(promotion?.querySelector('h2')?.textContent).toBe('DESCUBRE TODOS LOS SABORES');
     expect(promotion?.textContent).toContain('La mejor manera de probar NAIS.');
     expect(promotion?.querySelector('.pack-cta')?.textContent).toBe('COMPRAR PACK VARIADO');

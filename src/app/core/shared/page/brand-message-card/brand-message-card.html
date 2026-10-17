@@ -1,4 +1,6 @@
-<section class="brand-message" [attr.aria-label]="(heading()) | t" [style.background-image]="backgroundImage()">
+<section class="brand-message" [attr.aria-label]="(heading()) | t" [class.brand-message--ready]="imageReady()" [class.brand-message--failed]="imageFailed()">
+  <img class="brand-message-image" [src]="imageSrc()" alt="" aria-hidden="true"
+    (load)="loadedSource.set(imageSrc())" (error)="failedSource.set(imageSrc())" />
   <div class="brand-message-content">
     <h2>{{ (heading()) | t }}</h2>
      <!--<p>{{ message() }}</p>

@@ -1,6 +1,7 @@
 import { MockProductService } from '../../../testing/product-fixture';
 import { provideRouter, Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
+import { TranslationService } from '../../../i18n/translation.service';
 import { ProductShopCard } from './product-shop-card';
 import { ProductService } from '../../../services/product.service';
 import { AddProductRequest } from '../../../models/product.interface';
@@ -86,3 +87,50 @@ describe('ProductShopCard', () => {
   });
 });
 
+
+
+describe('Shop shared content rows', () => {
+  it('keeps pack controls and Harvest status in the same terminal row without extra content siblings', async () => {
+    await TestBed.configureTestingModule({ imports: [ProductShopCard], providers: [provideRouter([])] }).compileComponents();
+    const samples = new MockProductService().products;
+    for (const id of ['pack-variat', 'tropical-hops-harvest']) {
+      const fixture = TestBed.createComponent(ProductShopCard);
+      const product = samples.find(p => p.id === id)!;
+      fixture.componentRef.setInput('product', id === 'tropical-hops-harvest' ? { ...product, status: 'sold-out' } : product);
+      await fixture.whenStable();
+      const details = (fixture.nativeElement as HTMLElement).querySelector('.product-details')!;
+      expect([...details.children].map(el => el.tagName)).toEqual(['H2', 'P', 'P', 'DIV']);
+      const finalRow = details.querySelector('.product-final-row')!;
+      expect(finalRow).not.toBeNull();
+      if (id === 'pack-variat') {
+        expect(finalRow.querySelector('.product-actions')).not.toBeNull();
+        expect(finalRow.querySelector('.product-sold-out')).toBeNull();
+      } else {
+        expect(finalRow.querySelector('.product-sold-out')?.textContent).toBe('SOLD OUT');
+        expect(finalRow.querySelector('button')).toBeNull();
+      }
+      fixture.destroy();
+    }
+  });
+});
+
+describe('Harvest ribbon localization', () => {
+  it('reacts to CAT/CAST changes without changing sold-out state or active cards', async () => {
+    await TestBed.configureTestingModule({ imports: [ProductShopCard], providers: [provideRouter([])] }).compileComponents();
+    const fixture = TestBed.createComponent(ProductShopCard);
+    const products = new MockProductService().products;
+    fixture.componentRef.setInput('product', { ...products.find(product => product.id === 'tropical-hops-harvest')!, status: 'sold-out' });
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    const i18n = TestBed.inject(TranslationService);
+    for (const [language, text] of [['ca', '✦ COLLITA 2026 ✦'], ['es', '✦ COSECHA 2026 ✦']] as const) {
+      i18n.setLanguage(language); fixture.detectChanges();
+      expect(element.querySelector('.product-harvest-ribbon')?.textContent).toBe(text);
+      expect(element.querySelector('.product-sold-out')?.textContent).toBe('SOLD OUT');
+      expect(element.querySelector('.product-quantity, .button--add')).toBeNull();
+    }
+    fixture.componentRef.setInput('product', products[0]); fixture.detectChanges();
+    expect(element.querySelector('.product-harvest-ribbon')).toBeNull();
+    i18n.setLanguage('ca');
+  });
+});

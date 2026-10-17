@@ -1,3 +1,4 @@
+import { HomeReveal } from '../home-reveal.directive';
 import { CA } from '../../../i18n/ca';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { Component, computed, inject } from '@angular/core';
@@ -6,7 +7,7 @@ import { Hero } from '../../../core/shared/page/hero/hero';
 import { InfoCard, type InfoCardContent } from '../../../core/shared/page/info-card/info-card';
 import { ProductCard } from '../../../core/shared/page/product-card/product-card';
 import { ProductFeatureCard } from '../../../core/shared/page/product-feature-card/product-feature-card';
-import { MediaCarousel } from '../../../core/shared/page/media-carousel/media-carousel';
+import { SocialCollage } from '../social-collage/social-collage';
 import { homeCarouselImages } from './home-carousel-images';
 import { ProductService } from '../../../services/product.service';
 import { AnimatedBanner } from '../../../core/shared/page/animated-banner/animated-banner';
@@ -14,7 +15,7 @@ import { AssortedPackPromotion } from '../assorted-pack-promotion/assorted-pack-
 
 @Component({
   selector: 'app-home-page',
-  imports: [TranslatePipe, Hero, InfoCard, ProductCard, ProductFeatureCard, BrandMessageCard, MediaCarousel, AnimatedBanner, AssortedPackPromotion],
+  imports: [HomeReveal, TranslatePipe, Hero, InfoCard, ProductCard, ProductFeatureCard, BrandMessageCard, SocialCollage, AnimatedBanner, AssortedPackPromotion],
   templateUrl: './home-page.html',
   styleUrl: './home-page.css'
 })

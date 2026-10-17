@@ -15,6 +15,7 @@ describe('InfoCard', () => {
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('article h2')?.textContent).toBe(content.text);
     expect(element.querySelector('img')?.getAttribute('src')).toBe(content.image.src);
+    expect(element.querySelector('img')?.parentElement?.classList.contains('info-card__bubble')).toBe(true);
     expect(element.querySelector('img')?.alt).toBe(content.image.alt);
     expect(element.querySelector('article')?.getAttribute('data-colour')).toBe('pink');
 
@@ -29,4 +30,26 @@ describe('InfoCard', () => {
     expect(element.querySelector('img')?.alt).toBe('Fulles de menta sobre un fons verd');
     expect(element.querySelector('article')?.getAttribute('data-colour')).toBe('green');
   });
+});
+
+
+it('starts idle only after the revealed image finishes its transform transition', async () => {
+  TestBed.configureTestingModule({ imports: [InfoCard] });
+  const fixture = TestBed.createComponent(InfoCard);
+  fixture.componentRef.setInput('content', { text: 'Benefit', colour: 'pink', image: { src: 'bubble.png', alt: 'Bubble' } });
+  await fixture.whenStable();
+  const host = fixture.nativeElement as HTMLElement;
+  const image = host.querySelector('img')!;
+  const end = (propertyName: string) => {
+    const event = new Event('transitionend', { bubbles: true });
+    Object.defineProperty(event, 'propertyName', { value: propertyName });
+    image.dispatchEvent(event); fixture.detectChanges();
+  };
+  end('transform');
+  expect(host.classList.contains('bubble-idle')).toBe(false);
+  host.classList.add('home-motion-revealed');
+  end('opacity');
+  expect(host.classList.contains('bubble-idle')).toBe(false);
+  end('transform');
+  expect(host.classList.contains('bubble-idle')).toBe(true);
 });

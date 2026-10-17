@@ -6,6 +6,9 @@
 
 >
   <a class="product-visual" [routerLink]="['/products', product().slug]" [attr.aria-label]="(product().name) | t">
+    @if (product().featureBackgroundImageUrl) {
+      <span class="product-harvest-ribbon">{{ 'product.harvestRibbon' | t }}</span>
+    }
     @if (product().cardImageUrl ?? product().imageUrl; as imageUrl) {
       <img [src]="imageUrl" [alt]="(imageAlt()) | t" loading="lazy" />
     }
@@ -20,6 +23,7 @@
 
     <p class="product-price">{{ priceLabel() }}</p>
 
+    <div class="product-final-row">
     @if (product().status === 'sold-out') {
       <p class="product-sold-out">{{ 'product.soldOut' | t }}</p>
     }
@@ -51,5 +55,6 @@
       </button>
     </div>
     }
+    </div>
   </div>
 </article>

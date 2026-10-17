@@ -89,14 +89,7 @@ app-product-feature-card {
   margin-bottom: var(--space-section);
 }
 
-app-media-carousel {
-  display: block;
-  margin-block: 0 var(--space-section);
-  padding-block-start: clamp(var(--space-group), 6.25vw, calc(var(--space-group) * 3));
-  background: var(--surface-page);
-}
-
-/* Keep complete words readable inside the narrow mobile panel. */@media (max-width: 47.99rem) {
+/* Keep complete words readable inside the narrow mobile panel. */@media (max-width: 63.99rem) {
   .info-section {
     --info-section-gap: calc(var(--space-group) * 0.625);
     padding: calc(var(--space-group) * 0.625) clamp(1.5rem, 5vw, var(--info-section-padding));
@@ -111,4 +104,24 @@ app-media-carousel {
     overflow-wrap: normal;
     text-wrap: balance;
   }
+}
+
+/* Motion is opt-in and never changes the compact layout's dimensions. */
+.info-benefits app-info-card:nth-child(1) { --bubble-entry: -8deg; --bubble-rest: -3deg; --bubble-delay: 0ms; }
+.info-benefits app-info-card:nth-child(2) { --bubble-entry: 7deg; --bubble-rest: 2deg; --bubble-delay: 120ms; }
+.info-benefits app-info-card:nth-child(3) { --bubble-entry: -6deg; --bubble-rest: -2deg; --bubble-delay: 240ms; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .info-introduction.home-motion-ready {
+    transition: opacity 750ms ease-out, transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .info-introduction.home-motion-ready:not(.home-motion-revealed) {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  .info-introduction.home-motion-ready:focus-within { transition: none; }
+}
+
+@media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
+  .info-introduction.home-motion-ready:not(.home-motion-revealed) { transform: translateY(32px); }
 }

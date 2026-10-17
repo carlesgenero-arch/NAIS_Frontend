@@ -1,3 +1,4 @@
+import { CA } from '../../../i18n/ca';
 import { MockProductService } from '../../../testing/product-fixture';
 import { TestBed } from '@angular/core/testing';
 import { ProductSelectedDetail } from './product-selected-detail';
@@ -139,4 +140,23 @@ describe('ProductSelectedDetail', () => {
     expect(element.querySelector('[aria-haspopup="dialog"]')).toBeNull();
     expect(element.querySelector('app-modal')).toBeNull();
   });
+});
+
+
+it('preserves Girona capitalization in the Harvest ingredients in CAT and CAST', async () => {
+  await TestBed.configureTestingModule({ imports: [ProductSelectedDetail] }).compileComponents();
+  const fixture = TestBed.createComponent(ProductSelectedDetail);
+  const harvest = new MockProductService().products.find(p => p.id === 'tropical-hops-harvest')!;
+  fixture.componentRef.setInput('product', { ...harvest,
+    ingredients: CA['ui.tropical_hops_fresh_hops_chinook_dels_camps_de_biolupulus_Girona'] });
+  await fixture.whenStable();
+  const translations = TestBed.inject(TranslationService);
+  for (const [language, expected] of [
+    ['ca', 'Tropical hops + fresh hops chinook dels camps de biolupulus-Girona'],
+    ['es', 'Tropical hops + fresh hops chinook de los campos de biolupulus-Girona'],
+  ] as const) {
+    translations.setLanguage(language);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.selected-detail__ingredients')?.textContent).toBe(expected);
+  }
 });
