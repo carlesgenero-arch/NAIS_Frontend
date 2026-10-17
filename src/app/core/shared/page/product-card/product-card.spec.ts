@@ -97,6 +97,7 @@ describe('ProductCard', () => {
 
 describe('ProductCard scroll reveal', () => {
   let notify: IntersectionObserverCallback;
+  let observerOptions: IntersectionObserverInit | undefined;
   const observe = vi.fn();
   const disconnect = vi.fn();
 
@@ -105,7 +106,10 @@ describe('ProductCard scroll reveal', () => {
     disconnect.mockClear();
     vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })));
     vi.stubGlobal('IntersectionObserver', class {
-      constructor(callback: IntersectionObserverCallback) { notify = callback; }
+      constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+        notify = callback;
+        observerOptions = options;
+      }
       observe = observe;
       disconnect = disconnect;
     });
@@ -131,13 +135,21 @@ describe('ProductCard scroll reveal', () => {
     const fixture = await setup();
     const host = fixture.nativeElement as HTMLElement;
     expect(observe).toHaveBeenCalledWith(host);
+    expect(observerOptions?.threshold).toBe(0.3);
     expect(host.classList.contains('product-card--reveal')).toBe(true);
-    const emit = (isIntersecting: boolean) => notify(
-      [{ isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver);
+    const emit = (isIntersecting: boolean, intersectionRatio = isIntersecting ? 0.3 : 0) => notify(
+      [{ isIntersecting, intersectionRatio } as IntersectionObserverEntry], {} as IntersectionObserver);
     emit(false);
     fixture.detectChanges();
     expect(host.classList.contains('product-card--revealed')).toBe(false);
-    emit(true);
+    // Even an initial isIntersecting callback must wait for meaningful visibility.
+    emit(true, 0.1);
+    fixture.detectChanges();
+    expect(host.classList.contains('product-card--revealed')).toBe(false);
+    emit(true, 0.29);
+    fixture.detectChanges();
+    expect(host.classList.contains('product-card--revealed')).toBe(false);
+    emit(true, 0.3);
     fixture.detectChanges();
     expect(host.classList.contains('product-card--revealed')).toBe(true);
     expect(disconnect).toHaveBeenCalled();
@@ -146,6 +158,12 @@ describe('ProductCard scroll reveal', () => {
     expect(host.classList.contains('product-card--revealed')).toBe(true);
     fixture.destroy();
     expect(disconnect).toHaveBeenCalledTimes(2);
+  });
+
+  it('disconnects observation when navigating away before reveal', async () => {
+    const fixture = await setup();
+    fixture.destroy();
+    expect(disconnect).toHaveBeenCalledTimes(1);
   });
 
   it('reveals immediately for keyboard focus', async () => {

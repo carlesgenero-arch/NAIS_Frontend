@@ -202,7 +202,7 @@ export const PRODUCT_PRESENTATION: Readonly<Record<string, Presentation>> = {
       }
     ],
     "format": CA['ui.pack_16_llaunes_x_250_ml'],
-    "ingredients": CA['ui.tropical_hops_fresh_hops_chinook_dels_camps_de_biolupulus_girona'],
+    "ingredients": CA['ui.tropical_hops_fresh_hops_chinook_dels_camps_de_biolupulus_Girona'],
     "imageAlt": CA['ui.llauna_de_tropical_hops_harvest_amb_illustracions_blaves_i_verdes_de_llupol'],
     "fruitImage": {
       "url": "images/info-card/s_hop (2).jpg",

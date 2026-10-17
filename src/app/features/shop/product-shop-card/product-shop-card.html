@@ -20,6 +20,7 @@
 
     <p class="product-price">{{ priceLabel() }}</p>
 
+    <div class="product-final-row">
     @if (product().status === 'sold-out') {
       <p class="product-sold-out">{{ 'product.soldOut' | t }}</p>
     }
@@ -51,5 +52,6 @@
       </button>
     </div>
     }
+    </div>
   </div>
 </article>

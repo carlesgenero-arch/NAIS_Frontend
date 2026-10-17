@@ -38,11 +38,14 @@ describe('HomePage product placement', () => {
     expect(packLink?.getAttribute('aria-label')).toBeTruthy();
     expect(packLink?.querySelector('img')?.getAttribute('src')).toBe('images/products/pack_3.png');
     const stickers = promotion?.querySelector('.pack-botanicals');
-    expect(stickers?.previousElementSibling?.classList.contains('pack-cta')).toBe(true);
+    expect(stickers?.previousElementSibling?.classList.contains('pack-copy')).toBe(true);
+    expect(stickers?.nextElementSibling?.classList.contains('pack-cta')).toBe(true);
+    expect(stickers?.parentElement?.classList.contains('pack-content')).toBe(true);
     expect(packLink?.contains(stickers ?? null)).toBe(false);
     expect(Array.from(stickers?.querySelectorAll('img') ?? []).map(image => image.getAttribute('src')))
       .toEqual(['images/info-card/orange.png', 'images/info-card/mint.png',
-        'images/info-card/gingebre.png', 'images/info-card/mango.png']);
+        'images/info-card/gingebre.png', 'images/info-card/raspberries (1).png',
+        'images/info-card/lemon.jpg', 'images/info-card/mango.png']);
     const translations = TestBed.inject(TranslationService);
     translations.setLanguage('ca');
     fixture.detectChanges();

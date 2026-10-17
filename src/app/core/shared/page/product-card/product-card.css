@@ -289,33 +289,55 @@
   }
 }
 
-/* Home-only, one-shot reveal. Reduced motion retains the untransformed base styles. */
+/* Home-only editorial layers: keep the coloured panels fixed while their content enters.
+   The visual wrapper owns reveal transforms so can rotation and fruit hover stay independent. */
 @media (prefers-reduced-motion: no-preference) {
-  :host(.product-card--reveal) .content,
-  :host(.product-card--reveal) .visual {
-    transition: opacity 400ms ease-out, transform 400ms ease-out;
+  :host(.product-card--reveal) {
+    --reveal-image-x: 48px;
+    --reveal-text-x: -28px;
+    --reveal-image-y: 48px;
+    --reveal-text-y: 36px;
   }
 
-  :host(.product-card--reveal:not(.product-card--revealed)) .content {
-    opacity: 0.2;
-    transform: translateX(-48px);
+  :host(.product-card--reveal) .visual {
+    transition: opacity 900ms ease-out, transform 1100ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  :host(.product-card--reveal) .content > * {
+    transition: opacity 850ms ease-out 180ms, transform 1050ms cubic-bezier(0.22, 1, 0.36, 1) 180ms;
   }
 
   :host(.product-card--reveal:not(.product-card--revealed)) .visual {
-    opacity: 0.2;
-    transform: translateX(48px);
+    opacity: 0;
+    transform: translate(var(--reveal-image-x), var(--reveal-image-y)) scale(0.94);
   }
 
+  :host(.product-card--reveal:not(.product-card--revealed)) .content > * {
+    opacity: 0;
+    transform: translate(var(--reveal-text-x), var(--reveal-text-y));
+  }
+
+  /* Keyboard focus reveals immediately; never leave a focused CTA fading in. */
+  :host(.product-card--reveal:focus-within) .visual,
+  :host(.product-card--reveal:focus-within) .content > * {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
-/* Reversed entrance directions apply only to the two-column layout. */
+/* Larger, alternating entrances only when the layout has two columns. */
 @media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
-  :host(.product-card--image-left.product-card--reveal:not(.product-card--revealed)) .content {
-    transform: translateX(48px);
+  :host(.product-card--reveal) {
+    --reveal-image-x: 100px;
+    --reveal-text-x: -60px;
+    --reveal-image-y: 55px;
+    --reveal-text-y: 45px;
   }
 
-  :host(.product-card--image-left.product-card--reveal:not(.product-card--revealed)) .visual {
-    transform: translateX(-48px);
+  :host(.product-card--image-left.product-card--reveal) {
+    --reveal-image-x: -100px;
+    --reveal-text-x: 60px;
   }
 }
 

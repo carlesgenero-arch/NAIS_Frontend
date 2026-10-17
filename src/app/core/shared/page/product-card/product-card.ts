@@ -40,8 +40,9 @@ export class ProductCard {
         || typeof window.matchMedia !== 'function'
         || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       this.observer = new IntersectionObserver(entries => {
-        if (entries.some(entry => entry.isIntersecting)) this.reveal();
-      }, { threshold: 0.1 });
+        // Initial observer callbacks can intersect below the configured threshold.
+        if (entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.3)) this.reveal();
+      }, { threshold: 0.3 });
       this.revealEnabled.set(true);
       this.observer.observe(element);
     });

@@ -86,3 +86,29 @@ describe('ProductShopCard', () => {
   });
 });
 
+
+
+describe('Shop shared content rows', () => {
+  it('keeps pack controls and Harvest status in the same terminal row without extra content siblings', async () => {
+    await TestBed.configureTestingModule({ imports: [ProductShopCard], providers: [provideRouter([])] }).compileComponents();
+    const samples = new MockProductService().products;
+    for (const id of ['pack-variat', 'tropical-hops-harvest']) {
+      const fixture = TestBed.createComponent(ProductShopCard);
+      const product = samples.find(p => p.id === id)!;
+      fixture.componentRef.setInput('product', id === 'tropical-hops-harvest' ? { ...product, status: 'sold-out' } : product);
+      await fixture.whenStable();
+      const details = (fixture.nativeElement as HTMLElement).querySelector('.product-details')!;
+      expect([...details.children].map(el => el.tagName)).toEqual(['H2', 'P', 'P', 'DIV']);
+      const finalRow = details.querySelector('.product-final-row')!;
+      expect(finalRow).not.toBeNull();
+      if (id === 'pack-variat') {
+        expect(finalRow.querySelector('.product-actions')).not.toBeNull();
+        expect(finalRow.querySelector('.product-sold-out')).toBeNull();
+      } else {
+        expect(finalRow.querySelector('.product-sold-out')?.textContent).toBe('SOLD OUT');
+        expect(finalRow.querySelector('button')).toBeNull();
+      }
+      fixture.destroy();
+    }
+  });
+});

@@ -158,7 +158,7 @@ export const ES: Record<TranslationKey, string> = {
   "ui.hop_on_a_purple_background": "Lúpulo sobre fondo morado",
   "product.assortedPack.format": "Pack variado de 3 sabores (16 x 250ml)",
   "product.assortedPack.imageAlt": "Pack variado de NAIS Drinks con Orange Spritz, Passion Hugo y Ginger Crush",
-  "ui.tropical_hops_fresh_hops_chinook_dels_camps_de_biolupulus_girona": "TROPICAL HOPS + FRESH HOPS CHINOOK DE LOS CAMPOS DE BIOLUPULUS-GIRONA",
+  "ui.tropical_hops_fresh_hops_chinook_dels_camps_de_biolupulus_Girona": "TROPICAL HOPS + FRESH HOPS CHINOOK DE LOS CAMPOS DE BIOLUPULUS-GIRONA",
   "ui.llauna_de_tropical_hops_harvest_amb_illustracions_blaves_i_verdes_de_llupol": "Lata de Tropical Hops Harvest con ilustraciones azules y verdes de lúpulo",
   "ui.nova_collita": "NUEVA COSECHA",
   "ui.destacat": "DESTACADO",
