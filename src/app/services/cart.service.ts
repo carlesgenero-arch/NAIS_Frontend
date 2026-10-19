@@ -1,6 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { take } from 'rxjs';
+import { ReplaySubject, take } from 'rxjs';
 import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { CartEntry, MAX_CART_QUANTITY } from '../models/cart.interface';
 import { CartItem } from '../models/product.interface';
@@ -17,6 +17,10 @@ export class CartService {
   private get catalogue() { return this.products.activeProducts; }
   private readonly storage = this.getStorage(inject(PLATFORM_ID));
   private readonly state = signal<readonly CartEntry[]>(Object.freeze([]));
+
+  private readonly restored = new ReplaySubject<void>(1);
+  /** Emits once after initial persisted-cart restoration, including an empty cart. */
+  readonly restored$ = this.restored.asObservable();
 
   readonly entries = this.state.asReadonly();
   readonly items = computed<readonly Readonly<CartItem>[]>(() => this.entries().flatMap(entry => {
@@ -40,8 +44,13 @@ export class CartService {
   });
 
   constructor() {
-    if (this.products.loaded()) this.restore();
-    else this.products.ready$.pipe(take(1), takeUntilDestroyed()).subscribe(() => this.restore());
+    const restoreCart = () => {
+      this.restore();
+      this.restored.next();
+      this.restored.complete();
+    };
+    if (this.products.loaded()) restoreCart();
+    else this.products.ready$.pipe(take(1), takeUntilDestroyed()).subscribe(restoreCart);
   }
 
   /** False means validation failed; state is unchanged. */

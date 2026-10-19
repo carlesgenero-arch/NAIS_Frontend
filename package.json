@@ -14,7 +14,11 @@
     "preview:order-email": "node scripts/preview-order-email.mjs",
     "d1:local:migrate": "npx wrangler d1 migrations apply PROMO_DB --local",
     "d1:local:tables": "npx wrangler d1 execute PROMO_DB --local --command \"SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name;\"",
-    "test:checkout": "node --test server/checkout-rate-limit.test.mjs server/checkout-infrastructure.test.mjs server/checkout-validation.test.mjs server/checkout-session.test.mjs"
+    "test:checkout": "node --test server/checkout-rate-limit.test.mjs server/checkout-infrastructure.test.mjs server/checkout-validation.test.mjs server/checkout-session.test.mjs server/local-checkout.test.mjs",
+    "dev:checkout:limiter": "node scripts/local-checkout.mjs limiter",
+    "dev:checkout:api": "node scripts/local-checkout.mjs api",
+    "checkout:local:check": "node scripts/local-checkout.mjs check",
+    "checkout:local:sync-prices": "node scripts/local-checkout.mjs sync-prices"
   },
   "prettier": {
     "printWidth": 100,

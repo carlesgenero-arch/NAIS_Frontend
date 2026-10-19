@@ -19,29 +19,45 @@ export class PromoTurnstile {
   private readonly destroyRef = inject(DestroyRef);
   private handle?: TurnstileHandle;
   private mounting = false;
+  private settled = false;
+  private verificationTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
     afterNextRender(() => void this.mount());
-    this.destroyRef.onDestroy(() => this.handle?.destroy());
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(this.verificationTimer);
+      this.handle?.destroy();
+    });
+  }
+
+  private fail(): void {
+    if (this.destroyRef.destroyed || this.settled) return;
+    this.settled = true;
+    clearTimeout(this.verificationTimer);
+    this.verificationFailed.emit();
   }
 
   private async mount(): Promise<void> {
     if (this.mounting) return;
     this.mounting = true;
+    // Bound the entire config/script/challenge wait, including missing provider callbacks.
+    this.verificationTimer = setTimeout(() => this.fail(), 120_000);
     try {
       const handle = await this.service.mount(this.container().nativeElement, this.i18n.language(),
         value => {
-          if (!this.destroyRef.destroyed) {
-            this.tokenChange.emit(value);
-          }
+          if (this.destroyRef.destroyed || this.settled) return;
+          if (!value.trim()) { this.fail(); return; }
+          this.settled = true;
+          clearTimeout(this.verificationTimer);
+          this.tokenChange.emit(value);
         },
-        () => { if (!this.destroyRef.destroyed) this.verificationFailed.emit(); });
-      if (this.destroyRef.destroyed) handle.destroy(); else {
+        () => this.fail());
+      if (this.destroyRef.destroyed || this.settled) handle.destroy(); else {
         this.handle = handle;
         handle.execute();
       }
     } catch {
-      if (!this.destroyRef.destroyed) this.verificationFailed.emit();
+      this.fail();
     } finally { this.mounting = false; }
   }
 }

@@ -1,6 +1,6 @@
 import { MockProductService } from '../../../testing/product-fixture';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { NavigationEnd, provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../../app.routes';
 import { Header } from '../../../core/shared/base/header/header';
@@ -337,6 +337,57 @@ describe('Cart page', () => {
     expect(cart.totalQuantity()).toBe(3);
     fixture.detectChanges();
     expect(button.disabled).toBe(true);
+  });
+
+  it.each(['pageshow', 'route navigation'])('resets after %s without clearing the cart and allows a second checkout', async returnPath => {
+    const cart = TestBed.inject(CartService);
+    cart.addItem('orange-spritz');
+    const saved = stored.get(CART_STORAGE_KEY);
+    const { fixture, button } = drawer();
+    button.click();
+    response.next({ url: 'https://checkout.stripe.com/c/pay/test' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(button.disabled).toBe(true);
+    button.click();
+    expect(createCheckout).toHaveBeenCalledTimes(1);
+
+    if (returnPath === 'pageshow') {
+      window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+    } else {
+      (TestBed.inject(Router).events as Subject<unknown>).next(new NavigationEnd(1, '/checkout/cancel', '/checkout/cancel'));
+    }
+    fixture.detectChanges();
+    expect(button.disabled).toBe(false);
+    expect(button.getAttribute('aria-busy')).toBe('false');
+    expect(cart.totalQuantity()).toBe(1);
+    expect(stored.get(CART_STORAGE_KEY)).toBe(saved);
+
+    response = new Subject<CheckoutResponse>();
+    button.click();
+    button.click();
+    expect(createCheckout).toHaveBeenCalledTimes(2);
+    response.next({ url: 'https://checkout.stripe.com/c/pay/second' });
+    await fixture.whenStable();
+    expect(redirect).toHaveBeenCalledTimes(2);
+    expect(redirect).toHaveBeenLastCalledWith('https://checkout.stripe.com/c/pay/second');
+    expect(cart.totalQuantity()).toBe(1);
+    expect(stored.get(CART_STORAGE_KEY)).toBe(saved);
+  });
+
+  it('does not unlock a checkout request still in flight on page show or route navigation', async () => {
+    TestBed.inject(CartService).addItem('orange-spritz');
+    const { fixture, button } = drawer();
+    button.click();
+    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+    (TestBed.inject(Router).events as Subject<unknown>).next(new NavigationEnd(1, '/products', '/products'));
+    button.click();
+    fixture.detectChanges();
+    expect(button.disabled).toBe(true);
+    expect(createCheckout).toHaveBeenCalledTimes(1);
+    response.next({ url: 'https://checkout.stripe.com/c/pay/test' });
+    await fixture.whenStable();
+    expect(redirect).toHaveBeenCalledTimes(1);
   });
 
   it('re-enables checkout after failure without clearing cart or persisted items', async () => {

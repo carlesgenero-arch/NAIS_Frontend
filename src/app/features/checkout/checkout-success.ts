@@ -3,7 +3,7 @@ import { TranslatePipe } from '../../i18n/translate.pipe';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, distinctUntilChanged, map, Observable, of, startWith, switchMap, tap, timer } from 'rxjs';
+import { catchError, combineLatest, distinctUntilChanged, map, Observable, of, startWith, switchMap, take, tap, timer } from 'rxjs';
 import { isCheckoutSessionId, PublicOrderSummary } from '../../../shared/order-summary';
 import { OrderLookupService } from '../../services/order-lookup.service';
 import { CartService } from '../../services/cart.service';
@@ -43,15 +43,21 @@ export class CheckoutSuccess {
     switchMap(sessionId => {
       if (!sessionId) return of<OrderState>({ status: 'missing' });
       if (!isCheckoutSessionId(sessionId)) return of<OrderState>({ status: 'invalid' });
-      const requestedCart = this.cart.getPayload().items;
-      return this.findOrder(sessionId).pipe(
-        tap(order => {
-          if (order?.paymentStatus === 'paid') {
-            this.promotionModal.suppressAfterPurchase();
+      // A full-page Stripe return can verify before the catalogue restores the cart.
+      // Capture its baseline after restoration, once, without delaying verification.
+      const requestedCart$ = this.cart.restored$.pipe(
+        take(1), map(() => this.cart.getPayload().items), startWith(null),
+      );
+      const verification$ = this.findOrder(sessionId).pipe(
+        tap(order => { if (order?.paymentStatus === 'paid') this.promotionModal.suppressAfterPurchase(); }),
+      );
+      return combineLatest([requestedCart$, verification$]).pipe(
+        tap(([requestedCart, order]) => {
+          if (order?.paymentStatus === 'paid' && requestedCart !== null) {
             this.verifiedCart.clearOnce(order, requestedCart);
           }
         }),
-        map((order): OrderState => !order ? { status: 'pending' }
+        map(([, order]): OrderState => !order ? { status: 'pending' }
           : order.paymentStatus === 'paid' ? { status: 'verified', order } : { status: 'not-paid' }),
         catchError(() => of<OrderState>({ status: 'error' })),
         startWith<OrderState>({ status: 'loading' }),

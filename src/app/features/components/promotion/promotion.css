@@ -3,8 +3,8 @@
 .promotion-content { display: flex; flex-direction: column; min-width: 0; min-block-size: 18rem; text-align: center; }
 .promotion-subtitle { margin: 0 0 0.75rem; font-weight: 700; font-size: clamp(1.125rem, 4vw, 1.375rem); line-height: 1.3; text-wrap: balance; }
 form { display: grid; gap: 0.5rem; }
-/* Half the usual form gap on each side; an automatic hidden challenge adds no extra row space. */
-app-promo-turnstile { display: block; min-block-size: 0rem; block-size:0; margin:0; }
+/* Let a required challenge occupy its real height, without overlapping the submit button. */
+app-promo-turnstile { display: block; min-block-size: 0; margin: 0; }
 .promotion-email-label {
   position: absolute;
   width: 1px;
