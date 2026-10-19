@@ -8,7 +8,7 @@ import { CheckoutService } from '../../../services/checkout.service';
 import { RouterLink } from '@angular/router';
 import { MAX_CART_QUANTITY } from '../../../models/cart.interface';
 import { CartService } from '../../../services/cart.service';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { FREE_SHIPPING_MIN_BOXES, shippingAmountCents } from '../../../../shared/shipping-rules';
 import { computed } from '@angular/core';
 
@@ -29,7 +29,10 @@ export const CHECKOUT_REDIRECT = new InjectionToken<(url: string) => void>('Chec
   imports: [TranslatePipe, RouterLink],
   templateUrl: './cart.html',
   styleUrl: './cart.css',
-  host: { '[class.drawer-cart]': "presentation() === 'drawer'" },
+  host: {
+    '[class.drawer-cart]': "presentation() === 'drawer'",
+    '(window:pageshow)': 'resetCheckoutAfterReturn()',
+  },
 })
 export class Cart {
   protected readonly i18n = inject(TranslationService);
@@ -50,7 +53,22 @@ export class Cart {
   private readonly redirect = inject(CHECKOUT_REDIRECT);
   private readonly currency = () => new Intl.NumberFormat(this.i18n.locale(), { style: 'currency', currency: 'EUR' });
   private readonly router = inject(Router);
-  
+  private checkoutRedirecting = false;
+
+  constructor() {
+    // The header drawer survives Angular navigation, including checkout cancellation.
+    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
+      if (event instanceof NavigationEnd) this.resetCheckoutAfterReturn();
+    });
+  }
+
+  protected resetCheckoutAfterReturn(): void {
+    // pageshow also fires when the browser restores this page from its back/forward cache.
+    // Never unlock a request whose Checkout Session is still being created.
+    if (!this.checkoutRedirecting) return;
+    this.checkoutRedirecting = false;
+    this.checkoutLoading.set(false);
+  }
 
   protected async requestCheckout(): Promise<void> {
     if (this.checkoutLoading() || this.cart.isEmpty() || this.cart.subtotalCents() === null) return;
@@ -72,9 +90,10 @@ export class Cart {
     // Keep submissions disabled while the browser leaves for the validated Stripe URL.
     if (this.destroyRef.destroyed) return;
     try {
+      this.checkoutRedirecting = true;
       this.redirect(checkoutUrl);
     } catch {
-      this.checkoutLoading.set(false);
+      this.resetCheckoutAfterReturn();
       this.checkoutMessage.set(CA['ui.no_s_ha_pogut_iniciar_el_pagament_torna_ho_a_provar']);
     }
   }

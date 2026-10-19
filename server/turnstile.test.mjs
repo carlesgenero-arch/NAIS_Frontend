@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { verifyPromoToken } from './promotions/turnstile.ts';
 import { promoSignup } from './promotions/promo-signup.ts';
@@ -113,4 +113,111 @@ test('local dummy responses with missing action or unexpected hostname remain re
     { success: true, hostname: 'localhost' },
     { success: true, action: 'test', hostname: 'example.com' },
   ]) assert.equal(await verifyPromoToken('XXXX.DUMMY.TOKEN.XXXX', local, bindings, async () => Response.json(value)), 'invalid');
+});
+
+
+test('real local handler logs only safe Siteverify fields before returning verification_failed', async () => {
+  const logs = [];
+  const logger = mock.method(console, 'info', line => logs.push(JSON.parse(line)));
+  try {
+    const providerResult = { success: true, 'error-codes': [], hostname: 'example.com', action: 'test',
+      secret: 'DO_NOT_LOG_SECRET', token: 'DO_NOT_LOG_TOKEN', email: 'do-not-log@example.com' };
+    const result = await promoSignup(new Request('http://127.0.0.1:8788/api/promo-signup', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'do-not-log@example.com', turnstileToken: 'DO_NOT_LOG_TOKEN' }),
+    }), { TURNSTILE_SECRET_KEY: 'DO_NOT_LOG_SECRET', TURNSTILE_EXPECTED_ACTION: 'test',
+      SITE_URL: 'http://localhost:4200' }, () => { throw Error('Must not create Stripe client'); }, async () => {
+      assert.equal(logs.length, 0);
+      return Response.json(providerResult);
+    });
+    assert.equal(result.status, 400);
+    assert.deepEqual(await result.json(), { status: 'verification_failed' });
+    assert.deepEqual(logs, [{ success: true, 'error-codes': [], hostname: 'example.com', action: 'test' }]);
+  } finally { logger.mock.restore(); }
+});
+
+test('local invalid token and Siteverify failure paths both log before returning invalid', async () => {
+  const logs = [];
+  const logger = mock.method(console, 'info', line => logs.push(JSON.parse(line)));
+  try {
+    const local = new Request('http://localhost:8788/api/promo-signup');
+    assert.equal(await verifyPromoToken(undefined, local, env), 'invalid');
+    assert.equal(await verifyPromoToken('token', local, env, async () => Response.json({
+      success: false, 'error-codes': ['timeout-or-duplicate', 'DO_NOT_LOG_SECRET'],
+      hostname: 'customer@example.com', action: 'DO.NOT.LOG.TOKEN',
+    })), 'invalid');
+    assert.deepEqual(logs, [
+      { success: null, 'error-codes': [], hostname: null, action: null },
+      { success: false, 'error-codes': ['timeout-or-duplicate', 'unknown-error'], hostname: null, action: null },
+    ]);
+  } finally { logger.mock.restore(); }
+});
+
+test('production verification does not emit local diagnostics or change validation', async () => {
+  const logger = mock.method(console, 'info', () => {});
+  try {
+    assert.equal(await verifyPromoToken('token', request(), env, async () => Response.json({ ...valid, action: 'test' })), 'invalid');
+    assert.equal(logger.mock.callCount(), 0);
+  } finally { logger.mock.restore(); }
+});
+
+
+const officialLocalTest = {
+  TURNSTILE_SITE_KEY: '3x00000000000000000000FF',
+  TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA',
+  TURNSTILE_EXPECTED_ACTION: 'test', SITE_URL: 'http://localhost:4200',
+};
+const syntheticTestResult = { success: true, 'error-codes': [], hostname: 'example.com', action: null };
+
+for (const siteKey of ['1x00000000000000000000AA', '3x00000000000000000000FF']) {
+test(`official local synthetic response with ${siteKey} is accepted only after successful Siteverify`, async () => {
+  const bindings = { ...officialLocalTest, TURNSTILE_SITE_KEY: siteKey };
+  // Deliberately unrelated request hostname: local mode comes only from bindings.
+  const localRequest = new Request('https://untrusted-request.example/api/promo-signup');
+  for (const action of [null, undefined]) {
+    let calls = 0;
+    assert.equal(await verifyPromoToken('test-token', localRequest, bindings, async (url, options) => {
+      calls++;
+      assert.equal(url, 'https://challenges.cloudflare.com/turnstile/v0/siteverify');
+      assert.equal(JSON.parse(options.body).response, 'test-token');
+      return Response.json({ ...syntheticTestResult, action });
+    }), 'valid');
+    assert.equal(calls, 1);
+  }
+  for (const success of [false, 'true', 1, null]) {
+    assert.equal(await verifyPromoToken('token', localRequest, bindings,
+      async () => Response.json({ ...syntheticTestResult, success })), 'invalid');
+  }
+  assert.equal(await verifyPromoToken(undefined, localRequest, bindings,
+    () => { throw Error('Must not call Siteverify without a token'); }), 'invalid');
+  assert.equal(await verifyPromoToken('token', localRequest, bindings,
+    async () => { throw Error('Provider unavailable'); }), 'unavailable');
+});
+}
+
+test('synthetic response allowance requires every local configuration guard and exact dummy context', async () => {
+  const localRequest = new Request('http://localhost:8788/api/promo-signup');
+  for (const change of [
+    { TURNSTILE_SITE_KEY: undefined }, { TURNSTILE_SITE_KEY: 'real-public-key' },
+    { TURNSTILE_SECRET_KEY: 'real-secret' }, { TURNSTILE_EXPECTED_ACTION: 'promo_signup' },
+    { SITE_URL: undefined }, { SITE_URL: 'https://naisdrinks.com' },
+  ]) {
+    assert.equal(await verifyPromoToken('token', localRequest, { ...officialLocalTest, ...change },
+      async () => Response.json(syntheticTestResult)), 'invalid');
+  }
+  for (const change of [{ hostname: 'evil.example' }, { action: 'checkout' }, { action: '' }]) {
+    assert.equal(await verifyPromoToken('token', localRequest, officialLocalTest,
+      async () => Response.json({ ...syntheticTestResult, ...change })), 'invalid');
+  }
+});
+
+test('production retains strict hostname/action checks including absent and null actions', async () => {
+  const production = { ...env, TURNSTILE_SITE_KEY: 'real-public-key',
+    TURNSTILE_EXPECTED_ACTION: 'promo_signup', SITE_URL: 'https://naisdrinks.com' };
+  assert.equal(await verifyPromoToken('token', request(), production, async () => Response.json(valid)), 'valid');
+  for (const response of [syntheticTestResult, { ...valid, hostname: 'example.com' },
+    { ...valid, action: 'test' }, { ...valid, action: null },
+    { success: true, hostname: valid.hostname }]) {
+    assert.equal(await verifyPromoToken('token', request(), production, async () => Response.json(response)), 'invalid');
+  }
 });

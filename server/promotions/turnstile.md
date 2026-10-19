@@ -48,11 +48,17 @@ SITE_URL=http://localhost:4200
 ```
 
 These are public test credentials, never production credentials. Restart the single
-Wrangler Pages dev instance after editing `.dev.vars`. Cloudflare's illustrative dummy response uses action `test` and hostname
-`localhost`; actual responses can differ. Missing action or a hostname such as
-`example.com` is still rejected by strict local validation. The existing
-`SITE_URL` hostname check must still match the returned hostname. There is no hostname bypass. A separate real development widget
-uses `TURNSTILE_EXPECTED_ACTION=promo_signup` instead.
+Wrangler Pages dev instance after editing `.dev.vars`. Official always-pass and forced-interaction
+test responses can use `hostname: "example.com"` with missing/null `action`.
+Only that synthetic context is accepted when ALL four server-owned settings above
+match: test sitekey `1x00000000000000000000AA` or `3x00000000000000000000FF`,
+official always-pass test secret, expected
+action `test`, and a loopback `SITE_URL` (`localhost`, `127.0.0.1`, or `[::1]`).
+No mode is inferred from the request hostname, headers or token. Siteverify must
+still return HTTP success and `success === true`; invalid/missing tokens and
+provider failures are not bypassed. All other contexts use the existing strict
+hostname/action checks. A real development widget uses
+`TURNSTILE_EXPECTED_ACTION=promo_signup` and its actual keys instead.
 
 Never deploy dummy credentials or `TURNSTILE_EXPECTED_ACTION=test` to Production.
 Production requires the real widget/secret and `TURNSTILE_EXPECTED_ACTION=promo_signup`.
@@ -97,3 +103,16 @@ References:
 - https://developers.cloudflare.com/turnstile/get-started/widget-management/dashboard/
 
 - https://developers.cloudflare.com/turnstile/troubleshooting/testing/
+
+
+### Temporary local Wrangler diagnostic
+
+On loopback API URLs (`localhost`, `127.0.0.1`, `[::1]`), the verifier emits one
+`console.info` JSON line with only `success`, `error-codes`, `hostname`, and `action`
+before evaluating the Siteverify result. It also emits null metadata for a token
+rejected before Siteverify. No diagnostic environment flag is required. Restart
+Wrangler after updating this server module, submit again, and inspect the Wrangler
+terminal (not the Angular terminal or browser console). Keep the default Wrangler
+log level, or use `--log-level info` if it was previously set to `warn`/`error`.
+There is no diagnostic output on production hostnames. Responses and validation
+are unchanged; unknown error codes and malformed metadata are sanitized.

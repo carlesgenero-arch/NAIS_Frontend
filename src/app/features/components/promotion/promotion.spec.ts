@@ -35,6 +35,8 @@ describe('Promotion', () => {
   afterEach(() => {
     TestBed.resetTestingModule();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    Reflect.deleteProperty(window, 'turnstile');
     for (const [name, descriptor] of [['showModal', showDescriptor], ['close', closeDescriptor]] as const) {
       if (descriptor) Object.defineProperty(HTMLDialogElement.prototype, name, descriptor);
       else Reflect.deleteProperty(HTMLDialogElement.prototype, name);
@@ -184,7 +186,6 @@ describe('Promotion', () => {
     expect(register).not.toHaveBeenCalled();
     form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     expect(mount).toHaveBeenCalledOnce();
-    receiveToken(''); expect(register).not.toHaveBeenCalled();
     receiveToken('valid-token'); receiveToken('valid-token');
     await fixture.whenStable(); fixture.detectChanges();
     expect(register).toHaveBeenCalledExactlyOnceWith('user@example.com', 'valid-token');
@@ -334,6 +335,111 @@ describe('Promotion', () => {
     fixture.detectChanges();
     expect(element.querySelector('.promotion-success')?.textContent).toContain('Registre confirmat');
   });
+
+  it('bounds a silent token wait, ignores a late token and allows a fresh retry', async () => {
+    const callbacks: ((token: string) => void)[] = [];
+    const destroy = vi.fn();
+    TestBed.overrideProvider(TurnstileService, { useValue: {
+      mount: async (_container: HTMLElement, _language: string, token: (value: string) => void) => {
+        callbacks.push(token);
+        return { execute: vi.fn(), reset: vi.fn(), destroy };
+      },
+    } });
+    const timers = vi.spyOn(globalThis, 'setTimeout');
+    const { fixture, element } = await create();
+    const input = element.querySelector('input')!;
+    input.value = 'user@example.com'; input.dispatchEvent(new Event('input'));
+    const submit = () => element.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    submit(); fixture.detectChanges(); await fixture.whenStable();
+    expect(element.querySelector<HTMLButtonElement>('button[type=submit]')!.disabled).toBe(true);
+    const deadline = timers.mock.calls.find(call => call[1] === 120_000)![0] as () => void;
+    deadline(); fixture.detectChanges();
+    expect(element.querySelector<HTMLButtonElement>('button[type=submit]')!.disabled).toBe(false);
+    expect(element.querySelector('#promotion-error')!.textContent!.trim()).not.toBe('');
+    expect(destroy).toHaveBeenCalledOnce();
+    callbacks[0]('late-token');
+    expect(register).not.toHaveBeenCalled();
+    submit(); fixture.detectChanges(); await fixture.whenStable();
+    callbacks[1]('fresh-token'); await fixture.whenStable(); fixture.detectChanges();
+    expect(register).toHaveBeenCalledExactlyOnceWith('user@example.com', 'fresh-token');
+    expect(element.querySelector('.promotion-success')).not.toBeNull();
+    expect([...values]).toEqual([[PROMOTION_SESSION_KEY, '1']]);
+  });
+
+  it('bounds a stalled widget mount and removes the handle if it arrives after timeout', async () => {
+    let finishMount!: (handle: { execute: () => void; reset: () => void; destroy: () => void }) => void;
+    TestBed.overrideProvider(TurnstileService, { useValue: {
+      mount: () => new Promise(resolve => { finishMount = resolve; }),
+    } });
+    const timers = vi.spyOn(globalThis, 'setTimeout');
+    const { fixture, element } = await create();
+    const input = element.querySelector('input')!;
+    input.value = 'user@example.com'; input.dispatchEvent(new Event('input'));
+    element.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    fixture.detectChanges();
+    (timers.mock.calls.find(call => call[1] === 120_000)![0] as () => void)();
+    fixture.detectChanges();
+    const handle = { execute: vi.fn(), reset: vi.fn(), destroy: vi.fn() };
+    finishMount(handle); await fixture.whenStable();
+    expect(handle.execute).not.toHaveBeenCalled();
+    expect(handle.destroy).toHaveBeenCalledOnce();
+    expect(element.querySelector<HTMLButtonElement>('button[type=submit]')!.disabled).toBe(false);
+    expect(register).not.toHaveBeenCalled();
+  });
+
+  it.each(['registered', 'unavailable', 'expired', 'error', 'empty'])(
+    'runs the real token-to-POST integration and recovers from %s', async outcome => {
+      TestBed.overrideProvider(TurnstileService, { useFactory: () => new TurnstileService() });
+      TestBed.overrideProvider(PromoSignupService, { useFactory: () => new PromoSignupService() });
+      type Options = Record<string, unknown> & {
+        callback: (token: string) => void;
+        'expired-callback': () => void;
+        'error-callback': () => void;
+      };
+      const widgets: Options[] = [];
+      const execute = vi.fn(); const remove = vi.fn();
+      Object.assign(window, { turnstile: {
+        render: (_container: HTMLElement, options: Options) => { widgets.push(options); return String(widgets.length); },
+        execute, reset: vi.fn(), remove,
+      } });
+      const fetchMock = vi.fn(async (url: string) => url === '/api/promo-config'
+        ? Response.json({ siteKey: '3x00000000000000000000FF' })
+        : Response.json({ status: outcome === 'unavailable' ? 'unavailable' : 'registered' },
+          { status: outcome === 'unavailable' ? 503 : 201 }));
+      vi.stubGlobal('fetch', fetchMock);
+      const { fixture, element } = await create();
+      const input = element.querySelector('input')!;
+      input.value = 'user@example.com'; input.dispatchEvent(new Event('input'));
+      const submit = () => element.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      submit(); fixture.detectChanges(); await fixture.whenStable();
+      await vi.waitFor(() => expect(execute).toHaveBeenCalledOnce());
+      expect(fetchMock.mock.calls.map(call => call[0])).toEqual(['/api/promo-config']);
+      if (outcome === 'expired') widgets[0]['expired-callback']();
+      else if (outcome === 'error') widgets[0]['error-callback']();
+      else widgets[0].callback(outcome === 'empty' ? '' : 'fresh-token');
+      await fixture.whenStable(); fixture.detectChanges();
+      const requests = () => fetchMock.mock.calls.filter(call => call[0] === '/api/promo-signup');
+      expect(requests()).toHaveLength(['registered', 'unavailable'].includes(outcome) ? 1 : 0);
+      if (outcome === 'registered') {
+        expect(element.querySelector('.promotion-success')).not.toBeNull();
+        expect(fetchMock).toHaveBeenCalledWith('/api/promo-signup', expect.objectContaining({
+          method: 'POST', body: JSON.stringify({ email: 'user@example.com', turnstileToken: 'fresh-token' }),
+        }));
+        expect([...values]).toEqual([[PROMOTION_SESSION_KEY, '1']]);
+      } else {
+        expect(element.querySelector<HTMLButtonElement>('button[type=submit]')!.disabled).toBe(false);
+        expect(element.querySelector('#promotion-error')!.textContent!.trim()).not.toBe('');
+        expect(values.size).toBe(0);
+        submit(); fixture.detectChanges(); await fixture.whenStable();
+        await vi.waitFor(() => expect(execute).toHaveBeenCalledTimes(2));
+        widgets[0].callback('stale-token');
+        widgets[1].callback('retry-token'); widgets[1].callback('duplicate-token');
+        await fixture.whenStable(); fixture.detectChanges();
+        expect(requests()).toHaveLength(outcome === 'unavailable' ? 2 : 1);
+      }
+      expect(remove).toHaveBeenCalled();
+    },
+  );
 
   it('can open and close when sessionStorage is unavailable', async () => {
     vi.spyOn(window, 'sessionStorage', 'get').mockImplementation(() => { throw new Error('blocked'); });

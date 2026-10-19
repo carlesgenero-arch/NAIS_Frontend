@@ -8,14 +8,21 @@ TURNSTILE_EXPECTED_ACTION=promo_signup
 # TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
 # TURNSTILE_EXPECTED_ACTION=test
 # Replace placeholders with TEST-mode values. Never copy these into Angular.
+# Checkout reads D1, NOT STRIPE_PRICE_* directly. Run npm run checkout:local:sync-prices
+# after local migrations to validate these TEST Prices and link ONLY local D1 mappings.
 STRIPE_SECRET_KEY=REPLACE_WITH_STRIPE_TEST_SECRET
 # Existing valid 10% coupon in the same Stripe mode/account as the secret key.
 STRIPE_PROMO_COUPON_ID=REPLACE_WITH_EXISTING_10_PERCENT_COUPON_ID
 STRIPE_PRICE_ORANGE_SPRITZ=REPLACE_WITH_TEST_PRICE_ID
 STRIPE_PRICE_PASSION_HUGO=REPLACE_WITH_TEST_PRICE_ID
 STRIPE_PRICE_GINGER_CRUSH=REPLACE_WITH_TEST_PRICE_ID
-STRIPE_PRICE_TROPICAL_HOPS=REPLACE_WITH_TEST_PRICE_ID
+# Optional legacy-webhook compatibility only; Tropical Hops remains unavailable.
+# STRIPE_PRICE_TROPICAL_HOPS=REPLACE_WITH_TEST_PRICE_ID
 STRIPE_PRICE_PACK_VARIAT=REPLACE_WITH_TEST_PRICE_ID
 SITE_URL=http://localhost:4200
+# Required for paid confirmation: use the whsec_ printed by the local stripe listen command.
 # Endpoint signing secret (Stripe CLI and deployed endpoint use different values).
 STRIPE_WEBHOOK_SECRET=REPLACE_WITH_WEBHOOK_SIGNING_SECRET
+
+# Resend is NOT required for payment verification. Omit email provider configuration
+# for local checkout-only tests to avoid sending real email. The order remains valid.
