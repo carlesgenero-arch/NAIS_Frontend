@@ -9,11 +9,12 @@ import { validateCheckout } from './checkout/checkout-validation.ts';
 import { checkout } from './checkout/checkout-session.ts';
 import { updateAdminProduct } from './catalogue/product-write.service.ts';
 const migration = readFileSync(new URL('../migrations/0011_harvest_sold_out.sql', import.meta.url), 'utf8');
+const cleanupMigration = readFileSync(new URL('../migrations/0012_stripe_price_cleanup.sql', import.meta.url), 'utf8');
 const hideHops = readFileSync(new URL('../migrations/0009_hide_tropical_hops.sql', import.meta.url), 'utf8');
 const harvest = 'tropical-hops-harvest';
 
 test('migration adds sold-out while preserving every price, mapping, asset and other product', t => {
-  const { sqlite } = checkoutDb(t);
+  const { sqlite } = checkoutDb(t, undefined, { priceCleanup: false });
   sqlite.exec(hideHops);
   const before = sqlite.prepare('SELECT * FROM products ORDER BY id').all();
   sqlite.exec(migration);
@@ -30,8 +31,8 @@ test('migration adds sold-out while preserving every price, mapping, asset and o
 });
 
 test('sold-out Harvest is public in list/detail, retained in admin and not purchasable', async t => {
-  const { db, sqlite } = checkoutDb(t);
-  sqlite.exec(hideHops); sqlite.exec(migration);
+  const { db, sqlite } = checkoutDb(t, undefined, { priceCleanup: false });
+  sqlite.exec(hideHops); sqlite.exec(migration); sqlite.exec(cleanupMigration);
   const context = { request: new Request('https://naisdrinks.com/api/products'), env: { PROMO_DB: db }, params: { slug: harvest } };
   const products = await (await list(context)).json();
   assert.equal(products.find(p => p.id === harvest)?.status, 'sold-out');
@@ -56,7 +57,7 @@ test('sold-out Harvest is public in list/detail, retained in admin and not purch
 });
 
 test('admin may edit sold-out metadata without calling Stripe or losing its status', async t => {
-  const { db, sqlite } = checkoutDb(t); sqlite.exec(migration);
+  const { db, sqlite } = checkoutDb(t, undefined, { priceCleanup: false }); sqlite.exec(migration); sqlite.exec(cleanupMigration);
   const product = await updateAdminProduct(db, harvest, { name: 'Harvest editorial' }, () => { assert.fail('No Stripe writes for sold-out'); });
   assert.equal(product.status, 'sold-out'); assert.equal(product.name, 'Harvest editorial');
 });

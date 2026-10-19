@@ -47,7 +47,8 @@ export async function findCheckoutProductsByIds(db: ProductDatabase, ids: readon
 
 /** Admin-only projection; public queries deliberately never select these columns. */
 const ADMIN_PRODUCT_COLUMNS = `${PRODUCT_COLUMNS}, stripe_product_id AS stripeProductId,
-  stripe_price_id AS stripePriceId, created_at AS createdAt, updated_at AS updatedAt`;
+  stripe_price_id AS stripePriceId, created_at AS createdAt, updated_at AS updatedAt,
+  json_array_length(stripe_price_cleanup_ids) AS stripePriceCleanupPending`;
 export async function findAdminProducts(db: ProductDatabase): Promise<unknown[]> {
   const result = await db.prepare(`SELECT ${ADMIN_PRODUCT_COLUMNS} FROM products ORDER BY slug`).all<unknown>();
   if (!result.success || !Array.isArray(result.results)) throw new Error('Catalogue query failed');

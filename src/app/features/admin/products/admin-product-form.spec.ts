@@ -115,6 +115,20 @@ describe('admin product form', () => {
     request.flush({ ...product, status: 'active', priceCents: 3750, stripePriceId: 'price_newFixture' });
     expect(TestBed.inject(Router).navigate).toHaveBeenCalledExactlyOnceWith(['/admin/products']);
   });
+  it('treats a committed price with cleanup pending as success and returns to the list', async () => {
+    const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    http.expectOne('/api/admin/products/fixture').flush({ ...product, status: 'active' }); fixture.detectChanges();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    fill(root, '#product-price', '37,50'); submit(root);
+    http.expectOne('/api/admin/products/fixture').flush({ ...product, status: 'active', priceCents: 3750,
+      stripePriceId: 'price_newFixture', stripePriceCleanupPending: true });
+    fixture.detectChanges(); await fixture.whenStable();
+    expect(root.querySelector('#form-error')).toBeNull();
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('Producte desat.');
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('pendent');
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledExactlyOnceWith(['/admin/products']);
+    expect(root.querySelector<HTMLInputElement>('#product-price')!.value).toBe('37.50');
+  });
   it('keeps a failed synchronization on the form and focuses the safe error', async () => {
     const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
     http.expectOne('/api/admin/products/fixture').flush({ ...product, status: 'active' }); fixture.detectChanges();

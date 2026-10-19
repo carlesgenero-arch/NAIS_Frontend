@@ -1,6 +1,7 @@
 import { getAdminProduct, isProductSlug } from './product.service.ts';
+import type { AdminProduct } from './product.types.ts';
 import type { ProductDatabase } from './product.repository.ts';
-import { insertProduct, updateProduct, archiveProduct, deleteUnusedProduct, productHasOrders, isPriceReferenced, ProductSlugConflict, type ManagedProduct } from './product-write.repository.ts';
+import { insertProduct, updateProduct, archiveProduct, deleteUnusedProduct, productHasOrders, isPriceReferenced, pendingStripePrices, removePendingStripePrice, ProductSlugConflict, type ManagedProduct } from './product-write.repository.ts';
 import { synchronizeStripeCatalogue, type StripeCatalogueClient } from '../stripe/stripe-catalogue.ts';
 
 export class ProductMutationError extends Error {
@@ -61,19 +62,51 @@ export async function updateAdminProduct(db: ProductDatabase, id: string, payloa
   const product = validated({ ...previous, ...patch });
   const client = product.status === 'active' ? clientFactory() : null;
   const mapping = client ? await synchronizeStripeCatalogue(client, previous, product) : previous;
+  let saved: AdminProduct | null;
   try {
-    if (!await updateProduct(db, previous, product, mapping)) throw new ProductMutationError(409, 'product_changed');
+    saved = await updateProduct(db, previous, product, mapping);
+    if (!saved) throw new ProductMutationError(409, 'product_changed');
   } catch (error) {
     if (error instanceof ProductSlugConflict) throw new ProductMutationError(409, 'slug_conflict');
     throw error;
   }
-  // Never deactivate before the new, verified mapping is committed. Historical snapshots are untouched.
-  if (client && previous.stripePriceId && previous.stripePriceId !== mapping.stripePriceId
-    && !await isPriceReferenced(db, previous.stripePriceId)) {
-    await client.prices.update(previous.stripePriceId, { active: false });
-  }
-  return getAdminProduct(db, id);
+  // The mutation is committed. Cleanup failure must never turn it into a failed save.
+  const pending = saved.stripePriceCleanupPending
+    ? await cleanStripePrices(db, id, clientFactory) : false;
+  return { ...saved, stripePriceCleanupPending: pending };
 }
+
+async function cleanStripePrices(db: ProductDatabase, id: string,
+  clientFactory: () => StripeCatalogueClient): Promise<boolean> {
+  try {
+    const pending = await pendingStripePrices(db, id);
+    if (!pending.length) return false;
+    const client = clientFactory();
+    let remaining = 10;
+    for (const priceId of pending) {
+      try {
+        // Every product counts, including archived/draft products and concurrent edits.
+        if (await isPriceReferenced(db, priceId)) continue;
+        if (remaining-- === 0) break;
+        const price = await client.prices.retrieve(priceId);
+        if (price.id !== priceId) continue;
+        if (price.active) await client.prices.update(priceId, { active: false });
+        await removePendingStripePrice(db, id, priceId);
+      } catch { /* Keep this durable entry for the next explicit reconciliation. */ }
+    }
+    return (await pendingStripePrices(db, id)).length > 0;
+  } catch { return true; }
+}
+
+export async function reconcileAdminProductPrices(db: ProductDatabase, id: string,
+  clientFactory: () => StripeCatalogueClient) {
+  if (!isProductSlug(id)) throw invalid();
+  const product = await getAdminProduct(db, id);
+  if (!product) throw new ProductMutationError(404, 'not_found');
+  const pending = await cleanStripePrices(db, id, clientFactory);
+  return { ...product, stripePriceCleanupPending: pending };
+}
+
 export async function archiveAdminProduct(db: ProductDatabase, id: string) {
   if (!isProductSlug(id)) throw invalid();
   if (!await archiveProduct(db, id)) throw new ProductMutationError(404, 'not_found');

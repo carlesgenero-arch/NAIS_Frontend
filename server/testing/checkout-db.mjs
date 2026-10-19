@@ -6,11 +6,12 @@ export const priceIds = {
   'ginger-crush': 'price_gingerFixture', 'tropical-hops': 'price_tropicalFixture', 'pack-variat': 'price_packFixture',
 };
 
-export function checkoutDb(t, prices = priceIds) {
+export function checkoutDb(t, prices = priceIds, { priceCleanup = true } = {}) {
   const sqlite = new DatabaseSync(':memory:');
   for (const file of ['0004_products.sql', '0005_seed_products.sql']) {
     sqlite.exec(readFileSync(new URL('../../migrations/' + file, import.meta.url), 'utf8'));
   }
+  if (priceCleanup) sqlite.exec(readFileSync(new URL('../../migrations/0012_stripe_price_cleanup.sql', import.meta.url), 'utf8'));
   for (const [id, price] of Object.entries(prices)) {
     sqlite.prepare('UPDATE products SET stripe_price_id=? WHERE id=?').run(price, id);
   }

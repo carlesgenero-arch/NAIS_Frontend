@@ -42,6 +42,7 @@ function readProduct(value: unknown): AdminProductSummary {
   if (typeof row['id'] !== 'string' || !row['id'] || typeof row['slug'] !== 'string' || !row['slug']
     || typeof row['name'] !== 'string' || !row['name'].trim()
     || (status !== 'active' && status !== 'sold-out' && status !== 'coming-soon' && status !== 'draft' && status !== 'archived')
+    || (row['stripePriceCleanupPending'] !== undefined && typeof row['stripePriceCleanupPending'] !== 'boolean')
     || typeof row['priceCents'] !== 'number' || !Number.isSafeInteger(row['priceCents']) || row['priceCents'] < 0
     || typeof row['currency'] !== 'string' || !/^[a-z]{3}$/.test(row['currency'])
     || !nullableText(row['stripeProductId']) || !nullableText(row['stripePriceId'])
@@ -50,7 +51,7 @@ function readProduct(value: unknown): AdminProductSummary {
   }
   return { id: row['id'], slug: row['slug'], name: row['name'], status,
     priceCents: row['priceCents'], currency: row['currency'], stripeProductId: row['stripeProductId'],
-    stripePriceId: row['stripePriceId'], updatedAt: row['updatedAt'] };
+    stripePriceId: row['stripePriceId'], updatedAt: row['updatedAt'], stripePriceCleanupPending: row['stripePriceCleanupPending'] === true };
 }
 @Injectable({ providedIn: 'root' })
 export class AdminProductsService {
@@ -63,6 +64,9 @@ export class AdminProductsService {
   }
   updateProduct(id: string, value: AdminProductInput): Observable<AdminProductDetail> {
     return this.http.patch<unknown>('/api/admin/products/' + encodeURIComponent(id), payload(value)).pipe(map(detail));
+  }
+  reconcilePrices(id: string): Observable<AdminProductDetail> {
+    return this.http.post<unknown>('/api/admin/products/' + encodeURIComponent(id) + '/reconcile-prices', {}).pipe(map(detail));
   }
   archiveProduct(id: string): Observable<AdminProductDetail> {
     return this.http.post<unknown>('/api/admin/products/' + encodeURIComponent(id) + '/archive', {}).pipe(map(detail));

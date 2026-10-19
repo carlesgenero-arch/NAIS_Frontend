@@ -18,11 +18,12 @@ export class AdminProducts {
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
   protected readonly archiving = signal<string | null>(null);
+  protected readonly reconciling = signal<string | null>(null);
   protected readonly deleting = signal<string | null>(null);
   protected readonly feedback = signal('');
   protected readonly mutationError = signal('');
   protected archive(product: AdminProductSummary): void {
-    if (this.archiving() || this.deleting() || product.status === 'archived') return;
+    if (this.archiving() || this.deleting() || this.reconciling() || product.status === 'archived') return;
     if (!this.document.defaultView?.confirm('Vols arxivar ' + product.name + '? Deixarà de ser comprable.')) return;
     this.archiving.set(product.id); this.feedback.set(''); this.mutationError.set('');
     this.service.archiveProduct(product.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -35,7 +36,7 @@ export class AdminProducts {
     });
   }
   protected deletePermanently(product: AdminProductSummary): void {
-    if (this.archiving() || this.deleting() || !['draft', 'archived'].includes(product.status)) return;
+    if (this.archiving() || this.deleting() || this.reconciling() || !['draft', 'archived'].includes(product.status)) return;
     if (!this.document.defaultView?.confirm('Eliminar definitivament «' + product.name
       + '»? Aquesta acció no es pot desfer. Per als productes de producció, utilitza Arxivar.')) return;
     this.deleting.set(product.id); this.feedback.set(''); this.mutationError.set('');
@@ -46,6 +47,21 @@ export class AdminProducts {
         this.deleting.set(null); this.feedback.set('Producte eliminat definitivament.');
       },
       error: error => { this.deleting.set(null); this.mutationError.set(adminProductError(error)); },
+    });
+  }
+  protected reconcile(product: AdminProductSummary): void {
+    if (this.reconciling() || this.archiving() || this.deleting()) return;
+    this.reconciling.set(product.id); this.feedback.set(''); this.mutationError.set('');
+    this.service.reconcilePrices(product.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: updated => {
+        this.state.update(current => current.kind === 'ready'
+          ? { kind: 'ready', products: current.products.map(p => p.id === updated.id ? updated : p) } : current);
+        this.reconciling.set(null);
+        this.feedback.set(updated.stripePriceCleanupPending
+          ? 'El preu està desat. La neteja de Prices antics de Stripe continua pendent; pots reintentar-la més tard.'
+          : 'Neteja de Prices antics de Stripe completada. El preu vigent no ha canviat.');
+      },
+      error: error => { this.reconciling.set(null); this.mutationError.set(adminProductError(error)); },
     });
   }
   protected readonly state = signal<ProductsState>({ kind: 'loading' });
