@@ -12,7 +12,7 @@ export async function claimConfirmation(db: OrderDatabase, session: string): Pro
     AND confirmation_email_status='pending' RETURNING id`).bind(session).first() !== null;
 }
 export async function readConfirmation(db: OrderDatabase, session: string): Promise<ConfirmationSnapshot | null> {
-  return db.prepare(`SELECT order_number, customer_name, customer_email, shipping_name,
+  return db.prepare(`SELECT COALESCE(order_reference, order_number) AS order_number, customer_name, customer_email, shipping_name,
     shipping_address_line1, shipping_address_line2, shipping_postal_code, shipping_city, shipping_country,
     subtotal_amount, shipping_amount, discount_amount, tax_amount, total_amount, currency,
     (SELECT json_group_array(json_object('name',product_name,'quantity',quantity,

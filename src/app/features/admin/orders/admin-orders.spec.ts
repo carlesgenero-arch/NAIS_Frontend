@@ -13,7 +13,7 @@ import { adminGuard } from '../admin.guard';
 import { AdminShell } from '../admin-shell';
 
 const order: AdminOrder = {
-  id: '00000000-0000-4000-8000-000000000001', orderNumber: 'NAIS-TEST-1',
+  id: '00000000-0000-4000-8000-000000000001', orderNumber: 'NAIS-2026-0001',
   createdAt: '2026-01-01T10:00:00.000Z', paidAt: '2026-01-01T10:01:00.000Z',
   paymentStatus: 'paid', fulfillmentStatus: 'pending', totalAmount: 3750, currency: 'eur',
   customer: { name: 'Synthetic Customer', email: 'fixture@example.test', phone: '+34000000000' },
@@ -52,7 +52,7 @@ describe('protected admin orders UI', () => {
     const request = page(); expect(request.request.method).toBe('GET');
     request.flush({ items: [order], nextCursor: null }); fixture.detectChanges();
     const root: HTMLElement = fixture.nativeElement;
-    for (const value of ['NAIS-TEST-1', 'Synthetic Customer', 'fixture@example.test', 'Pagat', 'Pendent', '37,50 €', '2026-01-01 10:00']) expect(root.textContent).toContain(value);
+    for (const value of ['NAIS-2026-0001', 'Synthetic Customer', 'fixture@example.test', 'Pagat', 'Pendent', '37,50 €', '2026-01-01 10:00']) expect(root.textContent).toContain(value);
     expect(root.querySelector('tbody a')?.getAttribute('href')).toBe('/admin/orders/' + order.id);
     expect(root.querySelector('[role="region"]')?.getAttribute('tabindex')).toBe('0');
   });
@@ -74,13 +74,14 @@ describe('protected admin orders UI', () => {
     expect(fixture.nativeElement.querySelectorAll('tbody tr')).toHaveLength(1);
     fixture.nativeElement.querySelector('button').click();
     request = http.expectOne(r => r.params.get('cursor') === 'cursor+/=');
-    request.flush({ items: [{ ...order, id: '00000000-0000-4000-8000-000000000002', orderNumber: 'NAIS-TEST-2' }], nextCursor: null }); fixture.detectChanges();
+    request.flush({ items: [{ ...order, id: '00000000-0000-4000-8000-000000000002', orderNumber: 'NAIS-2026-0002' }], nextCursor: null }); fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('tbody tr')).toHaveLength(2);
     expect(fixture.nativeElement.querySelector('button')).toBeNull();
   });
   it('renders complete detail, stored item snapshots and EUR amounts', () => {
     const fixture = detail(); http.expectOne('/api/admin/orders/' + order.id).flush(order); fixture.detectChanges();
     const root: HTMLElement = fixture.nativeElement;
+    expect(root.textContent).toContain(order.orderNumber);
     for (const value of ['Synthetic Customer', 'Synthetic Recipient', 'fixture@example.test', '+34000000000', 'Fixture Street 1', 'Floor 2', '00000', 'Test City', 'ES', 'Historical drink', '18,00 €', '36,00 €', '37,50 €', '2026-01-01 10:01']) expect(root.textContent).toContain(value);
     expect(root.querySelector('a')?.getAttribute('href')).toBe('/admin/orders');
   });

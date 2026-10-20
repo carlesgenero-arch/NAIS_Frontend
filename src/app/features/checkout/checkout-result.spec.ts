@@ -15,7 +15,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 const sessionId = 'cs_test_' + 'A'.repeat(32);
 const endpoint = `/api/orders/checkout-session/${sessionId}`;
 const summary = {
-  orderNumber: 'NAIS-TEST', paymentStatus: 'paid', fulfillmentStatus: 'pending',
+  orderNumber: 'NAIS-2026-0001', paymentStatus: 'paid', fulfillmentStatus: 'pending',
   totalAmount: 3600, currency: 'eur', createdAt: '2026-10-05T10:00:00.000Z',
   items: [{ productName: 'Orange Spritz', quantity: 1, unitAmount: 3600, lineTotalAmount: 3600 }],
 };
@@ -99,7 +99,7 @@ describe('Checkout return pages', () => {
     expect(TestBed.inject(PromotionModal).purchaseSuppressed()).toBe(true);
     expect(localStorage.getItem(PROMOTION_PURCHASE_KEY)).toBe('1');
     expect(harness.routeNativeElement?.textContent).toContain('Pagament confirmat');
-    expect(harness.routeNativeElement?.textContent).toContain('NAIS-TEST');
+    expect(harness.routeNativeElement?.textContent).toContain('NAIS-2026-0001');
     expect(harness.routeNativeElement?.textContent).toContain('Orange Spritz');
     expect(clear).toHaveBeenCalledTimes(1);
     expect(cart.isEmpty()).toBe(true);

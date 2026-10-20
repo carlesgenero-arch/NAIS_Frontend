@@ -34,7 +34,7 @@ test('confirmation sends once after commit under concurrent and repeated signed 
   assert.equal(order.confirmation_email_status, 'sent');
   assert.ok(Number.isFinite(Date.parse(order.confirmation_email_sent_at)));
   assert.equal(order.payment_status, 'paid');
-  assert.ok(messages[0].text.includes(order.order_number));
+  assert.ok(messages[0].text.includes(order.order_reference));
   assert.ok(messages[0].text.includes('Purchased name snapshot'));
   assert.ok(!messages[0].text.includes('Different current product name'));
   assert.ok(messages[0].text.includes('36,00'));
@@ -116,6 +116,7 @@ test('migration preserves historical orders, skips backlog and constrains delive
   delete historical.confirmation_email_sent_at;
   delete historical.notification_email_status;
   delete historical.notification_email_sent_at;
+  delete historical.order_reference;
   const old = new DatabaseSync(':memory:');
   t.after(() => old.close());
   old.exec(readFileSync(new URL('../migrations/0003_orders.sql', import.meta.url), 'utf8'));
@@ -143,6 +144,7 @@ function setup(t) {
   db.exec(readFileSync(new URL('../migrations/0003_orders.sql', import.meta.url), 'utf8'));
   db.exec(readFileSync(new URL('../migrations/0006_order_confirmation.sql', import.meta.url), 'utf8'));
   db.exec(readFileSync(new URL('../migrations/0013_order_notification.sql', import.meta.url), 'utf8'));
+  db.exec(readFileSync(new URL('../migrations/0014_order_reference.sql', import.meta.url), 'utf8'));
   t.after(() => db.close());
   const env = { STRIPE_SECRET_KEY: 'sk_test_fixture', STRIPE_WEBHOOK_SECRET: signingSecret,
     STRIPE_PRICE_ORANGE_SPRITZ: 'price_fixture', PROMO_DB: {
@@ -485,7 +487,7 @@ test('internal notification and unchanged customer confirmation each send once u
   assert.equal(row.notification_email_status, 'sent');
   assert.ok(Number.isFinite(Date.parse(row.notification_email_sent_at)));
   assert.equal(row.confirmation_email_status, 'sent');
-  for (const value of [row.order_number, 'Test Buyer', 'buyer@example.com', '2 × Purchased name snapshot',
+  for (const value of [row.order_reference, 'Test Buyer', 'buyer@example.com', '2 × Purchased name snapshot',
     '72,00', '7,20', '0,00', '64,80', 'Test Street 1', 'Floor 2', '08001 Barcelona', 'paid', 'pending']) {
     assert.ok(internal[0].text.includes(value), value);
   }

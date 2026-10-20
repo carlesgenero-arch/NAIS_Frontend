@@ -10,6 +10,7 @@ async function setup(t) {
   const db = new DatabaseSync(':memory:');
   db.exec('PRAGMA foreign_keys=ON');
   db.exec(readFileSync(new URL('../migrations/0003_orders.sql', import.meta.url), 'utf8'));
+  db.exec(readFileSync(new URL('../migrations/0014_order_reference.sql', import.meta.url), 'utf8'));
   t.after(() => db.close());
   const env = { PROMO_DB: {
     prepare(sql) { return { sql, values: [], bind(...values) { this.values = values; return this; },
@@ -44,7 +45,7 @@ test('verified lookup returns only public snapshot fields in minor units', async
   assert.equal(result.headers.get('Access-Control-Allow-Origin'), null);
   const summary = await result.json();
   assert.deepEqual(Object.keys(summary).sort(), ['createdAt', 'currency', 'fulfillmentStatus', 'items', 'orderNumber', 'paymentStatus', 'totalAmount']);
-  assert.equal(summary.orderNumber, db.prepare('SELECT order_number FROM orders').get().order_number);
+  assert.equal(summary.orderNumber, db.prepare('SELECT order_reference FROM orders').get().order_reference);
   assert.equal(summary.paymentStatus, 'paid');
   assert.equal(summary.fulfillmentStatus, 'pending');
   assert.equal(summary.totalAmount, 6480);
