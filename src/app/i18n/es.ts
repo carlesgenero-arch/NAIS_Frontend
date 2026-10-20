@@ -2,6 +2,16 @@ import { LEGAL_ES } from './legal.es';
 import type { TranslationKey } from './ca';
 export const ES: Record<TranslationKey, string> = {
   ...LEGAL_ES,
+  "admin.order.status.paid": "Pagado",
+  "admin.order.status.partially_refunded": "Reembolsado parcialmente",
+  "admin.order.status.refunded": "Reembolsado",
+  "admin.order.status.pending": "Pendiente",
+  "admin.order.status.preparing": "En preparación",
+  "admin.order.status.shipped": "Enviado",
+  "admin.order.status.delivered": "Entregado",
+  "admin.order.status.cancelled": "Cancelado",
+  "admin.order.markStatus": "Marcar: {status}",
+  "admin.order.cancelFulfillment": "Cancelar preparación",
   "promo.verification.label": "Verificación de seguridad",
   "promo.verification.error": "No se ha podido completar la verificación de seguridad. Inténtalo de nuevo.",
   "cart.shipping.label": "Envío",

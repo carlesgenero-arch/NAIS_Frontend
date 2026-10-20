@@ -1,12 +1,13 @@
 import { Pipe, type PipeTransform } from '@angular/core';
 import type { AdminOrder } from '../../../models/admin-order.interface';
 
-export const PAYMENT_LABELS: Record<AdminOrder['paymentStatus'], string> = {
-  paid: 'Pagat', partially_refunded: 'Reemborsat parcialment', refunded: 'Reemborsat',
-};
-export const FULFILLMENT_LABELS: Record<AdminOrder['fulfillmentStatus'], string> = {
-  pending: 'Pendent', preparing: 'En preparació', shipped: 'Enviat', delivered: 'Lliurat', cancelled: 'Cancel·lat',
-};
+export type OrderStatus = AdminOrder['paymentStatus'] | AdminOrder['fulfillmentStatus'];
+export const ORDER_STATUS_LABEL_KEYS = {
+  paid: 'admin.order.status.paid', partially_refunded: 'admin.order.status.partially_refunded',
+  refunded: 'admin.order.status.refunded', pending: 'admin.order.status.pending',
+  preparing: 'admin.order.status.preparing', shipped: 'admin.order.status.shipped',
+  delivered: 'admin.order.status.delivered', cancelled: 'admin.order.status.cancelled',
+} as const;
 @Pipe({ name: 'orderEuro' })
 export class OrderEuroPipe implements PipeTransform {
   transform(cents: number): string {

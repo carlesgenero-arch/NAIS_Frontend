@@ -7,9 +7,11 @@ import { Subject, Subscription, catchError, of, startWith, switchMap, tap } from
 import { AdminOrdersService, adminOrderError, fulfillmentError } from '../../../services/admin-orders.service';
 import { FULFILLMENT_TRANSITIONS, type FulfillmentStatus } from '../../../../shared/order-fulfillment';
 import type { AdminOrder } from '../../../models/admin-order.interface';
-import { PAYMENT_LABELS, FULFILLMENT_LABELS, OrderEuroPipe } from './order-display';
+import { ORDER_STATUS_LABEL_KEYS, OrderEuroPipe } from './order-display';
+import { OrderStatusBadge } from './order-status-badge';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
 
-@Component({ selector: 'app-admin-order-detail', imports: [DatePipe, RouterLink, OrderEuroPipe],
+@Component({ selector: 'app-admin-order-detail', imports: [DatePipe, RouterLink, OrderEuroPipe, OrderStatusBadge, TranslatePipe],
   templateUrl: './admin-order-detail.html', styleUrl: './admin-orders.css', changeDetection: ChangeDetectionStrategy.OnPush })
 export class AdminOrderDetail {
   private readonly service = inject(AdminOrdersService);
@@ -29,8 +31,7 @@ export class AdminOrderDetail {
   protected readonly loading = signal(true);
   protected readonly notFound = signal(false);
   protected readonly error = signal('');
-  protected readonly paymentLabels = PAYMENT_LABELS;
-  protected readonly fulfillmentLabels = FULFILLMENT_LABELS;
+  protected readonly statusLabels = ORDER_STATUS_LABEL_KEYS;
   constructor() {
     afterRenderEffect(() => { if (this.saved() || this.saveError()) this.feedback()?.nativeElement.focus(); });
     this.route.paramMap.pipe(switchMap(params => this.retry.pipe(startWith(undefined),

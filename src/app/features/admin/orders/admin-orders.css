@@ -6,7 +6,6 @@ caption { text-align: left; padding: 1rem; font-weight: 700; }
 th, td { padding: 0.85rem 1rem; text-align: left; vertical-align: top; border-block-start: 1px solid var(--surface-border); }
 thead { background: var(--color-crudo); }
 .amount, time { white-space: nowrap; font-variant-numeric: tabular-nums; }
-.status-badge { display: inline-block; padding: 0.25rem 0.6rem; border: 1px solid currentColor; border-radius: var(--radius-pill); font-weight: 700; }
 button, a { min-height: var(--control-min-size); display: inline-flex; align-items: center; padding: 0.5rem; color: var(--color-negro); }
 button { font: inherit; background: var(--surface-card); border: 1px solid currentColor; border-radius: var(--radius-sm); cursor: pointer; }
 button:disabled { opacity: 0.65; cursor: wait; }
@@ -16,3 +15,13 @@ dt { font-weight: 700; margin-block-start: 0.75rem; }
 dd { margin: 0; overflow-wrap: anywhere; }
 address { font-style: normal; overflow-wrap: anywhere; }
 @media (min-width: 48rem) { .details-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+:host, section { max-width: 100%; min-width: 0; box-sizing: border-box; }
+.table-scroll { width: 100%; min-width: 0; box-sizing: border-box; }
+th, td { overflow-wrap: anywhere; }
+button, a { box-sizing: border-box; max-width: 100%; gap: 0.25rem; }
+button { white-space: normal; overflow-wrap: anywhere; }
+table { min-width: 48rem; }
+.details-grid > *, dl { min-width: 0; }
+.fulfillment-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+@media (max-width: 25rem) { .fulfillment-buttons button { width: 100%; } }

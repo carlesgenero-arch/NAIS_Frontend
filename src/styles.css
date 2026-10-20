@@ -80,6 +80,24 @@
   --surface-product-ginger-panel: #df789d;
   --surface-product-tropical-panel: #B77AE5;
   --surface-border: color-mix(in srgb, var(--color-negro) 12%, transparent);
+  /* Shared admin status tokens: readable semantic chips on every order screen. */
+  --admin-status-pending-text: #78350f;
+  --admin-status-pending-bg: #fef3c7;
+  --admin-status-preparing-text: #1e40af;
+  --admin-status-preparing-bg: #dbeafe;
+  --admin-status-shipped-text: #5b21b6;
+  --admin-status-shipped-bg: #ede9fe;
+  --admin-status-delivered-text: #166534;
+  --admin-status-delivered-bg: #dcfce7;
+  --admin-status-cancelled-text: #991b1b;
+  --admin-status-cancelled-bg: #fee2e2;
+  --admin-status-paid-text: #115e59;
+  --admin-status-paid-bg: #ccfbf1;
+  --admin-status-partially_refunded-text: #9a3412;
+  --admin-status-partially_refunded-bg: #ffedd5;
+  --admin-status-refunded-text: #374151;
+  --admin-status-refunded-bg: #e5e7eb;
+
   --control-min-size: 44px;
   --pill-padding-block: 0.65rem;
   --pill-padding-inline: 1.3rem;

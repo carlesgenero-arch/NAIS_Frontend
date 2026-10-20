@@ -4,9 +4,10 @@ import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminOrdersService, adminOrderError } from '../../../services/admin-orders.service';
 import type { AdminOrder } from '../../../models/admin-order.interface';
-import { PAYMENT_LABELS, FULFILLMENT_LABELS, OrderEuroPipe } from './order-display';
+import { OrderEuroPipe } from './order-display';
+import { OrderStatusBadge } from './order-status-badge';
 
-@Component({ selector: 'app-admin-orders', imports: [DatePipe, RouterLink, OrderEuroPipe],
+@Component({ selector: 'app-admin-orders', imports: [DatePipe, RouterLink, OrderEuroPipe, OrderStatusBadge],
   templateUrl: './admin-orders.html', styleUrl: './admin-orders.css', changeDetection: ChangeDetectionStrategy.OnPush })
 export class AdminOrders {
   private readonly service = inject(AdminOrdersService);
@@ -16,8 +17,6 @@ export class AdminOrders {
   protected readonly loading = signal(false);
   protected readonly loaded = signal(false);
   protected readonly error = signal('');
-  protected readonly paymentLabels = PAYMENT_LABELS;
-  protected readonly fulfillmentLabels = FULFILLMENT_LABELS;
   constructor() { this.load(); }
   protected load(): void {
     if (this.loading() || (this.loaded() && !this.cursor())) return;
