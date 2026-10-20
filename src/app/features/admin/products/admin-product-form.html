@@ -14,8 +14,8 @@
         <p>Desa primer el producte com a esborrany o properament; després podràs activar-lo amb Stripe.</p>
       }
       @if (error()) { <p #errorSummary id="form-error" role="alert" tabindex="-1">{{ error() }}</p> }
-      <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting()" novalidate>
-        <fieldset [disabled]="submitting()">
+      <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting() || uploadingImage()" novalidate>
+        <fieldset [disabled]="submitting() || uploadingImage()">
           <legend>Dades del producte</legend>
           <label for="product-name">Nom</label>
           <input id="product-name" formControlName="name" maxlength="200" required [attr.aria-invalid]="invalid('name')" aria-describedby="name-error">
@@ -36,16 +36,29 @@
           <span id="price-help">@if (invalid('price')) { Introdueix un import vàlid; per activar-lo ha de ser superior a zero. } @else { Exemple: 36,00. Màxim dos decimals. }</span>
           <label for="product-currency">Moneda</label>
           <select id="product-currency" formControlName="currency"><option value="eur">EUR</option></select>
-          <label for="product-image">URL de la imatge</label>
-          <input id="product-image" formControlName="imageUrl" maxlength="2048" aria-describedby="image-help">
+          <label for="product-image-file">{{ 'admin.product.imageFile' | t }}</label>
+          <input #imageFileInput id="product-image-file" type="file" accept="image/jpeg,image/png,image/webp" (change)="selectImage($event)" aria-describedby="upload-help">
+          <span id="upload-help">{{ 'admin.product.imageHelp' | t }}</span>
+          @if (imagePreview(); as preview) {
+            <img class="product-image-preview" [src]="preview" [alt]="'admin.product.imagePreview' | t" width="240" height="200">
+          }
+          @if (!product()) { <span>{{ 'admin.product.imageNewHelp' | t }}</span> }
+          @if (product() && imageFile()) {
+            <button type="button" data-upload-image (click)="uploadImage()" [disabled]="submitting() || uploadingImage()">{{ 'admin.product.imageUpload' | t }}</button>
+          }
+          @if (uploadingImage()) { <p role="status">{{ 'admin.product.imageUploading' | t }}</p> }
+          @if (imageFeedback()) { <p role="status">{{ imageFeedback() }}</p> }
+          @if (imageError()) { <p role="alert">{{ imageError() }}</p> }
+          <label for="product-image">{{ 'admin.product.imagePath' | t }}</label>
+          <input id="product-image" formControlName="imageUrl" readonly maxlength="2048">
           <label for="product-feature-image">URL de la imatge destacada</label>
           <input id="product-feature-image" formControlName="featureImageUrl" maxlength="2048" aria-describedby="image-help">
-          <span id="image-help">Opcional: ruta images/… o URL HTTPS. No es pugen fitxers.</span>
+          <span id="image-help">{{ 'admin.product.featureHelp' | t }}</span>
           <label for="stripe-product">Stripe Product ID · només lectura</label>
           <input id="stripe-product" readonly [value]="product()?.stripeProductId ?? 'No assignat'">
           <label for="stripe-price">Stripe Price ID · només lectura</label>
           <input id="stripe-price" readonly [value]="product()?.stripePriceId ?? 'No assignat'">
-          <button #saveButton type="submit" [disabled]="submitting()">{{ submitting() ? 'Desant…' : 'Desar producte' }}</button>
+          <button #saveButton type="submit" [disabled]="submitting() || uploadingImage()">{{ submitting() ? 'Desant…' : 'Desar producte' }}</button>
         </fieldset>
         <a routerLink="/admin/products">Cancel·lar</a>
       </form>

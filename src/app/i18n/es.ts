@@ -2,6 +2,17 @@ import { LEGAL_ES } from './legal.es';
 import type { TranslationKey } from './ca';
 export const ES: Record<TranslationKey, string> = {
   ...LEGAL_ES,
+  "admin.product.imageFile": "Subir imagen del producto",
+  "admin.product.imageHelp": "JPEG, PNG o WebP. Máximo 5 MiB. La subida guarda la imagen inmediatamente.",
+  "admin.product.imageNewHelp": "La imagen se subirá después de crear el producto.",
+  "admin.product.imagePreview": "Vista previa de la imagen del producto",
+  "admin.product.imageUpload": "Subir imagen",
+  "admin.product.imageUploading": "Subiendo imagen…",
+  "admin.product.imageUploaded": "Imagen guardada.",
+  "admin.product.imageError": "No hemos podido confirmar la subida. Recarga el producto para comprobar su estado antes de volver a intentarlo.",
+  "admin.product.imageInvalid": "Selecciona una imagen JPEG, PNG o WebP de hasta 5 MiB.",
+  "admin.product.imagePath": "Ruta de la imagen · solo lectura",
+  "admin.product.featureHelp": "Se conserva la imagen destacada existente. Ruta images/… o URL HTTPS.",
   "admin.order.activeOrders": "Activas",
   "admin.order.archivedOrders": "Archivadas",
   "admin.order.archive": "Archivar",
