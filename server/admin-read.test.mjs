@@ -110,7 +110,8 @@ async function setup(t) {
     const request = new Request('https://nais.example/api/admin/test' + query, { method,
       headers: { ...(token ? { 'Cf-Access-Jwt-Assertion': token } : {}), Origin: options.origin ?? 'https://nais.example',
         'Content-Type': options.contentType ?? 'application/json' },
-      body: options.raw ?? (options.payload === undefined ? undefined : JSON.stringify(options.payload)) });
+      body: options.raw ?? (options.payload === undefined ? undefined : JSON.stringify(options.payload)),
+      ...(options.raw instanceof ReadableStream ? { duplex: 'half' } : {}) });
     const context = { request, env: { ...env, ...options.emailEnv, PROMO_DB: database }, data: {}, params: { id },
       next: () => handler(context) };
     return requireAdmin(context, () => keys);
@@ -337,4 +338,55 @@ test('archived pagination excludes active rows and concurrent archive preserves 
   assert.equal(second.items.length,1);assert.equal(second.nextCursor,null);
   assert.notEqual(second.items[0].id,first.items[0].id);
   assert.ok([first.items[0],second.items[0]].every(row=>row.archivedAt));
+});
+
+
+for (const [name, body] of [
+  ['absent', () => undefined], ['empty string', () => ''],
+  ['empty bytes', () => new Uint8Array(0)],
+  ['zero-byte stream', () => new ReadableStream({ start(controller) { controller.close(); } })],
+  ['empty chunk then EOF', () => new ReadableStream({ start(controller) { controller.enqueue(new Uint8Array(0)); controller.close(); } })],
+]) test('archive/restore accept ' + name + ' while preserving delivered state', async t => {
+  const {send,sqlite,ids}=await setup(t);
+  sqlite.prepare("UPDATE orders SET fulfillment_status='delivered' WHERE id=?").run(ids[0]);
+  for (const [handler, archived] of [[archive,true],[restore,false]]) {
+    const response=await send(handler,ids[0],'',undefined,undefined,'POST',{raw:body()});
+    assert.equal(response.status,200);
+    const order=await response.json();
+    assert.equal(Boolean(order.archivedAt),archived);
+    assert.equal(order.fulfillmentStatus,'delivered');
+  }
+});
+
+test('archive/restore reject every non-empty body, including whitespace, before D1', async t => {
+  const {send,ids}=await setup(t);
+  const noDb={prepare(){assert.fail('Non-empty body must not reach D1');}};
+  for (const handler of [archive,restore]) for (const raw of [' ', '\n', '{}', 'null', 'x'.repeat(100000)]) {
+    const response=await send(handler,ids[0],'',undefined,noDb,'POST',{raw});
+    assert.equal(response.status,400);assert.deepEqual(await response.json(),{status:'invalid_request'});
+  }
+});
+
+test('archive/restore stop on first content chunk and cancel unread remainder', async t => {
+  const {send,ids}=await setup(t);
+  for (const handler of [archive,restore]) {
+    let pulls=0;let cancelled=false;
+    const raw=new ReadableStream({pull(controller){pulls++;controller.enqueue(new Uint8Array([1]));},
+      cancel(){cancelled=true;}},{highWaterMark:0});
+    const response=await send(handler,ids[0],'',undefined,undefined,'POST',{raw});
+    assert.equal(response.status,400);assert.equal(pulls,1);assert.equal(cancelled,true);
+  }
+});
+
+test('archive/restore fail closed on stream errors and excessive empty chunks', async t => {
+  const {send,ids}=await setup(t);
+  for (const handler of [archive,restore]) {
+    const broken=new ReadableStream({start(controller){controller.error(new Error('synthetic'));}});
+    assert.equal((await send(handler,ids[0],'',undefined,undefined,'POST',{raw:broken})).status,400);
+    let pulls=0;let cancelled=false;
+    const raw=new ReadableStream({pull(controller){pulls++;controller.enqueue(new Uint8Array(0));},
+      cancel(){cancelled=true;}},{highWaterMark:0});
+    assert.equal((await send(handler,ids[0],'',undefined,undefined,'POST',{raw})).status,400);
+    assert.equal(pulls,16);assert.equal(cancelled,true);
+  }
 });
