@@ -1,9 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { map, type Observable } from 'rxjs';
+import { map, timeout, TimeoutError, type Observable } from 'rxjs';
+import { ADMIN_REQUEST_TIMEOUT_MS, ADMIN_UPLOAD_TIMEOUT_MS } from './admin-request';
 import type { AdminProductSummary, AdminProductDetail, AdminProductInput } from '../models/admin-product.interface';
 
 export function adminProductError(error: unknown): string {
+  if (error instanceof TimeoutError) return 'El servei no està disponible i no podem confirmar el resultat. Torna al llistat i comprova el producte abans de tornar-ho a provar.';
   if (error instanceof HttpErrorResponse) {
     const code: unknown = error.error?.status;
     if (error.status === 401 || error.status === 403) return 'No tens accés o la sessió ha caducat. Torna a identificar-te.';
@@ -57,17 +59,17 @@ function readProduct(value: unknown): AdminProductSummary {
 export class AdminProductsService {
   private readonly http = inject(HttpClient);
   getProduct(id: string): Observable<AdminProductDetail> {
-    return this.http.get<unknown>('/api/admin/products/' + encodeURIComponent(id)).pipe(map(detail));
+    return this.http.get<unknown>('/api/admin/products/' + encodeURIComponent(id)).pipe(timeout(ADMIN_REQUEST_TIMEOUT_MS), map(detail));
   }
   createProduct(value: AdminProductInput): Observable<AdminProductDetail> {
-    return this.http.post<unknown>('/api/admin/products', payload(value)).pipe(map(detail));
+    return this.http.post<unknown>('/api/admin/products', payload(value)).pipe(timeout(ADMIN_REQUEST_TIMEOUT_MS), map(detail));
   }
   updateProduct(id: string, value: AdminProductInput): Observable<AdminProductDetail> {
-    return this.http.patch<unknown>('/api/admin/products/' + encodeURIComponent(id), payload(value)).pipe(map(detail));
+    return this.http.patch<unknown>('/api/admin/products/' + encodeURIComponent(id), payload(value)).pipe(timeout(ADMIN_REQUEST_TIMEOUT_MS), map(detail));
   }
   uploadImage(id: string, file: File): Observable<{ imageUrl: string; updatedAt: string }> {
     const body = new FormData(); body.append('image', file);
-    return this.http.post<unknown>('/api/admin/products/' + encodeURIComponent(id) + '/image', body).pipe(map(value => {
+    return this.http.post<unknown>('/api/admin/products/' + encodeURIComponent(id) + '/image', body).pipe(timeout(ADMIN_UPLOAD_TIMEOUT_MS), map(value => {
       if (!value || typeof value !== 'object' || !('imageUrl' in value) || !('updatedAt' in value)
         || typeof value.imageUrl !== 'string' || !value.imageUrl.startsWith('/images/uploads/products/' + id + '/')
         || !/^\/images\/uploads\/products\/[a-z0-9-]+\/[a-f0-9-]+\.(jpg|png|webp)$/.test(value.imageUrl)
@@ -76,13 +78,13 @@ export class AdminProductsService {
     }));
   }
   reconcilePrices(id: string): Observable<AdminProductDetail> {
-    return this.http.post<unknown>('/api/admin/products/' + encodeURIComponent(id) + '/reconcile-prices', {}).pipe(map(detail));
+    return this.http.post<unknown>('/api/admin/products/' + encodeURIComponent(id) + '/reconcile-prices', {}).pipe(timeout(ADMIN_REQUEST_TIMEOUT_MS), map(detail));
   }
   archiveProduct(id: string): Observable<AdminProductDetail> {
-    return this.http.post<unknown>('/api/admin/products/' + encodeURIComponent(id) + '/archive', {}).pipe(map(detail));
+    return this.http.post<unknown>('/api/admin/products/' + encodeURIComponent(id) + '/archive', {}).pipe(timeout(ADMIN_REQUEST_TIMEOUT_MS), map(detail));
   }
   deleteProduct(id: string): Observable<{ status: 'deleted' }> {
-    return this.http.delete<unknown>('/api/admin/products/' + encodeURIComponent(id)).pipe(map(value => {
+    return this.http.delete<unknown>('/api/admin/products/' + encodeURIComponent(id)).pipe(timeout(ADMIN_REQUEST_TIMEOUT_MS), map(value => {
       if (!value || typeof value !== 'object' || !('status' in value) || value.status !== 'deleted') {
         throw new Error('Invalid delete response');
       }
@@ -90,7 +92,7 @@ export class AdminProductsService {
     }));
   }
   list(): Observable<readonly AdminProductSummary[]> {
-    return this.http.get<unknown>('/api/admin/products').pipe(map(value => {
+    return this.http.get<unknown>('/api/admin/products').pipe(timeout(ADMIN_REQUEST_TIMEOUT_MS), map(value => {
       if (!Array.isArray(value)) throw new Error('Invalid admin catalogue');
       const products = value.map(readProduct);
       if (new Set(products.map(product => product.id)).size !== products.length) throw new Error('Duplicate product ID');

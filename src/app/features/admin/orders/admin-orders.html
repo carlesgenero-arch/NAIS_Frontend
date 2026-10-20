@@ -4,9 +4,9 @@
     <button type="button" data-order-view="active" [attr.aria-pressed]="view() === 'active'" (click)="selectView('active')">{{ 'admin.order.activeOrders' | t }}</button>
     <button type="button" data-order-view="archived" [attr.aria-pressed]="view() === 'archived'" (click)="selectView('archived')">{{ 'admin.order.archivedOrders' | t }}</button>
   </nav>
-  @if (loading()) { <p role="status">{{ loaded() ? 'Carregant més comandes…' : 'Carregant comandes…' }}</p> }
-  @if (error()) { <p role="alert">{{ error() }}</p><button type="button" (click)="load()" [disabled]="loading()">Tornar-ho a provar</button> }
-  @if (loaded() && orders().length === 0) { <p role="status">No hi ha comandes.</p> }
+  @if (loading()) { <p role="status">{{ (loaded() ? 'Carregant més comandes…' : 'Carregant comandes…') | t }}</p> }
+  @if (error()) { <p role="alert">{{ error() | t }}</p><button type="button" (click)="load()" [disabled]="loading()">{{ 'admin.feedback.retry' | t }}</button> }
+  @if (loaded() && orders().length === 0) { <p role="status">{{ (view() === 'archived' ? 'admin.feedback.noArchivedOrders' : 'admin.feedback.noActiveOrders') | t }}</p> }
   @if (orders().length) {
     <div class="table-scroll" tabindex="0" role="region" aria-label="Taula de comandes">
       <table><caption>Comandes · imports en EUR · dates UTC</caption>
@@ -22,5 +22,5 @@
       </table>
     </div>
   }
-  @if (cursor() && !error()) { <button type="button" (click)="load()" [disabled]="loading()">Carregar més</button> }
+  @if (cursor() && !error()) { <button type="button" (click)="load()" [disabled]="loading()">{{ 'admin.feedback.loadMore' | t }}</button> }
 </section>

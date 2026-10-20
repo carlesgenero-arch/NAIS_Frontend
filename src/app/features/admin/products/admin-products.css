@@ -30,3 +30,5 @@ th[scope='row'], td { max-width: 20rem; }
 .row-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; min-width: 12rem; }
 
 .amount { min-width: 6rem; }
+
+[role='status'], [role='alert'] { max-width: 100%; overflow-wrap: anywhere; }

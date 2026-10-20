@@ -10,6 +10,8 @@ import { AdminOrdersService } from '../../../services/admin-orders.service';
 import type { AdminOrder } from '../../../models/admin-order.interface';
 import { routes } from '../../../app.routes';
 import { adminGuard } from '../admin.guard';
+import { ADMIN_REQUEST_TIMEOUT_MS } from '../../../services/admin-request';
+import { TranslationService } from '../../../i18n/translation.service';
 import { AdminShell } from '../admin-shell';
 
 const order: AdminOrder = {
@@ -29,11 +31,43 @@ describe('protected admin orders UI', () => {
       { provide: ActivatedRoute, useValue: { paramMap: params } }] });
     http = TestBed.inject(HttpTestingController);
   });
-  afterEach(() => { http.verify(); vi.restoreAllMocks(); });
+  afterEach(() => { http.verify(); vi.restoreAllMocks(); vi.useRealTimers(); });
   function list() { const fixture = TestBed.createComponent(AdminOrders); fixture.detectChanges(); return fixture; }
   function detail() { const fixture = TestBed.createComponent(AdminOrderDetail); fixture.detectChanges(); return fixture; }
   function page() { return http.expectOne('/api/admin/orders?limit=25'); }
 
+  it('distinguishes active and archived empty states in CAT/CAST', () => {
+    const fixture=list();page().flush({items:[],nextCursor:null});fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain('comandes actives');
+    TestBed.inject(TranslationService).setLanguage('es');
+    fixture.nativeElement.querySelector('[data-order-view="archived"]').click();
+    http.expectOne('/api/admin/orders?limit=25&view=archived').flush({items:[],nextCursor:null});fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain('pedidos archivados');
+    TestBed.inject(TranslationService).setLanguage('ca');
+  });
+  it('keeps the loaded order visible on a failed reload and permits recovery', () => {
+    const fixture=detail();http.expectOne('/api/admin/orders/'+order.id).flush(order);fixture.detectChanges();
+    fixture.nativeElement.querySelector('[data-fulfillment="preparing"]').click();
+    http.expectOne('/api/admin/orders/'+order.id+'/fulfillment').flush({}, {status:409,statusText:'Conflict'});fixture.detectChanges();
+    fixture.nativeElement.querySelector('button:not([data-order-view])').click();
+    http.expectOne('/api/admin/orders/'+order.id).flush({}, {status:503,statusText:'Unavailable'});fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Synthetic Customer');
+    expect(fixture.nativeElement.querySelector('[data-fulfillment="preparing"]').disabled).toBe(true);
+    fixture.nativeElement.querySelector('button').click();
+    http.expectOne('/api/admin/orders/'+order.id).flush({...order,fulfillmentStatus:'preparing'});fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-fulfillment="shipped"]').disabled).toBe(false);
+  });
+  it.each(['fulfillment','archive','restore'])('resets a stalled %s action and preserves order data', action => {
+    vi.useFakeTimers(); const fixture=detail();
+    http.expectOne('/api/admin/orders/'+order.id).flush({...order,fulfillmentStatus:action==='fulfillment'?'pending':'delivered',archivedAt:action==='restore'?'2026-10-20T10:00:00.000Z':null});fixture.detectChanges();
+    fixture.nativeElement.querySelector(action!=='fulfillment'?'[data-order-archive]':'[data-fulfillment="preparing"]').click();
+    const request=http.expectOne('/api/admin/orders/'+order.id+'/'+action);
+    vi.advanceTimersByTime(ADMIN_REQUEST_TIMEOUT_MS);fixture.detectChanges();
+    expect(request.cancelled).toBe(true);expect(fixture.nativeElement.textContent).toContain('Synthetic Customer');
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector(action!=='fulfillment'?'[data-order-archive]':'[data-fulfillment="preparing"]').disabled).toBe(false);
+  });
   it('keeps shipped state and shows non-destructive feedback when email fails', () => {
     const fixture = detail();
     http.expectOne('/api/admin/orders/' + order.id).flush({ ...order, fulfillmentStatus: 'preparing' });

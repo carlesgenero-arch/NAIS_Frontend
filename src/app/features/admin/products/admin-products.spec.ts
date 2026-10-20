@@ -3,6 +3,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { AdminProducts } from './admin-products';
+import { ADMIN_REQUEST_TIMEOUT_MS } from '../../../services/admin-request';
+import { TranslationService } from '../../../i18n/translation.service';
 import { AdminShell } from '../admin-shell';
 import { AdminProductsService } from '../../../services/admin-products.service';
 import type { AdminProductSummary } from '../../../models/admin-product.interface';
@@ -20,12 +22,51 @@ describe('admin products', () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
     http = TestBed.inject(HttpTestingController);
   });
-  afterEach(() => { http.verify(); vi.restoreAllMocks(); });
+  afterEach(() => { http.verify(); vi.restoreAllMocks(); vi.useRealTimers(); });
   function render() {
     const fixture = TestBed.createComponent(AdminProducts);
     fixture.detectChanges();
     return fixture;
   }
+  it('shows a translated intentional empty state', () => {
+    const fixture = render(); const i18n = TestBed.inject(TranslationService);i18n.setLanguage('es');
+    http.expectOne('/api/admin/products').flush([]);fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain('No hay productos');
+    expect(fixture.nativeElement.querySelector('table')).toBeNull(); i18n.setLanguage('ca');
+  });
+  it('times out a stalled list and permits one retry', () => {
+    vi.useFakeTimers(); const fixture = render();const request = http.expectOne('/api/admin/products');
+    vi.advanceTimersByTime(ADMIN_REQUEST_TIMEOUT_MS);fixture.detectChanges();
+    expect(request.cancelled).toBe(true); expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
+    const retry = fixture.nativeElement.querySelector('button');retry.click();retry.click();
+    http.expectOne('/api/admin/products').flush(products);fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('tbody tr')).toHaveLength(4);
+  });
+  it('preserves visible data on failed reconciliation refresh and disables stale mutations', () => {
+    const fixture = render(); const root: HTMLElement = fixture.nativeElement;
+    http.expectOne('/api/admin/products').flush([{...products[0],stripePriceCleanupPending:true}]);fixture.detectChanges();
+    root.querySelector<HTMLButtonElement>('button[aria-label^="Reintentar"]')!.click();
+    http.expectOne('/api/admin/products/test-0/reconcile-prices').flush({}, {status:503,statusText:'Unavailable'});fixture.detectChanges();
+    const reload = root.querySelector<HTMLButtonElement>('[data-refresh-products]')!;reload.click();reload.click();
+    http.expectOne('/api/admin/products').flush({}, {status:503,statusText:'Unavailable'});fixture.detectChanges();
+    expect(root.querySelectorAll('tbody tr')).toHaveLength(1);
+    expect(root.querySelector<HTMLButtonElement>('tbody button')!.disabled).toBe(true);
+    root.querySelector<HTMLButtonElement>('[data-refresh-products]')!.click();
+    http.expectOne('/api/admin/products').flush([{...products[0],stripePriceCleanupPending:false}]);fixture.detectChanges();
+    expect(root.querySelector('[role="alert"]')).toBeNull();
+  });
+  it('resets reconciliation after timeout and keeps the saved-price warning visible', () => {
+    vi.useFakeTimers();const fixture=render();const root: HTMLElement=fixture.nativeElement;
+    http.expectOne('/api/admin/products').flush([{...products[0],stripePriceCleanupPending:true}]);fixture.detectChanges();
+    root.querySelector<HTMLButtonElement>('button[aria-label^="Reintentar"]')!.click();
+    const request=http.expectOne('/api/admin/products/test-0/reconcile-prices');fixture.detectChanges();
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('Netejant');
+    vi.advanceTimersByTime(ADMIN_REQUEST_TIMEOUT_MS);fixture.detectChanges();
+    expect(request.cancelled).toBe(true);expect(root.querySelector<HTMLButtonElement>('button[aria-label^="Reintentar"]')!.disabled).toBe(false);
+    expect(root.querySelector('tbody [role="status"]')?.textContent).toContain('Preu desat');
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain('comprova el producte');
+  });
   it('shows loading before the protected GET returns', () => {
     const fixture = render();
     expect(fixture.nativeElement.querySelector('[role="status"]').textContent).toContain('Carregant');
