@@ -26,3 +26,6 @@ STRIPE_WEBHOOK_SECRET=REPLACE_WITH_WEBHOOK_SIGNING_SECRET
 
 # Resend is NOT required for payment verification. Omit email provider configuration
 # for local checkout-only tests to avoid sending real email. The order remains valid.
+
+# Optional internal paid-order recipient (server only). Omit to avoid internal sends locally.
+# ORDER_NOTIFICATION_EMAIL=comandes@naisdrinks.com

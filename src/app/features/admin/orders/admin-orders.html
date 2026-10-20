@@ -6,11 +6,11 @@
   @if (orders().length) {
     <div class="table-scroll" tabindex="0" role="region" aria-label="Taula de comandes">
       <table><caption>Comandes · imports en EUR · dates UTC</caption>
-        <thead><tr><th scope="col">Comanda</th><th scope="col">Data</th><th scope="col">Client</th><th scope="col">Correu electrònic</th><th scope="col">Pagament</th><th scope="col">Preparació</th><th scope="col">Total (EUR)</th></tr></thead>
+        <thead><tr><th scope="col">Comanda</th><th scope="col">Data</th><th scope="col">Client</th><th scope="col" class="email-column">Correu electrònic</th><th scope="col">Pagament</th><th scope="col">Preparació</th><th scope="col">Total (EUR)</th></tr></thead>
         <tbody>@for (order of orders(); track order.id) {
           <tr><th scope="row"><a [routerLink]="['/admin/orders', order.id]">{{ order.orderNumber }}</a></th>
             <td><time [attr.datetime]="order.createdAt">{{ order.createdAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></td>
-            <td>{{ order.customer.name }}</td><td>{{ order.customer.email }}</td>
+            <td>{{ order.customer.name }}</td><td class="email-column">{{ order.customer.email }}</td>
             <td><app-order-status-badge [status]="order.paymentStatus" /></td>
             <td><app-order-status-badge [status]="order.fulfillmentStatus" /></td>
             <td class="amount">{{ order.totalAmount | orderEuro }}</td></tr>

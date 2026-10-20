@@ -25,3 +25,11 @@ table { min-width: 48rem; }
 .details-grid > *, dl { min-width: 0; }
 .fulfillment-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 @media (max-width: 25rem) { .fulfillment-buttons button { width: 100%; } }
+
+/* Preserve readable email widths; narrow screens scroll the table instead. */
+.email-column {
+  min-width: 12rem;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+}

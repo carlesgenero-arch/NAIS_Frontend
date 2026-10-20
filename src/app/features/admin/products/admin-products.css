@@ -28,3 +28,5 @@ button { white-space: normal; overflow-wrap: anywhere; }
 table { min-width: 72rem; }
 th[scope='row'], td { max-width: 20rem; }
 .row-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; min-width: 12rem; }
+
+.amount { min-width: 6rem; }

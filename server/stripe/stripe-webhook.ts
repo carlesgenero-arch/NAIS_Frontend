@@ -5,10 +5,10 @@ import { createPaidOrder, hasOrderForSession } from '../orders/order.service.ts'
 import type { OrderDatabase } from '../orders/order.repository.ts';
 import type { PaidOrderSnapshot } from '../orders/order.types.ts';
 import { confirmOrderEmail } from '../orders/order-confirmation.service.ts';
-import type { EmailEnvironment } from '../email/email.types.ts';
+import { notifyNewOrder, type OrderNotificationEnvironment } from '../orders/order-notification.service.ts';
 
 export type { OrderDatabase } from '../orders/order.repository.ts';
-export interface WebhookEnvironment extends Partial<LegacyProductPriceBindings>, EmailEnvironment {
+export interface WebhookEnvironment extends Partial<LegacyProductPriceBindings>, OrderNotificationEnvironment {
   PROMO_DB?: OrderDatabase;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
@@ -85,6 +85,7 @@ async function savePaidSession(event: Stripe.Event, env: WebhookEnvironment, cli
   const db = env.PROMO_DB!;
   if (await hasOrderForSession(db, sessionRef.id)) {
     await confirmOrderEmail(db, sessionRef.id, env);
+    await notifyNewOrder(db, sessionRef.id, env);
     return;
   }
   // Fetch full authoritative data using the server key, never redirect/query data.
@@ -147,6 +148,7 @@ async function savePaidSession(event: Stripe.Event, env: WebhookEnvironment, cli
   };
   await createPaidOrder(db, snapshot);
   await confirmOrderEmail(db, session.id, env);
+  await notifyNewOrder(db, session.id, env);
 }
 
 export async function stripeWebhook(request: Request, env: WebhookEnvironment, clientFactory: ClientFactory = createStripeClient): Promise<Response> {

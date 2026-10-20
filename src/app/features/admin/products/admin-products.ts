@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DatePipe, DecimalPipe, UpperCasePipe, DOCUMENT } from '@angular/common';
+import { DatePipe, DecimalPipe, DOCUMENT } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { AdminProductsService, adminProductError } from '../../../services/admin-products.service';
@@ -9,7 +9,7 @@ import type { AdminProductSummary } from '../../../models/admin-product.interfac
 type ProductsState = { kind: 'loading' } | { kind: 'error'; accessDenied: boolean }
   | { kind: 'ready'; products: readonly AdminProductSummary[] };
 @Component({
-  selector: 'app-admin-products', imports: [DatePipe, DecimalPipe, UpperCasePipe, RouterLink],
+  selector: 'app-admin-products', imports: [DatePipe, DecimalPipe, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './admin-products.html', styleUrl: './admin-products.css',
 })

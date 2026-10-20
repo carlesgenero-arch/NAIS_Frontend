@@ -40,14 +40,16 @@ describe('admin products', () => {
     http.expectOne('/api/admin/products').flush(products);
     fixture.detectChanges();
     const root: HTMLElement = fixture.nativeElement;
-    expect(root.querySelectorAll('thead th')).toHaveLength(10);
+    expect(root.querySelectorAll('thead th')).toHaveLength(9);
     expect(root.querySelectorAll('tbody tr')).toHaveLength(4);
     expect(Array.from(root.querySelectorAll('.status-badge')).map(node => node.textContent?.trim()))
       .toEqual(['Actiu', 'Properament', 'Esborrany', 'Arxivat']);
     expect(root.textContent).toContain('Synthetic product 0');
     expect(root.textContent).toContain('test-slug-0');
     expect(root.textContent).toContain('36.00');
-    expect(root.textContent).toContain('EUR');
+    expect(root.querySelector('tbody .amount')?.textContent?.replace(/\s+/g, ' ').trim()).toBe('36.00 €');
+    expect(Array.from(root.querySelectorAll('thead th')).some(cell => cell.textContent === 'Moneda')).toBe(false);
+    expect(root.querySelector('tbody tr')?.children).toHaveLength(9);
     expect(root.textContent).toContain('prod_fixture');
     expect(root.textContent).toContain('price_fixture');
     expect(root.textContent).toContain('No assignat');

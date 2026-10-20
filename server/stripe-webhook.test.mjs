@@ -114,6 +114,8 @@ test('migration preserves historical orders, skips backlog and constrains delive
   const historical = db.prepare('SELECT * FROM orders').get();
   delete historical.confirmation_email_status;
   delete historical.confirmation_email_sent_at;
+  delete historical.notification_email_status;
+  delete historical.notification_email_sent_at;
   const old = new DatabaseSync(':memory:');
   t.after(() => old.close());
   old.exec(readFileSync(new URL('../migrations/0003_orders.sql', import.meta.url), 'utf8'));
@@ -140,6 +142,7 @@ function setup(t) {
   db.exec('PRAGMA foreign_keys = ON');
   db.exec(readFileSync(new URL('../migrations/0003_orders.sql', import.meta.url), 'utf8'));
   db.exec(readFileSync(new URL('../migrations/0006_order_confirmation.sql', import.meta.url), 'utf8'));
+  db.exec(readFileSync(new URL('../migrations/0013_order_notification.sql', import.meta.url), 'utf8'));
   t.after(() => db.close());
   const env = { STRIPE_SECRET_KEY: 'sk_test_fixture', STRIPE_WEBHOOK_SECRET: signingSecret,
     STRIPE_PRICE_ORANGE_SPRITZ: 'price_fixture', PROMO_DB: {
@@ -464,3 +467,137 @@ for (const [id, binding] of Object.entries({
     assert.equal(item.unit_amount, 3600);
   });
 }
+
+
+test('internal notification and unchanged customer confirmation each send once under concurrent retries', async t => {
+  const { env, db, send, event } = setup(t);
+  env.ORDER_NOTIFICATION_EMAIL = 'operations@example.test';
+  const messages = emailProvider(env);
+  const responses = await Promise.all(Array.from({ length: 8 }, (_, i) => send({ ...event, id: `evt_internal_${i}` })));
+  assert.ok(responses.every(response => response.status === 200));
+  assert.equal((await send()).status, 200);
+  assert.equal(messages.length, 2);
+  const internal = messages.filter(message => message.to[0] === env.ORDER_NOTIFICATION_EMAIL);
+  const customer = messages.filter(message => message.to[0] === 'buyer@example.com');
+  assert.equal(internal.length, 1); assert.equal(customer.length, 1);
+  assert.equal(customer[0].subject, 'NAIS — Confirmació de comanda');
+  const row = db.prepare('SELECT * FROM orders').get();
+  assert.equal(row.notification_email_status, 'sent');
+  assert.ok(Number.isFinite(Date.parse(row.notification_email_sent_at)));
+  assert.equal(row.confirmation_email_status, 'sent');
+  for (const value of [row.order_number, 'Test Buyer', 'buyer@example.com', '2 × Purchased name snapshot',
+    '72,00', '7,20', '0,00', '64,80', 'Test Street 1', 'Floor 2', '08001 Barcelona', 'paid', 'pending']) {
+    assert.ok(internal[0].text.includes(value), value);
+  }
+  assert.ok(!internal[0].html.includes('pi_fixture'));
+  assert.ok(!internal[0].text.includes('cs_test_fixture'));
+});
+
+test('internal provider failure preserves paid order and customer confirmation without automatic resend', async t => {
+  const { env, db, send } = setup(t);
+  env.ORDER_NOTIFICATION_EMAIL = 'operations@example.test';
+  const messages = emailProvider(env);
+  const provider = globalThis.fetch;
+  globalThis.fetch = async (url, options) => {
+    const response = await provider(url, options);
+    return JSON.parse(options.body).to[0] === env.ORDER_NOTIFICATION_EMAIL
+      ? Response.json({ private: 'never exposed' }, { status: 503 }) : response;
+  };
+  const response = await send();
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { status: 'received' });
+  assert.equal((await send()).status, 200);
+  const row = db.prepare('SELECT * FROM orders').get();
+  assert.equal(row.payment_status, 'paid');
+  assert.equal(row.notification_email_status, 'failed');
+  assert.equal(row.notification_email_sent_at, null);
+  assert.equal(row.confirmation_email_status, 'sent');
+  assert.equal(messages.length, 2);
+});
+
+test('customer email failure does not prevent internal notification', async t => {
+  const { env, db, send } = setup(t);
+  env.ORDER_NOTIFICATION_EMAIL = 'operations@example.test';
+  const messages = emailProvider(env);
+  const provider = globalThis.fetch;
+  globalThis.fetch = async (url, options) => {
+    const response = await provider(url, options);
+    return JSON.parse(options.body).to[0] === env.ORDER_NOTIFICATION_EMAIL ? response : Response.json({}, { status: 500 });
+  };
+  assert.equal((await send()).status, 200);
+  const row = db.prepare('SELECT * FROM orders').get();
+  assert.equal(row.confirmation_email_status, 'failed');
+  assert.equal(row.notification_email_status, 'sent');
+  assert.equal(messages.length, 2);
+});
+
+test('missing internal recipient records failed but leaves paid order and customer email valid', async t => {
+  const { env, db, send } = setup(t);
+  const messages = emailProvider(env);
+  assert.equal((await send()).status, 200);
+  assert.equal(messages.length, 1);
+  const row = db.prepare('SELECT * FROM orders').get();
+  assert.equal(row.payment_status, 'paid');
+  assert.equal(row.notification_email_status, 'failed');
+  assert.equal(row.confirmation_email_status, 'sent');
+});
+
+test('internal email uses escaped historical snapshot and supports a future controlled failed retry', async t => {
+  const { env, db, send, session, line } = setup(t);
+  session.customer_details.name = '<script>name</script>';
+  session.collected_information.shipping_details.address.line1 = '<img src=x>';
+  line.description = 'Historical & <drink>';
+  await send();
+  db.exec("UPDATE orders SET notification_email_status='pending', total_amount=4200");
+  env.ORDER_NOTIFICATION_EMAIL = 'operations@example.test';
+  const messages = emailProvider(env);
+  line.description = 'Changed upstream';
+  assert.equal((await send()).status, 200);
+  assert.equal(messages.length, 1);
+  assert.ok(messages[0].html.includes('&lt;script&gt;name&lt;/script&gt;'));
+  assert.ok(messages[0].html.includes('&lt;img src=x&gt;'));
+  assert.ok(messages[0].html.includes('Historical &amp; &lt;drink&gt;'));
+  assert.ok(!messages[0].html.includes('<script>'));
+  assert.ok(messages[0].text.includes('42,00'));
+  assert.ok(!messages[0].text.includes('Changed upstream'));
+});
+
+test('ambiguous internal final-state write never resends an accepted notification', async t => {
+  const { env, db, send } = setup(t);
+  env.ORDER_NOTIFICATION_EMAIL = 'operations@example.test';
+  const messages = emailProvider(env);
+  db.exec(`CREATE TRIGGER fail_internal_finish BEFORE UPDATE OF notification_email_sent_at ON orders
+    BEGIN SELECT RAISE(ABORT, 'synthetic'); END;`);
+  assert.equal((await send()).status, 200);
+  assert.equal((await send()).status, 200);
+  assert.equal(messages.filter(message => message.to[0] === env.ORDER_NOTIFICATION_EMAIL).length, 1);
+  assert.equal(db.prepare('SELECT notification_email_status s FROM orders').get().s, 'sending');
+});
+
+test('unpaid or failed persistence never triggers internal notification', async t => {
+  const { env, db, send, session } = setup(t);
+  env.ORDER_NOTIFICATION_EMAIL = 'operations@example.test';
+  const messages = emailProvider(env);
+  session.payment_status = 'unpaid';
+  assert.equal((await send()).status, 200);
+  assert.equal(messages.length, 0);
+  session.payment_status = 'paid';
+  db.exec(`CREATE TRIGGER fail_internal_order BEFORE INSERT ON order_items
+    BEGIN SELECT RAISE(ABORT, 'synthetic'); END;`);
+  assert.equal((await send()).status, 503);
+  assert.equal(messages.length, 0);
+});
+
+test('internal migration skips historical orders, preserves snapshots and constrains states', async t => {
+  const { db, send } = setup(t);
+  await send();
+  const before = db.prepare('SELECT * FROM orders').get();
+  delete before.notification_email_status; delete before.notification_email_sent_at;
+  db.exec('ALTER TABLE orders DROP COLUMN notification_email_status; ALTER TABLE orders DROP COLUMN notification_email_sent_at');
+  db.exec(readFileSync(new URL('../migrations/0013_order_notification.sql', import.meta.url), 'utf8'));
+  const after = db.prepare('SELECT * FROM orders').get();
+  assert.deepEqual({ ...after }, { ...before, notification_email_status: 'skipped', notification_email_sent_at: null });
+  assert.throws(() => db.exec("UPDATE orders SET notification_email_status='invalid'"));
+  assert.equal((await send()).status, 200);
+  assert.equal(db.prepare('SELECT notification_email_status s FROM orders').get().s, 'skipped');
+});
