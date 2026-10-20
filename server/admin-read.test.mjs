@@ -34,7 +34,7 @@ test('shipping email sends once under concurrent transitions and uses escaped hi
   assert.ok(messages[0].html.includes('Historical &amp; &lt;fruit&gt;'));
   assert.ok(messages[0].html.includes('&lt;script&gt;address&lt;/script&gt;'));
   assert.ok(!messages[0].html.includes('pi_fixture'));
-  assert.ok(messages[0].text.includes(row.order_number));
+  assert.ok(messages[0].text.includes(row.order_reference));
   await changeOrderFulfillment(db, ids[0], { fulfillmentStatus: 'delivered' }, emailEnv);
   await changeOrderFulfillment(db, ids[1], { fulfillmentStatus: 'cancelled' }, emailEnv);
   assert.equal(messages.length, 1);
@@ -79,7 +79,7 @@ async function jwt(email = 'admin@example.test') {
 async function setup(t) {
   const sqlite = new DatabaseSync(':memory:'); t.after(() => sqlite.close());
   sqlite.exec('PRAGMA foreign_keys=ON');
-  for (const file of ['0003_orders.sql', '0004_products.sql', '0005_seed_products.sql', '0006_order_confirmation.sql', '0007_shipping_email.sql', '0012_stripe_price_cleanup.sql']) {
+  for (const file of ['0003_orders.sql', '0004_products.sql', '0005_seed_products.sql', '0006_order_confirmation.sql', '0007_shipping_email.sql', '0012_stripe_price_cleanup.sql', '0014_order_reference.sql']) {
     sqlite.exec(readFileSync(new URL('../migrations/' + file, import.meta.url), 'utf8'));
   }
   const db = { prepare(sql) { return { sql, values: [], bind(...values) { this.values = values; return this; },

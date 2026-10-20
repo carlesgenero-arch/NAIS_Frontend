@@ -6,7 +6,7 @@ export type PublicOrderRow = Omit<PublicOrderSummary, 'items'> & { itemsJson: st
 /** One read returns a consistent minimal snapshot; no customer/Stripe IDs are selected. */
 export async function findPublicOrderBySession(db: OrderDatabase, sessionId: string): Promise<PublicOrderRow | null> {
   return db.prepare(`SELECT
-    o.order_number AS orderNumber, o.payment_status AS paymentStatus,
+    COALESCE(o.order_reference, o.order_number) AS orderNumber, o.payment_status AS paymentStatus,
     o.fulfillment_status AS fulfillmentStatus, o.total_amount AS totalAmount,
     o.currency, o.created_at AS createdAt,
     (SELECT json_group_array(json_object(
@@ -62,7 +62,7 @@ export interface AdminOrderDatabase {
     all<T>(): Promise<{ success: boolean; results: T[] }>;
   };
 }
-const ADMIN_ORDER_COLUMNS = `o.id, o.order_number AS orderNumber,
+const ADMIN_ORDER_COLUMNS = `o.id, COALESCE(o.order_reference, o.order_number) AS orderNumber,
   o.payment_status AS paymentStatus, o.fulfillment_status AS fulfillmentStatus,
   o.total_amount AS totalAmount, o.currency, o.created_at AS createdAt, o.paid_at AS paidAt,
   o.customer_name AS customerName, o.customer_email AS customerEmail, o.customer_phone AS customerPhone,
