@@ -1,6 +1,17 @@
 import { LEGAL_CA } from './legal.ca';
 export const CA = {
   ...LEGAL_CA,
+  "admin.product.imageFile": "Pujar imatge del producte",
+  "admin.product.imageHelp": "JPEG, PNG o WebP. Màxim 5 MiB. La pujada desa la imatge immediatament.",
+  "admin.product.imageNewHelp": "La imatge es pujarà després de crear el producte.",
+  "admin.product.imagePreview": "Vista prèvia de la imatge del producte",
+  "admin.product.imageUpload": "Pujar imatge",
+  "admin.product.imageUploading": "Pujant imatge…",
+  "admin.product.imageUploaded": "Imatge desada.",
+  "admin.product.imageError": "No hem pogut confirmar la pujada. Recarrega el producte per comprovar-ne l’estat abans de tornar-ho a provar.",
+  "admin.product.imageInvalid": "Selecciona una imatge JPEG, PNG o WebP de fins a 5 MiB.",
+  "admin.product.imagePath": "Ruta de la imatge · només lectura",
+  "admin.product.featureHelp": "La imatge destacada existent es conserva. Ruta images/… o URL HTTPS.",
   "admin.order.activeOrders": "Actives",
   "admin.order.archivedOrders": "Arxivades",
   "admin.order.archive": "Arxivar",

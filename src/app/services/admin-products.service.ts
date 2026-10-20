@@ -65,6 +65,16 @@ export class AdminProductsService {
   updateProduct(id: string, value: AdminProductInput): Observable<AdminProductDetail> {
     return this.http.patch<unknown>('/api/admin/products/' + encodeURIComponent(id), payload(value)).pipe(map(detail));
   }
+  uploadImage(id: string, file: File): Observable<{ imageUrl: string; updatedAt: string }> {
+    const body = new FormData(); body.append('image', file);
+    return this.http.post<unknown>('/api/admin/products/' + encodeURIComponent(id) + '/image', body).pipe(map(value => {
+      if (!value || typeof value !== 'object' || !('imageUrl' in value) || !('updatedAt' in value)
+        || typeof value.imageUrl !== 'string' || !value.imageUrl.startsWith('/images/uploads/products/' + id + '/')
+        || !/^\/images\/uploads\/products\/[a-z0-9-]+\/[a-f0-9-]+\.(jpg|png|webp)$/.test(value.imageUrl)
+        || typeof value.updatedAt !== 'string' || !Number.isFinite(Date.parse(value.updatedAt))) throw new Error('Invalid image response');
+      return { imageUrl: value.imageUrl, updatedAt: value.updatedAt };
+    }));
+  }
   reconcilePrices(id: string): Observable<AdminProductDetail> {
     return this.http.post<unknown>('/api/admin/products/' + encodeURIComponent(id) + '/reconcile-prices', {}).pipe(map(detail));
   }

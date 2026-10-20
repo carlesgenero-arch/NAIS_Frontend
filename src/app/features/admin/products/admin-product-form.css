@@ -18,3 +18,7 @@ input, select, textarea, button { min-width: 0; max-width: 100%; }
 textarea { resize: vertical; }
 legend, p, [role='alert'] { max-width: 100%; overflow-wrap: anywhere; }
 legend { box-sizing: border-box; }
+
+.product-image-preview { display: block; width: 100%; max-width: 15rem; height: 12.5rem; object-fit: contain; border-radius: var(--radius-sm); }
+input[type='file'] { overflow: hidden; }
+input[type='file']::file-selector-button { min-height: var(--control-min-size); max-width: 100%; font: inherit; margin-inline-end: 0.5rem; }
