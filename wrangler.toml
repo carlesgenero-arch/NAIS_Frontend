@@ -13,3 +13,8 @@ preview_database_id = "PROMO_DB"
 [[services]]
 binding = "CHECKOUT_RATE_LIMITER"
 service = "nais-checkout-rate-limiter"
+
+# Local R2 emulation only; deployed bindings are configured separately in Pages.
+[[r2_buckets]]
+binding = "PRODUCT_IMAGES"
+bucket_name = "nais-product-images-preview"

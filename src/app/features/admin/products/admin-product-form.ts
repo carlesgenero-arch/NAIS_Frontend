@@ -1,19 +1,29 @@
-import { afterRenderEffect, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, of, switchMap, tap } from 'rxjs';
+import { catchError, of, Subscription, switchMap, tap } from 'rxjs';
+import { TranslatePipe } from '../../../i18n/translate.pipe';
+import { TranslationService } from '../../../i18n/translation.service';
 import { AdminProductsService, adminProductError } from '../../../services/admin-products.service';
 import type { AdminProductDetail } from '../../../models/admin-product.interface';
 import type { ProductStatus } from '../../../models/product.interface';
 import { centsToEuro, euroToCents } from './product-price';
 @Component({
-  selector: 'app-admin-product-form', imports: [ReactiveFormsModule, RouterLink],
+  selector: 'app-admin-product-form', imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './admin-product-form.html', styleUrl: './admin-product-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminProductForm {
+  private readonly i18n = inject(TranslationService);
+  private uploadRequest?: Subscription;
+  private readonly previewUrl = signal<string | null>(null);
+  protected readonly imageFile = signal<File | null>(null);
+  protected readonly uploadingImage = signal(false);
+  protected readonly imageFeedback = signal('');
+  protected readonly imageError = signal('');
+  protected readonly imagePreview = computed(() => this.previewUrl() ?? this.product()?.imageUrl ?? null);
   private readonly service = inject(AdminProductsService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -21,6 +31,7 @@ export class AdminProductForm {
   private readonly document = inject(DOCUMENT);
   private readonly fb = inject(FormBuilder);
   private readonly errorSummary = viewChild<ElementRef<HTMLElement>>('errorSummary');
+  private readonly imageInput = viewChild<ElementRef<HTMLInputElement>>('imageFileInput');
   private readonly saveButton = viewChild<ElementRef<HTMLButtonElement>>('saveButton');
   protected readonly product = signal<AdminProductDetail | null>(null);
   protected readonly loading = signal(false);
@@ -41,14 +52,58 @@ export class AdminProductForm {
     afterRenderEffect(() => {
       if (this.error()) this.errorSummary()?.nativeElement.focus();
     });
+    this.destroyRef.onDestroy(() => this.clearSelectedImage());
     this.route.paramMap.pipe(
-      tap(() => { this.loading.set(true); this.loadError.set(''); this.error.set(''); this.success.set(''); this.created.set(false); this.product.set(null); }),
+      tap(() => { this.uploadRequest?.unsubscribe(); this.uploadingImage.set(false); this.submitting.set(false); this.clearSelectedImage(); this.imageError.set(''); this.imageFeedback.set(''); this.loading.set(true); this.loadError.set(''); this.error.set(''); this.success.set(''); this.created.set(false); this.product.set(null); }),
       switchMap(params => {
         const id = params.get('id');
         return id ? this.service.getProduct(id).pipe(catchError(error => { this.loadError.set(adminProductError(error)); return of(null); })) : of(null);
       }),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(product => { this.product.set(product); this.reset(product); this.loading.set(false); });
+  }
+  private clearSelectedImage(): void {
+    const url = this.previewUrl();
+    if (url) this.document.defaultView?.URL.revokeObjectURL(url);
+    this.previewUrl.set(null); this.imageFile.set(null);
+    const input = this.imageInput()?.nativeElement; if (input) input.value = '';
+  }
+  protected selectImage(event: Event): void {
+    if (this.submitting() || this.uploadingImage()) return;
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    this.clearSelectedImage(); this.imageError.set(''); this.imageFeedback.set('');
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size === 0 || file.size > 5 * 1024 * 1024) {
+      this.imageError.set(this.i18n.t('admin.product.imageInvalid')); input.value = ''; return;
+    }
+    this.imageFile.set(file);
+    this.previewUrl.set(this.document.defaultView?.URL.createObjectURL(file) ?? null);
+  }
+  protected uploadImage(): void {
+    if (this.submitting() || this.loading() || this.uploadingImage()) return;
+    this.performImageUpload();
+  }
+  private performImageUpload(done?: () => void): void {
+    const product = this.product(), file = this.imageFile();
+    if (!product || !file || this.uploadingImage()) return;
+    this.uploadingImage.set(true); this.imageError.set(''); this.imageFeedback.set('');
+    this.uploadRequest = this.service.uploadImage(product.id, file).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: result => {
+        this.product.set({ ...product, ...result }); this.form.controls.imageUrl.setValue(result.imageUrl);
+        this.clearSelectedImage(); this.uploadingImage.set(false);
+        this.imageFeedback.set(this.i18n.t('admin.product.imageUploaded')); done?.();
+      },
+      error: () => { this.uploadingImage.set(false); this.submitting.set(false);
+        this.imageError.set(this.i18n.t('admin.product.imageError')); },
+    });
+  }
+  private completeSave(existing: boolean): void {
+    this.created.set(!existing); this.success.set(this.product()?.stripePriceCleanupPending
+      ? 'Producte desat. Neteja de Prices antics de Stripe pendent.' : existing ? 'Producte desat.' : 'Producte creat.');
+    void this.router.navigate(['/admin/products'])
+      .catch(() => { this.error.set('Producte desat. No s’ha pogut tornar al llistat. Utilitza l’enllaç Tornar als productes.'); })
+      .finally(() => this.submitting.set(false));
   }
   private reset(product: AdminProductDetail | null): void {
     this.form.reset({ slug: product?.slug ?? '', name: product?.name ?? '', description: product?.description ?? '',
@@ -65,7 +120,7 @@ export class AdminProductForm {
     return accepted;
   }
   protected submit(): void {
-    if (this.submitting() || this.loading() || this.loadError() || this.created()) return;
+    if (this.submitting() || this.uploadingImage() || this.loading() || this.loadError() || this.created()) return;
     this.success.set(''); this.error.set(''); this.form.markAllAsTouched();
     const value = this.form.getRawValue();
     const cents = euroToCents(value.price);
@@ -90,11 +145,8 @@ export class AdminProductForm {
     const request = existing ? this.service.updateProduct(existing.id, input) : this.service.createProduct(input);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: product => { this.product.set(product); this.reset(product);
-        this.created.set(!existing); this.success.set(product.stripePriceCleanupPending
-          ? 'Producte desat. Neteja de Prices antics de Stripe pendent.' : existing ? 'Producte desat.' : 'Producte creat.');
-        void this.router.navigate(['/admin/products'])
-          .catch(() => { this.error.set('Producte desat. No s’ha pogut tornar al llistat. Utilitza l’enllaç Tornar als productes.'); })
-          .finally(() => this.submitting.set(false)); },
+        if (this.imageFile()) this.performImageUpload(() => this.completeSave(Boolean(existing)));
+        else this.completeSave(Boolean(existing)); },
       error: error => { this.submitting.set(false); this.error.set(adminProductError(error)); },
     });
   }

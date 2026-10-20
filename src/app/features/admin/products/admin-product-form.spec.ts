@@ -22,7 +22,7 @@ describe('admin product form', () => {
     fixture.detectChanges();
     return fixture;
   }
-  afterEach(() => { http?.verify(); vi.restoreAllMocks(); });
+  afterEach(() => { http?.verify(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
   function fill(root: HTMLElement, selector: string, value: string) {
     const input = root.querySelector<HTMLInputElement>(selector)!;
     input.value = value; input.dispatchEvent(new Event('input'));
@@ -31,6 +31,70 @@ describe('admin product form', () => {
   function fillNew(root: HTMLElement) {
     fill(root, '#product-name', 'Fixture product'); fill(root, '#product-slug', 'fixture'); fill(root, '#product-price', '36,10');
   }
+  function selectImage(root: HTMLElement, type = 'image/png', size = 16) {
+    const OriginalURL = window.URL;
+    vi.stubGlobal('URL', class extends OriginalURL {
+      static override createObjectURL = vi.fn(() => 'blob:synthetic-preview');
+      static override revokeObjectURL = vi.fn();
+    });
+    const input = root.querySelector<HTMLInputElement>('#product-image-file')!;
+    const file = new File([new Uint8Array(size)], 'local.png', { type });
+    Object.defineProperty(input, 'files', { configurable: true, value: [file] });
+    input.dispatchEvent(new Event('change')); return file;
+  }
+  const uploaded = { imageUrl: '/images/uploads/products/fixture/00000000-0000-4000-8000-000000000001.png', updatedAt: '2026-10-20T12:00:00.000Z' };
+  it('previews and uploads without a product/price PATCH, preserves unsaved fields and blocks duplicates', () => {
+    const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    http.expectOne('/api/admin/products/fixture').flush({ ...product, imageUrl: 'images/old.png' }); fixture.detectChanges();
+    fill(root, '#product-name', 'Unsaved name'); const file = selectImage(root); fixture.detectChanges();
+    expect(root.querySelector('img')?.getAttribute('src')).toBe('blob:synthetic-preview');
+    const button = root.querySelector<HTMLButtonElement>('[data-upload-image]')!; button.click(); button.click();
+    const request = http.expectOne('/api/admin/products/fixture/image');
+    expect(request.request.method).toBe('POST'); expect(request.request.body instanceof FormData).toBe(true);
+    expect(request.request.body.get('image')).toBe(file); expect(request.request.headers.has('Content-Type')).toBe(false);
+    http.expectNone('/api/admin/products/fixture'); request.flush(uploaded); fixture.detectChanges();
+    expect(root.querySelector<HTMLInputElement>('#product-image')?.value).toBe(uploaded.imageUrl);
+    expect(root.querySelector<HTMLInputElement>('#product-name')?.value).toBe('Unsaved name');
+    expect(root.querySelector('img')?.getAttribute('src')).toBe(uploaded.imageUrl);
+    expect(root.textContent).toContain('Imatge desada'); expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('blob:synthetic-preview');
+  });
+  it('keeps existing image reference when upload fails and allows retry', () => {
+    const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    http.expectOne('/api/admin/products/fixture').flush({ ...product, imageUrl: 'images/old.png' }); fixture.detectChanges();
+    selectImage(root); fixture.detectChanges(); root.querySelector<HTMLButtonElement>('[data-upload-image]')!.click();
+    http.expectOne('/api/admin/products/fixture/image').flush({}, { status: 503, statusText: 'Unavailable' }); fixture.detectChanges();
+    expect(root.querySelector<HTMLInputElement>('#product-image')?.value).toBe('images/old.png');
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain('pujada');
+    const button = root.querySelector<HTMLButtonElement>('[data-upload-image]')!; expect(button.disabled).toBe(false); button.click();
+    http.expectOne('/api/admin/products/fixture/image').flush(uploaded); fixture.detectChanges();
+    expect(root.querySelector<HTMLInputElement>('#product-image')?.value).toBe(uploaded.imageUrl);
+  });
+  it('creates draft before automatically uploading its selected image', () => {
+    const fixture = render(); const root: HTMLElement = fixture.nativeElement;
+    fillNew(root); selectImage(root); fixture.detectChanges();
+    expect(root.querySelector('[data-upload-image]')).toBeNull(); submit(root); submit(root);
+    http.expectOne('/api/admin/products').flush(product); fixture.detectChanges();
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
+    http.expectOne('/api/admin/products/fixture/image').flush(uploaded); fixture.detectChanges();
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledExactlyOnceWith(['/admin/products']);
+  });
+  it('keeps newly created draft editable if its upload fails', () => {
+    const fixture = render(); const root: HTMLElement = fixture.nativeElement;
+    fillNew(root); selectImage(root); submit(root);
+    http.expectOne('/api/admin/products').flush(product);
+    http.expectOne('/api/admin/products/fixture/image').flush({}, {status:503,statusText:'Unavailable'});fixture.detectChanges();
+    expect(root.querySelector('form')).not.toBeNull(); expect(root.querySelector('[data-upload-image]')).not.toBeNull();
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
+  });
+  it('rejects oversized and unsupported local selections and cleans up preview on destroy', () => {
+    const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    http.expectOne('/api/admin/products/fixture').flush(product); fixture.detectChanges();
+    selectImage(root, 'image/svg+xml'); fixture.detectChanges(); expect(root.querySelector('[data-upload-image]')).toBeNull();
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain('JPEG');
+    selectImage(root, 'image/png', 5 * 1024 * 1024 + 1); fixture.detectChanges(); expect(root.querySelector('[data-upload-image]')).toBeNull();
+    selectImage(root); fixture.detectChanges(); fixture.destroy();
+    expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('blob:synthetic-preview');
+  });
   it('creates with integer cents and prevents duplicate submission', () => {
     const fixture = render(); const root: HTMLElement = fixture.nativeElement;
     fillNew(root); submit(root); submit(root); fixture.detectChanges();
