@@ -4,6 +4,7 @@ import type { PublicOrderSummary, PublicOrderItem } from '../../src/shared/order
 export interface AdminOrder extends Omit<PublicOrderSummary, 'items'> {
   readonly id: string;
   readonly paidAt: string;
+  readonly archivedAt: string | null;
   readonly customer: { readonly name: string; readonly email: string; readonly phone: string | null };
   readonly shippingAddress: { readonly name: string; readonly line1: string; readonly line2: string | null;
     readonly postalCode: string; readonly city: string; readonly country: string };

@@ -36,7 +36,9 @@ function readOrder(value: unknown): AdminOrder {
     return { productId: item['productId'], productName: checked.productName, quantity: checked.quantity,
       unitAmount: checked.unitAmount, lineTotalAmount: checked.lineTotalAmount };
   });
-  return { id: row['id'], orderNumber: summary.orderNumber, paymentStatus: summary.paymentStatus,
+  const archivedAt = nullable('archivedAt');
+  if (archivedAt !== null && !timestamp(archivedAt)) throw new Error('Invalid archive data');
+  return { archivedAt, id: row['id'], orderNumber: summary.orderNumber, paymentStatus: summary.paymentStatus,
     fulfillmentStatus: summary.fulfillmentStatus, totalAmount: summary.totalAmount, currency: summary.currency,
     createdAt: row['createdAt'], paidAt: row['paidAt'], items,
     customer: { name: text('customerName'), email: nullable('customerEmail') ?? '', phone: nullable('customerPhone') },
@@ -50,9 +52,10 @@ export async function getAdminOrder(db: AdminOrderDatabase, id: string): Promise
 }
 export async function listAdminOrders(db: AdminOrderDatabase, params: URLSearchParams): Promise<AdminOrderPage> {
   let unknownParameter = false;
-  params.forEach((_, key) => { if (!['limit', 'cursor'].includes(key)) unknownParameter = true; });
+  params.forEach((_, key) => { if (!['limit', 'cursor', 'view'].includes(key)) unknownParameter = true; });
   if (unknownParameter
-    || params.getAll('limit').length > 1 || params.getAll('cursor').length > 1) throw new InvalidAdminOrderQuery();
+    || params.getAll('limit').length > 1 || params.getAll('cursor').length > 1
+    || params.getAll('view').length > 1 || (params.has('view') && !['active', 'archived'].includes(params.get('view')!))) throw new InvalidAdminOrderQuery();
   const rawLimit = params.get('limit') ?? '25';
   if (!/^[1-9]\d{0,2}$/.test(rawLimit) || Number(rawLimit) > 100) throw new InvalidAdminOrderQuery();
   const limit = Number(rawLimit);
@@ -66,7 +69,7 @@ export async function listAdminOrders(db: AdminOrderDatabase, params: URLSearchP
       cursor = { createdAt: value[0], id: value[1] };
     } catch { throw new InvalidAdminOrderQuery(); }
   }
-  const rows = (await findAdminOrders(db, limit + 1, cursor)).map(readOrder);
+  const rows = (await findAdminOrders(db, limit + 1, cursor, params.get('view') === 'archived')).map(readOrder);
   const items = rows.slice(0, limit);
   const last = items.at(-1);
   return { items, nextCursor: rows.length > limit && last ? btoa(JSON.stringify([last.createdAt, last.id])) : null };

@@ -2,6 +2,15 @@ import { LEGAL_ES } from './legal.es';
 import type { TranslationKey } from './ca';
 export const ES: Record<TranslationKey, string> = {
   ...LEGAL_ES,
+  "admin.order.activeOrders": "Activas",
+  "admin.order.archivedOrders": "Archivadas",
+  "admin.order.archive": "Archivar",
+  "admin.order.restore": "Restaurar",
+  "admin.order.archived": "Archivada",
+  "admin.order.archiveSaved": "Pedido archivado.",
+  "admin.order.restoreSaved": "Pedido restaurado.",
+  "admin.order.archiveError": "No podemos confirmar el cambio de archivo. Vuelve a cargar el pedido.",
+  "admin.order.views": "Vistas de pedidos",
   "admin.order.status.paid": "Pagado",
   "admin.order.status.partially_refunded": "Reembolsado parcialmente",
   "admin.order.status.refunded": "Reembolsado",

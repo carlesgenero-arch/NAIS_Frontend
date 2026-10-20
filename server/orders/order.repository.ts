@@ -64,7 +64,7 @@ export interface AdminOrderDatabase {
 }
 const ADMIN_ORDER_COLUMNS = `o.id, COALESCE(o.order_reference, o.order_number) AS orderNumber,
   o.payment_status AS paymentStatus, o.fulfillment_status AS fulfillmentStatus,
-  o.total_amount AS totalAmount, o.currency, o.created_at AS createdAt, o.paid_at AS paidAt,
+  o.total_amount AS totalAmount, o.currency, o.created_at AS createdAt, o.paid_at AS paidAt, o.archived_at AS archivedAt,
   o.customer_name AS customerName, o.customer_email AS customerEmail, o.customer_phone AS customerPhone,
   o.shipping_name AS shippingName, o.shipping_address_line1 AS shippingLine1,
   o.shipping_address_line2 AS shippingLine2, o.shipping_postal_code AS shippingPostalCode,
@@ -82,8 +82,9 @@ export async function updateOrderFulfillment(db: AdminOrderDatabase, id: string,
     .bind(next, id, previous).first<{ id: string }>() !== null;
 }
 export async function findAdminOrders(db: AdminOrderDatabase, limit: number,
-  cursor: { createdAt: string; id: string } | null): Promise<unknown[]> {
-  const where = cursor ? 'WHERE (o.created_at < ?1 OR (o.created_at = ?1 AND o.id < ?2))' : '';
+  cursor: { createdAt: string; id: string } | null, archived = false): Promise<unknown[]> {
+  const where = `WHERE o.archived_at IS ${archived ? 'NOT ' : ''}NULL`
+    + (cursor ? ' AND (o.created_at < ?1 OR (o.created_at = ?1 AND o.id < ?2))' : '');
   const statement = db.prepare(`SELECT ${ADMIN_ORDER_COLUMNS} FROM orders o ${where}
     ORDER BY o.created_at DESC, o.id DESC LIMIT ${cursor ? '?3' : '?1'}`);
   const result = await (cursor ? statement.bind(cursor.createdAt, cursor.id, limit) : statement.bind(limit)).all<unknown>();

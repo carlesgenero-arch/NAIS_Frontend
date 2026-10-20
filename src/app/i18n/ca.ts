@@ -1,6 +1,15 @@
 import { LEGAL_CA } from './legal.ca';
 export const CA = {
   ...LEGAL_CA,
+  "admin.order.activeOrders": "Actives",
+  "admin.order.archivedOrders": "Arxivades",
+  "admin.order.archive": "Arxivar",
+  "admin.order.restore": "Restaurar",
+  "admin.order.archived": "Arxivada",
+  "admin.order.archiveSaved": "Comanda arxivada.",
+  "admin.order.restoreSaved": "Comanda restaurada.",
+  "admin.order.archiveError": "No podem confirmar el canvi d’arxiu. Torna a carregar la comanda.",
+  "admin.order.views": "Vistes de comandes",
   "admin.order.status.paid": "Pagat",
   "admin.order.status.partially_refunded": "Reemborsat parcialment",
   "admin.order.status.refunded": "Reemborsat",

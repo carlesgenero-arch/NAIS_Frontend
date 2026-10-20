@@ -5,6 +5,14 @@
   @if (error()) { <p role="alert">{{ error() }}</p><button type="button" (click)="reload()">Tornar-ho a provar</button> }
   @if (order(); as current) {
     <h3>{{ current.orderNumber }}</h3>
+    @if (current.archivedAt) {
+      <p class="archive-label">{{ 'admin.order.archived' | t }} · <time [attr.datetime]="current.archivedAt">{{ current.archivedAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></p>
+    }
+    @if (current.fulfillmentStatus === 'delivered') {
+      <div class="archive-actions" [attr.aria-busy]="saving()">
+        <button type="button" data-order-archive (click)="setArchived(!current.archivedAt)" [disabled]="saving() || loading()">{{ (current.archivedAt ? 'admin.order.restore' : 'admin.order.archive') | t }}</button>
+      </div>
+    }
     <dl><dt>Creada (UTC)</dt><dd><time [attr.datetime]="current.createdAt">{{ current.createdAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></dd>
       <dt>Pagada (UTC)</dt><dd><time [attr.datetime]="current.paidAt">{{ current.paidAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></dd>
       <dt>Pagament</dt><dd><app-order-status-badge [status]="current.paymentStatus" /></dd>
