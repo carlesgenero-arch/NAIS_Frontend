@@ -23,7 +23,9 @@ function readOrder(value: unknown): AdminOrder {
   const id = text(row['id']); const paidAt = text(row['paidAt']);
   if (!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(id) || !Number.isFinite(Date.parse(paidAt))) throw new Error('Invalid admin order');
   const customer = record(row['customer']); const address = record(row['shippingAddress']);
-  return { id, paidAt, orderNumber: value.orderNumber, createdAt: value.createdAt,
+  const archivedAt = row['archivedAt'] === undefined ? null : nullable(row['archivedAt']);
+  if (archivedAt !== null && !Number.isFinite(Date.parse(archivedAt))) throw new Error('Invalid archive state');
+  return { archivedAt, id, paidAt, orderNumber: value.orderNumber, createdAt: value.createdAt,
     paymentStatus: value.paymentStatus, fulfillmentStatus: value.fulfillmentStatus,
     totalAmount: value.totalAmount, currency: value.currency,
     ...(row['shippingEmailWarning'] === true ? { shippingEmailWarning: true } : {}),
@@ -49,9 +51,10 @@ export function fulfillmentError(error: unknown): string {
 @Injectable({ providedIn: 'root' })
 export class AdminOrdersService {
   private readonly http = inject(HttpClient);
-  list(cursor: string | null = null, limit = 25): Observable<AdminOrderPage> {
+  list(cursor: string | null = null, limit = 25, view: 'active' | 'archived' = 'active'): Observable<AdminOrderPage> {
     let params = new HttpParams().set('limit', limit);
     if (cursor) params = params.set('cursor', cursor);
+    if (view === 'archived') params = params.set('view', view);
     return this.http.get<unknown>('/api/admin/orders', { params }).pipe(map(value => {
       const row = record(value); const cursor = row['nextCursor'];
       if (!Array.isArray(row['items']) || (cursor !== null && (typeof cursor !== 'string' || !cursor || cursor.length > 256))) throw new Error('Invalid admin orders');
@@ -60,6 +63,10 @@ export class AdminOrdersService {
   }
   getOrder(id: string): Observable<AdminOrder> {
     return this.http.get<unknown>('/api/admin/orders/' + encodeURIComponent(id)).pipe(map(readOrder));
+  }
+  setArchived(id: string, archived: boolean): Observable<AdminOrder> {
+    return this.http.post<unknown>('/api/admin/orders/' + encodeURIComponent(id) + (archived ? '/archive' : '/restore'), null)
+      .pipe(map(readOrder));
   }
   updateFulfillment(id: string, fulfillmentStatus: FulfillmentStatus): Observable<AdminOrder> {
     return this.http.patch<unknown>('/api/admin/orders/' + encodeURIComponent(id) + '/fulfillment',

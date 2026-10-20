@@ -104,3 +104,37 @@ Stripe TEST resources; no LIVE changes are part of the implementation.
 Existing orphan Prices from BEFORE this migration are not inferred or bulk-archived;
 they still require an explicit audit. New successful switches record their old
 Price IDs durably. Entries are scoped to the product record's lifetime.
+
+
+## Delivered order archiving
+
+Apply `0015_order_archiving.sql` after 0014 and before deploying these admin reads.
+It adds nullable `orders.archived_at` (existing rows stay active) and
+`idx_orders_archive_created`. No previous migration, fulfillment/payment state,
+Stripe ID, historical amount or email state changes.
+
+Protected APIs (all inherit Access JWT + ADMIN_EMAILS middleware):
+- GET /api/admin/orders: active/unarchived only; `view=archived` selects archived
+  orders. Explicit `view=active` is also accepted. Existing limit/cursor pagination
+  is applied after the SQL archive predicate. Invalid/repeated view -> 400.
+- GET /api/admin/orders/:id: returns the order regardless of archival state.
+- POST /api/admin/orders/:id/archive and /restore: empty request body, exact
+  same-origin Origin required. Only delivered orders are eligible (409 otherwise).
+  Unknown UUID -> 404; malformed ID/body -> 400. Success returns the admin order
+  with `archivedAt` ISO timestamp or null. Repeated operations are idempotent;
+  re-archiving preserves the original archive timestamp. Responses are no-store.
+
+Admin list has Actives / Arxivades controls, with separate server requests and
+pagination reset on switch; stale requests are cancelled. Archived rows show a
+text label independent of fulfillment badges. Open a delivered order's detail to
+archive/restore it. Actions share existing saving/error feedback and prevent double
+submission. No emails, queue, scheduler or deletion are involved.
+
+Deployment: confirm the intended Preview/Production PROMO_DB databases, reconcile
+any prior drift, review `npx wrangler d1 migrations list nais-promo-production --remote`,
+then manually apply reviewed pending migrations in order before deploying. No remote
+migration is run automatically. In an Access-protected preview verify delivered
+archive -> refresh -> absent in Actives -> present in Arxivades -> detail Restore.
+Verify non-delivered rejection, unauthorized and cross-origin rejection, unchanged
+paid/delivered states and no new email. Check mobile 320/375/430px and desktop,
+including table-internal scrolling and action focus. No archive data is public.

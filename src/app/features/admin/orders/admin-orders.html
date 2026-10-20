@@ -1,5 +1,9 @@
 <section aria-labelledby="orders-title">
   <h2 id="orders-title">Comandes</h2>
+  <nav class="order-views" [attr.aria-label]="'admin.order.views' | t">
+    <button type="button" data-order-view="active" [attr.aria-pressed]="view() === 'active'" (click)="selectView('active')">{{ 'admin.order.activeOrders' | t }}</button>
+    <button type="button" data-order-view="archived" [attr.aria-pressed]="view() === 'archived'" (click)="selectView('archived')">{{ 'admin.order.archivedOrders' | t }}</button>
+  </nav>
   @if (loading()) { <p role="status">{{ loaded() ? 'Carregant més comandes…' : 'Carregant comandes…' }}</p> }
   @if (error()) { <p role="alert">{{ error() }}</p><button type="button" (click)="load()" [disabled]="loading()">Tornar-ho a provar</button> }
   @if (loaded() && orders().length === 0) { <p role="status">No hi ha comandes.</p> }
@@ -8,7 +12,7 @@
       <table><caption>Comandes · imports en EUR · dates UTC</caption>
         <thead><tr><th scope="col">Comanda</th><th scope="col">Data</th><th scope="col">Client</th><th scope="col" class="email-column">Correu electrònic</th><th scope="col">Pagament</th><th scope="col">Preparació</th><th scope="col">Total (EUR)</th></tr></thead>
         <tbody>@for (order of orders(); track order.id) {
-          <tr><th scope="row"><a [routerLink]="['/admin/orders', order.id]">{{ order.orderNumber }}</a></th>
+          <tr><th scope="row"><a [routerLink]="['/admin/orders', order.id]">{{ order.orderNumber }}</a>@if (order.archivedAt) { <span class="archive-label">{{ 'admin.order.archived' | t }}</span> }</th>
             <td><time [attr.datetime]="order.createdAt">{{ order.createdAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></td>
             <td>{{ order.customer.name }}</td><td class="email-column">{{ order.customer.email }}</td>
             <td><app-order-status-badge [status]="order.paymentStatus" /></td>

@@ -33,7 +33,7 @@ function adapter(sqlite) {
 }
 function setup(t, migrate=true) {
   const sqlite = new DatabaseSync(':memory:');t.after(()=>sqlite.close());
-  sqlite.exec('PRAGMA foreign_keys=ON');sqlite.exec(migration('0003_orders.sql'));
+  sqlite.exec('PRAGMA foreign_keys=ON');sqlite.exec(migration('0003_orders.sql'));sqlite.exec(migration('0015_order_archiving.sql'));
   if(migrate) sqlite.exec(migration('0014_order_reference.sql'));
   return {sqlite,db:adapter(sqlite)};
 }
@@ -117,12 +117,12 @@ test('independent concurrent SQLite connections receive unique sequential refere
     Array.from({length:6},(_,i)=>'NAIS-2026-'+String(i+1).padStart(4,'0')));}finally{result.close();}
 });
 
-test('0014 applies after the complete ordered migration chain including 0013', async t=>{
+test('complete ordered migration chain through 0015 preserves reference and delivery defaults', async t=>{
   const sqlite=new DatabaseSync(':memory:');t.after(()=>sqlite.close());
   for(const name of ['0001_promo_signups.sql','0002_promo_codes.sql','0003_orders.sql','0004_products.sql',
     '0005_seed_products.sql','0006_order_confirmation.sql','0007_shipping_email.sql','0008_promo_email.sql',
     '0009_hide_tropical_hops.sql','0010_assorted_pack_three_flavours.sql','0011_harvest_sold_out.sql',
-    '0012_stripe_price_cleanup.sql','0013_order_notification.sql','0014_order_reference.sql']) sqlite.exec(migration(name));
+    '0012_stripe_price_cleanup.sql','0013_order_notification.sql','0014_order_reference.sql','0015_order_archiving.sql']) sqlite.exec(migration(name));
   await createPaidOrder(adapter(sqlite),snapshot(1));
   const row=sqlite.prepare('SELECT * FROM orders').get();
   assert.equal(row.order_reference,'NAIS-2026-0001');

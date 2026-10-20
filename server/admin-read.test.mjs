@@ -10,6 +10,8 @@ import { onRequest as product } from '../functions/api/admin/products/[id].ts';
 import { onRequest as orders } from '../functions/api/admin/orders/index.ts';
 import { onRequest as order } from '../functions/api/admin/orders/[id].ts';
 import { onRequest as fulfillment } from '../functions/api/admin/orders/[id]/fulfillment.ts';
+import { onRequest as archive } from '../functions/api/admin/orders/[id]/archive.ts';
+import { onRequest as restore } from '../functions/api/admin/orders/[id]/restore.ts';
 import { changeOrderFulfillment } from './orders/order-fulfillment.service.ts';
 import { onRequest as publicProducts } from '../functions/api/products/index.ts';
 const env = { ACCESS_TEAM_DOMAIN: 'https://test.cloudflareaccess.com', ACCESS_AUD: 'test-only', ADMIN_EMAILS: 'admin@example.test' };
@@ -79,7 +81,7 @@ async function jwt(email = 'admin@example.test') {
 async function setup(t) {
   const sqlite = new DatabaseSync(':memory:'); t.after(() => sqlite.close());
   sqlite.exec('PRAGMA foreign_keys=ON');
-  for (const file of ['0003_orders.sql', '0004_products.sql', '0005_seed_products.sql', '0006_order_confirmation.sql', '0007_shipping_email.sql', '0012_stripe_price_cleanup.sql', '0014_order_reference.sql']) {
+  for (const file of ['0003_orders.sql', '0004_products.sql', '0005_seed_products.sql', '0006_order_confirmation.sql', '0007_shipping_email.sql', '0012_stripe_price_cleanup.sql', '0014_order_reference.sql', '0015_order_archiving.sql']) {
     sqlite.exec(readFileSync(new URL('../migrations/' + file, import.meta.url), 'utf8'));
   }
   const db = { prepare(sql) { return { sql, values: [], bind(...values) { this.values = values; return this; },
@@ -118,7 +120,7 @@ async function setup(t) {
 test('admin read and fulfillment adapters deny unauthenticated/unauthorized identities before D1', async t => {
   const { send, ids } = await setup(t);
   const failDb = { prepare() { assert.fail('D1 must not run'); } };
-  for (const handler of [products, product, orders, order, fulfillment]) {
+  for (const handler of [products, product, orders, order, fulfillment, archive, restore]) {
     assert.equal((await send(handler, ids[0], '', null, failDb)).status, 401);
     assert.equal((await send(handler, ids[0], '', 'forged', failDb)).status, 401);
     assert.equal((await send(handler, ids[0], '', await jwt('other@example.test'), failDb)).status, 403);
@@ -209,7 +211,7 @@ test('admin orders expose only explicit operational snapshot fields in cents', a
   const { send, ids } = await setup(t);
   const response = await send(order, ids[0]); assert.equal(response.status, 200);
   const o = await response.json();
-  assert.deepEqual(Object.keys(o).sort(), ['id','orderNumber','paymentStatus','fulfillmentStatus','totalAmount','currency','createdAt','paidAt','items','customer','shippingAddress'].sort());
+  assert.deepEqual(Object.keys(o).sort(), ['archivedAt','id','orderNumber','paymentStatus','fulfillmentStatus','totalAmount','currency','createdAt','paidAt','items','customer','shippingAddress'].sort());
   assert.deepEqual(o.customer, { name: 'Synthetic Buyer', email: 'buyer@example.test', phone: null });
   assert.deepEqual(o.shippingAddress, { name: 'Synthetic Recipient', line1: 'Test Address', line2: null, postalCode: '00000', city: 'Test City', country: 'ES' });
   assert.deepEqual(o.items, [{ productId: 'orange-spritz', productName: 'Historical product', quantity: 1, unitAmount: 3600, lineTotalAmount: 3600 }]);
@@ -264,4 +266,75 @@ test('refunded and later fulfillment states remain readable without catalogue re
   const response = await send(order, ids[0]); assert.equal(response.status, 200);
   const o = await response.json(); assert.equal(o.paymentStatus, 'partially_refunded'); assert.equal(o.fulfillmentStatus, 'shipped');
   assert.equal(o.items[0].productName, 'Historical product');
+});
+
+
+test('delivered archival is idempotent, persistent, filtered in D1 and reversible without emails', async t => {
+  const {send,sqlite,ids}=await setup(t);
+  const network=t.mock.method(globalThis,'fetch',async()=>{assert.fail('Archiving must not send email');});
+  sqlite.prepare("UPDATE orders SET fulfillment_status='delivered' WHERE id=?").run(ids[0]);
+  const before=sqlite.prepare('SELECT * FROM orders WHERE id=?').get(ids[0]);
+  const result=await send(archive,ids[0],'',undefined,undefined,'POST');
+  assert.equal(result.status,200); const archived=await result.json();
+  assert.equal(archived.fulfillmentStatus,'delivered');assert.ok(Number.isFinite(Date.parse(archived.archivedAt)));
+  assert.equal(result.headers.get('Cache-Control'),'no-store');
+  const after=sqlite.prepare('SELECT * FROM orders WHERE id=?').get(ids[0]);
+  assert.deepEqual({...after},{...before,archived_at:archived.archivedAt});
+  assert.equal((await (await send(archive,ids[0],'',undefined,undefined,'POST')).json()).archivedAt,archived.archivedAt);
+  const active=await (await send(orders,undefined)).json();
+  assert.equal(active.items.some(row=>row.id===ids[0]),false);
+  const archiveView=await (await send(orders,undefined,'?view=archived')).json();
+  assert.deepEqual(archiveView.items.map(row=>row.id),[ids[0]]);
+  assert.equal((await (await send(order,ids[0])).json()).archivedAt,archived.archivedAt);
+  assert.equal((await (await send(orders,undefined,'?view=archived&limit=1')).json()).items[0].id,ids[0]);
+  const restored=await send(restore,ids[0],'',undefined,undefined,'POST');
+  assert.equal(restored.status,200);assert.equal((await restored.json()).archivedAt,null);
+  assert.equal((await send(restore,ids[0],'',undefined,undefined,'POST')).status,200);
+  assert.deepEqual({...sqlite.prepare('SELECT * FROM orders WHERE id=?').get(ids[0])},{...before});
+  assert.equal((await (await send(orders,undefined,'?view=archived')).json()).items.length,0);
+  assert.ok((await (await send(orders,undefined)).json()).items.some(row=>row.id===ids[0]));
+  assert.equal(network.mock.callCount(),0);
+});
+
+test('archive and restore reject non-delivered orders and unsafe requests',async t=>{
+  const {send,sqlite,ids}=await setup(t);
+  for(const handler of [archive,restore]) {
+    for(const state of ['pending','preparing','shipped','cancelled']) {
+      sqlite.prepare('UPDATE orders SET fulfillment_status=? WHERE id=?').run(state,ids[0]);
+      assert.equal((await send(handler,ids[0],'',undefined,undefined,'POST')).status,409);
+      assert.equal(sqlite.prepare('SELECT archived_at FROM orders WHERE id=?').get(ids[0]).archived_at,null);
+    }
+    assert.equal((await send(handler,ids[0],'',undefined,undefined,'POST',{origin:'https://other.example'})).status,403);
+    assert.equal((await send(handler,ids[0])).status,405);
+    assert.equal((await send(handler,ids[0],'',undefined,undefined,'POST',{payload:{}})).status,400);
+    assert.equal((await send(handler,'invalid','',undefined,undefined,'POST')).status,400);
+    assert.equal((await send(handler,'00000000-0000-4000-8000-000000000000','',undefined,undefined,'POST')).status,404);
+    assert.equal((await send(handler,ids[0],'',undefined,null,'POST')).status,503);
+  }
+  for(const query of ['?view=other','?view=archived&view=active']) assert.equal((await send(orders,undefined,query)).status,400);
+});
+
+test('archive migration preserves existing orders as active without changing snapshots',async t=>{
+  const {sqlite}=await setup(t);
+  const before=sqlite.prepare('SELECT * FROM orders').all().map(({archived_at,...row})=>row);
+  sqlite.exec('DROP INDEX idx_orders_archive_created; ALTER TABLE orders DROP COLUMN archived_at');
+  sqlite.exec(readFileSync(new URL('../migrations/0015_order_archiving.sql',import.meta.url),'utf8'));
+  assert.deepEqual(sqlite.prepare('SELECT * FROM orders').all().map(row=>({...row})),before.map(row=>({...row,archived_at:null})));
+});
+
+
+test('archived pagination excludes active rows and concurrent archive preserves one timestamp',async t=>{
+  const {send,sqlite,ids}=await setup(t);
+  sqlite.prepare("UPDATE orders SET fulfillment_status='delivered' WHERE id IN (?,?)").run(ids[0],ids[1]);
+  const replies=await Promise.all(Array.from({length:5},()=>send(archive,ids[0],'',undefined,undefined,'POST')));
+  assert.ok(replies.every(response=>response.status===200));
+  const times=await Promise.all(replies.map(async response=>(await response.json()).archivedAt));
+  assert.equal(new Set(times).size,1);
+  await send(archive,ids[1],'',undefined,undefined,'POST');
+  const first=await (await send(orders,undefined,'?view=archived&limit=1')).json();
+  assert.ok(first.nextCursor);assert.equal(first.items.length,1);
+  const second=await (await send(orders,undefined,'?view=archived&limit=1&cursor='+encodeURIComponent(first.nextCursor))).json();
+  assert.equal(second.items.length,1);assert.equal(second.nextCursor,null);
+  assert.notEqual(second.items[0].id,first.items[0].id);
+  assert.ok([first.items[0],second.items[0]].every(row=>row.archivedAt));
 });

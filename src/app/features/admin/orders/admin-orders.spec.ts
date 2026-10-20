@@ -60,23 +60,23 @@ describe('protected admin orders UI', () => {
     const fixture = list(); page().flush({ private: 'do not display' }, { status: 503, statusText: 'Unavailable' }); fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain('do not display');
-    fixture.nativeElement.querySelector('button').click();
+    fixture.nativeElement.querySelector('button:not([data-order-view])').click();
     page().flush({ items: [], nextCursor: null }); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('No hi ha comandes');
   });
   it('appends pages, prevents duplicate loads and retains the cursor after failure', () => {
     const fixture = list(); page().flush({ items: [order], nextCursor: 'cursor+/=' }); fixture.detectChanges();
-    fixture.nativeElement.querySelector('button').click(); fixture.nativeElement.querySelector('button').click(); fixture.detectChanges();
+    fixture.nativeElement.querySelector('button:not([data-order-view])').click(); fixture.nativeElement.querySelector('button:not([data-order-view])').click(); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Carregant més');
     let request = http.expectOne(r => r.url === '/api/admin/orders' && r.params.get('cursor') === 'cursor+/=');
     expect(request.request.params.get('limit')).toBe('25');
     request.flush({}, { status: 503, statusText: 'Unavailable' }); fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('tbody tr')).toHaveLength(1);
-    fixture.nativeElement.querySelector('button').click();
+    fixture.nativeElement.querySelector('button:not([data-order-view])').click();
     request = http.expectOne(r => r.params.get('cursor') === 'cursor+/=');
     request.flush({ items: [{ ...order, id: '00000000-0000-4000-8000-000000000002', orderNumber: 'NAIS-2026-0002' }], nextCursor: null }); fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('tbody tr')).toHaveLength(2);
-    expect(fixture.nativeElement.querySelector('button')).toBeNull();
+    expect(fixture.nativeElement.querySelector('button:not([data-order-view])')).toBeNull();
   });
   it('renders complete detail, stored item snapshots and EUR amounts', () => {
     const fixture = detail(); http.expectOne('/api/admin/orders/' + order.id).flush(order); fixture.detectChanges();
@@ -95,7 +95,7 @@ describe('protected admin orders UI', () => {
   });
   it('retries detail errors and cancels pending requests on destroy', () => {
     const fixture = detail(); http.expectOne('/api/admin/orders/' + order.id).flush({}, { status: 503, statusText: 'Unavailable' }); fixture.detectChanges();
-    fixture.nativeElement.querySelector('button').click();
+    fixture.nativeElement.querySelector('button:not([data-order-view])').click();
     const request = http.expectOne('/api/admin/orders/' + order.id);
     fixture.destroy(); expect(request.cancelled).toBe(true);
   });
@@ -171,6 +171,49 @@ describe('protected admin orders UI', () => {
     const update = http.expectOne('/api/admin/orders/' + order.id + '/fulfillment');
     params.next(convertToParamMap({ id: 'next' })); expect(update.cancelled).toBe(true);
     http.expectOne('/api/admin/orders/next').flush({}, { status: 404, statusText: 'Not found' });
+  });
+
+  it('archives/restores delivered orders and prevents duplicate actions', () => {
+    const fixture = detail();
+    http.expectOne('/api/admin/orders/' + order.id).flush({ ...order, fulfillmentStatus: 'delivered', archivedAt: null });
+    fixture.detectChanges();
+    const button = fixture.nativeElement.querySelector('[data-order-archive]');
+    expect(button.textContent).toContain('Arxivar'); button.click(); button.click();
+    const request = http.expectOne('/api/admin/orders/' + order.id + '/archive');
+    expect(request.request.method).toBe('POST'); expect(request.request.body).toBeNull();
+    request.flush({ ...order, fulfillmentStatus: 'delivered', archivedAt: '2026-10-20T10:00:00.000Z' });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.archive-label').textContent).toContain('Arxivada');
+    expect(fixture.nativeElement.querySelector('dl').textContent).toContain('Lliurat');
+    expect(fixture.nativeElement.querySelectorAll('[data-fulfillment]')).toHaveLength(0);
+    fixture.nativeElement.querySelector('[data-order-archive]').click();
+    http.expectOne('/api/admin/orders/' + order.id + '/restore').flush({ ...order, fulfillmentStatus: 'delivered', archivedAt: null });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.archive-label')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-order-archive]').textContent).toContain('Arxivar');
+  });
+  it('does not offer archival for non-delivered orders and recovers from action failure', () => {
+    const fixture = detail(); http.expectOne('/api/admin/orders/' + order.id).flush(order); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-order-archive]')).toBeNull();
+    params.next(convertToParamMap({ id: order.id }));
+    http.expectOne('/api/admin/orders/' + order.id).flush({ ...order, fulfillmentStatus: 'delivered' });
+    fixture.detectChanges(); fixture.nativeElement.querySelector('[data-order-archive]').click();
+    http.expectOne('/api/admin/orders/' + order.id + '/archive').flush({}, {status:409,statusText:'Conflict'});
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('arxiu');
+    expect(fixture.nativeElement.querySelector('[data-order-archive]').disabled).toBe(false);
+  });
+  it('loads archived orders from the backend and cancels stale active requests', () => {
+    const fixture = list(); const active = page();
+    fixture.nativeElement.querySelector('[data-order-view="archived"]').click();
+    expect(active.cancelled).toBe(true);
+    http.expectOne('/api/admin/orders?limit=25&view=archived').flush({items:[{...order,fulfillmentStatus:'delivered',archivedAt:'2026-10-20T10:00:00.000Z'}],nextCursor:null});
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-order-view="archived"]').getAttribute('aria-pressed')).toBe('true');
+    expect(fixture.nativeElement.querySelector('tbody .archive-label').textContent).toContain('Arxivada');
+    fixture.nativeElement.querySelector('[data-order-view="active"]').click();
+    page().flush({items:[],nextCursor:null});fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('tbody tr')).toHaveLength(0);
   });
 });
 describe('order cents to EUR', () => {
