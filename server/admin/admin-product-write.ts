@@ -1,5 +1,5 @@
 import type { AdminReadContext } from './admin-read.ts';
-import { createAdminProduct, updateAdminProduct, archiveAdminProduct, deleteAdminProduct, ProductMutationError } from '../catalogue/product-write.service.ts';
+import { createAdminProduct, updateAdminProduct, archiveAdminProduct, deleteAdminProduct, reconcileAdminProductPrices, ProductMutationError } from '../catalogue/product-write.service.ts';
 import { createStripeClient } from '../stripe/stripe-client.ts';
 import type { StripeCatalogueClient } from '../stripe/stripe-catalogue.ts';
 export interface AdminProductWriteContext extends AdminReadContext {
@@ -28,7 +28,7 @@ async function body(request: Request, allowEmpty = false): Promise<unknown> {
   } catch { throw new ProductMutationError(400, 'invalid_payload'); }
   finally { reader.releaseLock(); }
 }
-export async function adminProductWrite(context: AdminProductWriteContext, action: 'create' | 'update' | 'archive' | 'delete',
+export async function adminProductWrite(context: AdminProductWriteContext, action: 'create' | 'update' | 'archive' | 'delete' | 'reconcile',
   clientFactory: (env: { STRIPE_SECRET_KEY: string }) => StripeCatalogueClient = createStripeClient): Promise<Response> {
   const reply = (status: number, value: unknown, headers = {}) => Response.json(value, { status,
     headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', ...headers } });
@@ -41,15 +41,17 @@ export async function adminProductWrite(context: AdminProductWriteContext, actio
     if (action !== 'create' && typeof id !== 'string') throw new ProductMutationError(400, 'invalid_payload');
     const productId = typeof id === 'string' ? id : '';
     if (action === 'delete') return reply(200, await deleteAdminProduct(context.env.PROMO_DB, productId));
-    if (action === 'archive') {
-      // Archive takes no fields: accept an empty body or an empty JSON object.
+    if (action === 'archive' || action === 'reconcile') {
+      // Archive/reconciliation take no fields: accept an empty body or an empty JSON object.
       if (context.request.body) {
         const value = await body(context.request, true);
         if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length) {
           throw new ProductMutationError(400, 'invalid_payload');
         }
       }
-      return reply(200, await archiveAdminProduct(context.env.PROMO_DB, productId));
+      return reply(200, action === 'archive' ? await archiveAdminProduct(context.env.PROMO_DB, productId)
+        : await reconcileAdminProductPrices(context.env.PROMO_DB, productId,
+          () => clientFactory({ STRIPE_SECRET_KEY: context.env.STRIPE_SECRET_KEY ?? '' })));
     }
     const payload = await body(context.request);
     const result = action === 'create' ? await createAdminProduct(context.env.PROMO_DB, payload)

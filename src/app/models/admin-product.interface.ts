@@ -1,6 +1,7 @@
 import type { Product } from './product.interface';
 /** Read-only projection of the protected admin response. */
 export interface AdminProductSummary extends Pick<Product, 'id' | 'slug' | 'name' | 'status'> {
+  readonly stripePriceCleanupPending?: boolean;
   readonly priceCents: number;
   readonly currency: string;
   readonly stripeProductId: string | null;

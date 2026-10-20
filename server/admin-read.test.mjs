@@ -79,7 +79,7 @@ async function jwt(email = 'admin@example.test') {
 async function setup(t) {
   const sqlite = new DatabaseSync(':memory:'); t.after(() => sqlite.close());
   sqlite.exec('PRAGMA foreign_keys=ON');
-  for (const file of ['0003_orders.sql', '0004_products.sql', '0005_seed_products.sql', '0006_order_confirmation.sql', '0007_shipping_email.sql']) {
+  for (const file of ['0003_orders.sql', '0004_products.sql', '0005_seed_products.sql', '0006_order_confirmation.sql', '0007_shipping_email.sql', '0012_stripe_price_cleanup.sql']) {
     sqlite.exec(readFileSync(new URL('../migrations/' + file, import.meta.url), 'utf8'));
   }
   const db = { prepare(sql) { return { sql, values: [], bind(...values) { this.values = values; return this; },
@@ -200,7 +200,7 @@ test('authorized admin sees all product states and operational fields; public pr
   assert.deepEqual([...new Set(list.map(p => p.status))].sort(), ['active', 'archived', 'coming-soon', 'draft']);
   const detail = await send(product, 'orange-spritz'); assert.equal(detail.status, 200);
   const p = await detail.json(); assert.equal(p.stripePriceId, 'price_fixture'); assert.equal(p.stripeProductId, 'prod_fixture');
-  assert.deepEqual(Object.keys(p).sort(), ['id','slug','name','description','status','priceCents','currency','stripeProductId','stripePriceId','imageUrl','featureImageUrl','createdAt','updatedAt'].sort());
+  assert.deepEqual(Object.keys(p).sort(), ['id','slug','name','description','status','priceCents','currency','stripeProductId','stripePriceId','stripePriceCleanupPending','imageUrl','featureImageUrl','createdAt','updatedAt'].sort());
   const pub = await publicProducts({ request: new Request('https://nais.example/api/products'), env: { PROMO_DB: db } });
   const visible = await pub.json(); assert.equal(visible.length, 3);
   assert.ok(visible.every(p => p.status === 'active' && !('stripePriceId' in p) && !('createdAt' in p)));

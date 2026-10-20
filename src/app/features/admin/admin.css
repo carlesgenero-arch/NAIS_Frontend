@@ -6,3 +6,8 @@ a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 nav { margin-block: var(--space-group); border-block-end: 1px solid var(--surface-border); }
 nav a { padding: 0.5rem 1rem; text-decoration: none; }
 nav a.current { font-weight: 700; border-block-end: 2px solid currentColor; }
+
+:host, section { box-sizing: border-box; max-width: 100%; }
+nav { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+h1 { font-size: clamp(1.5rem, 4vw, 2rem); }
+@media (max-width: 47.99rem) { section { padding-block: 1.5rem; } }

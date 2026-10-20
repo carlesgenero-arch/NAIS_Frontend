@@ -1,10 +1,12 @@
 import { test } from 'node:test';
+import { DatabaseSync } from 'node:sqlite';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { checkoutDb } from './testing/checkout-db.mjs';
 import { stripeCatalogue } from './testing/stripe-catalogue.mjs';
-import { updateAdminProduct } from './catalogue/product-write.service.ts';
+import { updateAdminProduct, reconcileAdminProductPrices } from './catalogue/product-write.service.ts';
 import { adminProductWrite } from './admin/admin-product-write.ts';
-import { getPurchasableProducts } from './catalogue/product.service.ts';
+import { getPurchasableProducts, getAdminProduct } from './catalogue/product.service.ts';
 import { checkout } from './checkout/checkout-session.ts';
 
 function setup(t) {
@@ -133,12 +135,166 @@ test('invalid newly created Price is never committed', async t => {
   await assert.rejects(update('orange-spritz', { priceCents: 3750 }));
   assert.deepEqual(row('orange-spritz'), before);
 });
-test('cleanup failure keeps the new valid D1 mapping; never rolls back to a possibly inactive Price', async t => {
-  const { stripe, update, row } = setup(t);
-  stripe.client.prices.update = async () => { throw Error('cleanup failed'); };
-  await assert.rejects(update('orange-spritz', { priceCents: 3750 }));
-  const p = row('orange-spritz'); assert.equal(p.price_cents, 3750);
-  assert.equal(stripe.prices.get(p.stripe_price_id).active, true);
-  await update('orange-spritz', { priceCents: 3750 });
+test('post-commit cleanup failure returns 200 with durable pending state; reconciliation is idempotent', async t => {
+  const { db, stripe, row } = setup(t);
+  const old = row('orange-spritz').stripe_price_id;
+  const deactivate = stripe.client.prices.update;
+  stripe.client.prices.update = async () => { throw Error('private cleanup failure'); };
+  const response = await adminProductWrite({ data: { admin: {} }, params: { id: 'orange-spritz' }, env: { PROMO_DB: db },
+    request: new Request('https://nais.example/api/admin/products/orange-spritz', { method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceCents: 3750 }) }) }, 'update', () => stripe.client);
+  assert.equal(response.status, 200);
+  const saved = await response.json();
+  assert.equal(saved.stripePriceCleanupPending, true);
+  assert.equal((await getAdminProduct(db, 'orange-spritz')).stripePriceCleanupPending, true);
+  assert.equal('stripe_price_cleanup_ids' in saved, false);
+  assert.equal(saved.priceCents, 3750);
+  assert.equal(row('orange-spritz').price_cents, 3750);
+  assert.equal(stripe.prices.get(saved.stripePriceId).active, true);
+  assert.deepEqual(JSON.parse(row('orange-spritz').stripe_price_cleanup_ids), [old]);
+  const authoritative = { price: saved.priceCents, id: saved.stripePriceId, revision: saved.updatedAt };
+  stripe.client.prices.update = deactivate;
+  const cleaned = await reconcileAdminProductPrices(db, 'orange-spritz', () => stripe.client);
+  assert.equal(cleaned.stripePriceCleanupPending, false);
+  assert.equal(stripe.prices.get(old).active, false);
+  assert.deepEqual({ price: cleaned.priceCents, id: cleaned.stripePriceId, revision: cleaned.updatedAt }, authoritative);
+  assert.deepEqual(JSON.parse(row('orange-spritz').stripe_price_cleanup_ids), []);
+  const calls = stripe.calls.length;
+  await reconcileAdminProductPrices(db, 'orange-spritz', () => { throw Error('No Stripe needed when clean'); });
+  assert.equal(stripe.calls.length, calls);
   assert.equal(stripe.calls.filter(c => c[0] === 'price.create').length, 1);
+});
+
+test('retrying the saved price also reconciles the previously failed cleanup', async t => {
+  const { stripe, update, row } = setup(t);
+  const old = row('orange-spritz').stripe_price_id;
+  const deactivate = stripe.client.prices.update;
+  stripe.client.prices.update = async () => { throw Error('offline'); };
+  assert.equal((await update('orange-spritz', { priceCents: 3750 })).stripePriceCleanupPending, true);
+  stripe.client.prices.update = deactivate;
+  assert.equal((await update('orange-spritz', { priceCents: 3750 })).stripePriceCleanupPending, false);
+  assert.equal(stripe.prices.get(old).active, false);
+  assert.equal(stripe.calls.filter(c => c[0] === 'price.create').length, 1);
+});
+
+test('multiple failed switches retain every old Price and referenced Prices remain pending', async t => {
+  const { db, sqlite, stripe, update, row } = setup(t);
+  const old = row('orange-spritz').stripe_price_id;
+  const deactivate = stripe.client.prices.update;
+  stripe.client.prices.update = async () => { throw Error('offline'); };
+  const first = await update('orange-spritz', { priceCents: 3750 });
+  await update('orange-spritz', { priceCents: 3800 });
+  assert.deepEqual(JSON.parse(row('orange-spritz').stripe_price_cleanup_ids), [old, first.stripePriceId]);
+  sqlite.prepare('UPDATE products SET stripe_price_id=? WHERE id=?').run(old, 'ginger-crush');
+  stripe.client.prices.update = deactivate;
+  const result = await reconcileAdminProductPrices(db, 'orange-spritz', () => stripe.client);
+  assert.equal(result.stripePriceCleanupPending, true);
+  assert.equal(stripe.prices.get(old).active, true);
+  assert.equal(stripe.prices.get(first.stripePriceId).active, false);
+  assert.deepEqual(JSON.parse(row('orange-spritz').stripe_price_cleanup_ids), [old]);
+  sqlite.prepare('UPDATE products SET stripe_price_id=NULL WHERE id=?').run('ginger-crush');
+  assert.equal((await reconcileAdminProductPrices(db, 'orange-spritz', () => stripe.client)).stripePriceCleanupPending, false);
+  assert.equal(stripe.prices.get(old).active, false);
+});
+
+test('failed cleanup acknowledgement can be retried without deactivating again', async t => {
+  const { db, stripe, update, row } = setup(t);
+  const old = row('orange-spritz').stripe_price_id;
+  const deactivate = stripe.client.prices.update;
+  stripe.client.prices.update = async () => { throw Error('offline'); };
+  await update('orange-spritz', { priceCents: 3750 });
+  stripe.client.prices.update = deactivate;
+  const failedDb = { prepare(sql) {
+    if (sql.startsWith('UPDATE products SET stripe_price_cleanup_ids=')) throw Error('ack unavailable');
+    return db.prepare(sql);
+  } };
+  assert.equal((await reconcileAdminProductPrices(failedDb, 'orange-spritz', () => stripe.client)).stripePriceCleanupPending, true);
+  assert.equal(stripe.prices.get(old).active, false);
+  assert.equal((await reconcileAdminProductPrices(db, 'orange-spritz', () => stripe.client)).stripePriceCleanupPending, false);
+  assert.equal(stripe.calls.filter(c => c[0] === 'price.update' && c[1] === old).length, 1);
+});
+
+test('a D1 read failure after commit reports saved with pending cleanup, never a failed save', async t => {
+  const { db, stripe, row } = setup(t);
+  let committed = false;
+  const wrapped = { prepare(sql) {
+    if (committed) throw Error('D1 read unavailable after commit');
+    const statement = db.prepare(sql);
+    if (sql.startsWith('UPDATE products SET slug=')) {
+      const first = statement.first.bind(statement);
+      statement.first = async () => { const result = await first(); committed = true; return result; };
+    }
+    return statement;
+  } };
+  const result = await updateAdminProduct(wrapped, 'orange-spritz', { priceCents: 3750 }, () => stripe.client);
+  assert.equal(result.priceCents, 3750);
+  assert.equal(result.stripePriceCleanupPending, true);
+  assert.equal(row('orange-spritz').stripe_price_id, result.stripePriceId);
+});
+
+
+test('cleanup migration preserves existing catalogue values and starts with no pending work', t => {
+  const sqlite = new DatabaseSync(':memory:'); t.after(() => sqlite.close());
+  for (const file of ['0004_products.sql', '0005_seed_products.sql']) {
+    sqlite.exec(readFileSync(new URL('../migrations/' + file, import.meta.url), 'utf8'));
+  }
+  const before = sqlite.prepare('SELECT * FROM products ORDER BY id').all();
+  sqlite.exec(readFileSync(new URL('../migrations/0012_stripe_price_cleanup.sql', import.meta.url), 'utf8'));
+  const after = sqlite.prepare('SELECT * FROM products ORDER BY id').all();
+  assert.deepEqual(after.map(row => ({ ...row })), before.map(row => ({ ...row, stripe_price_cleanup_ids: '[]' })));
+  assert.throws(() => sqlite.prepare("UPDATE products SET stripe_price_cleanup_ids='{}'").run());
+});
+
+test('price commit and durable cleanup append are atomic; cleanup preserves concurrent entries', async t => {
+  const { db, sqlite, stripe, update, row } = setup(t);
+  const old = row('orange-spritz').stripe_price_id;
+  const deactivate = stripe.client.prices.update;
+  stripe.client.prices.update = async () => { throw Error('offline'); };
+  await update('orange-spritz', { priceCents: 3750 });
+  const pending = row('orange-spritz').stripe_price_cleanup_ids;
+  const concurrent = 'price_concurrent';
+  stripe.prices.set(concurrent, { ...stripe.prices.get(old), id: concurrent });
+  stripe.client.prices.update = async (id, params) => {
+    if (id === old) sqlite.prepare("UPDATE products SET stripe_price_cleanup_ids=json_insert(stripe_price_cleanup_ids,'$[#]',?) WHERE id=?")
+      .run(concurrent, 'orange-spritz');
+    return deactivate(id, params);
+  };
+  assert.equal((await reconcileAdminProductPrices(db, 'orange-spritz', () => stripe.client)).stripePriceCleanupPending, true);
+  assert.deepEqual(JSON.parse(row('orange-spritz').stripe_price_cleanup_ids), [concurrent]);
+  assert.equal(JSON.parse(pending).includes(old), true);
+  assert.equal((await reconcileAdminProductPrices(db, 'orange-spritz', () => stripe.client)).stripePriceCleanupPending, false);
+});
+
+
+test('simultaneous reconciliations are safe and never affect the current mapping', async t => {
+  const { db, stripe, update, row } = setup(t);
+  const old = row('orange-spritz').stripe_price_id;
+  const deactivate = stripe.client.prices.update;
+  stripe.client.prices.update = async () => { throw Error('offline'); };
+  const saved = await update('orange-spritz', { priceCents: 3750 });
+  stripe.client.prices.update = deactivate;
+  const results = await Promise.all([
+    reconcileAdminProductPrices(db, 'orange-spritz', () => stripe.client),
+    reconcileAdminProductPrices(db, 'orange-spritz', () => stripe.client),
+  ]);
+  assert.ok(results.every(result => result.stripePriceCleanupPending === false));
+  assert.equal(row('orange-spritz').stripe_price_id, saved.stripePriceId);
+  assert.equal(row('orange-spritz').price_cents, 3750);
+  assert.equal(stripe.prices.get(saved.stripePriceId).active, true);
+  assert.equal(stripe.prices.get(old).active, false);
+});
+
+
+test('bounded reconciliation keeps remaining Prices durable for the next action', async t => {
+  const { db, sqlite, stripe, row } = setup(t);
+  const ids = Array.from({ length: 11 }, (_, index) => 'price_stale' + index);
+  const current = row('orange-spritz').stripe_price_id;
+  for (const id of ids) stripe.prices.set(id, { ...stripe.prices.get(current), id });
+  sqlite.prepare('UPDATE products SET stripe_price_cleanup_ids=? WHERE id=?').run(JSON.stringify(ids), 'orange-spritz');
+  assert.equal((await reconcileAdminProductPrices(db, 'orange-spritz', () => stripe.client)).stripePriceCleanupPending, true);
+  assert.equal(stripe.calls.filter(c => c[0] === 'price.update').length, 10);
+  assert.deepEqual(JSON.parse(row('orange-spritz').stripe_price_cleanup_ids), [ids[10]]);
+  assert.equal((await reconcileAdminProductPrices(db, 'orange-spritz', () => stripe.client)).stripePriceCleanupPending, false);
+  assert.equal(stripe.calls.filter(c => c[0] === 'price.update').length, 11);
+  assert.equal(stripe.prices.get(current).active, true);
 });

@@ -96,12 +96,13 @@ function readAdminProduct(value: unknown): AdminProduct {
   const product = readProduct(value);
   const row = value as Record<string, unknown>;
   if (!nullableText(row['stripeProductId']) || !nullableText(row['stripePriceId'])
+    || typeof row['stripePriceCleanupPending'] !== 'number' || !Number.isSafeInteger(row['stripePriceCleanupPending']) || row['stripePriceCleanupPending'] < 0
     || typeof row['createdAt'] !== 'string' || !Number.isFinite(Date.parse(row['createdAt']))
     || typeof row['updatedAt'] !== 'string' || !Number.isFinite(Date.parse(row['updatedAt']))) {
     throw new Error('Invalid catalogue data');
   }
   return { ...product, stripeProductId: row['stripeProductId'], stripePriceId: row['stripePriceId'],
-    createdAt: row['createdAt'], updatedAt: row['updatedAt'] };
+    createdAt: row['createdAt'], updatedAt: row['updatedAt'], stripePriceCleanupPending: row['stripePriceCleanupPending'] > 0 };
 }
 export async function listAdminProducts(db: ProductDatabase): Promise<readonly AdminProduct[]> {
   return (await findAdminProducts(db)).map(readAdminProduct);

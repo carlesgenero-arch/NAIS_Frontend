@@ -8,7 +8,7 @@ import { listActiveProducts, getPublicProductBySlug } from './catalogue/product.
 
 function setup(t) {
   const sqlite = new DatabaseSync(':memory:');
-  for (const file of ['0004_products.sql', '0005_seed_products.sql']) {
+  for (const file of ['0004_products.sql', '0005_seed_products.sql', '0012_stripe_price_cleanup.sql']) {
     sqlite.exec(readFileSync(new URL('../migrations/' + file, import.meta.url), 'utf8'));
   }
   t.after(() => sqlite.close());

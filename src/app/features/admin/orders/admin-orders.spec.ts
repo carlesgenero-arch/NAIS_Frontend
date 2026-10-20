@@ -5,7 +5,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { BehaviorSubject } from 'rxjs';
 import { AdminOrders } from './admin-orders';
 import { AdminOrderDetail } from './admin-order-detail';
-import { OrderEuroPipe, PAYMENT_LABELS, FULFILLMENT_LABELS } from './order-display';
+import { OrderEuroPipe, ORDER_STATUS_LABEL_KEYS } from './order-display';
 import { AdminOrdersService } from '../../../services/admin-orders.service';
 import type { AdminOrder } from '../../../models/admin-order.interface';
 import { routes } from '../../../app.routes';
@@ -116,8 +116,8 @@ describe('protected admin orders UI', () => {
     expect(fixture.nativeElement.querySelector('a[href="/admin/orders"]')).not.toBeNull();
   });
   it('provides readable text for every payment and fulfillment status', () => {
-    expect(Object.values(PAYMENT_LABELS)).toEqual(['Pagat', 'Reemborsat parcialment', 'Reemborsat']);
-    expect(Object.values(FULFILLMENT_LABELS)).toEqual(['Pendent', 'En preparació', 'Enviat', 'Lliurat', 'Cancel·lat']);
+    expect(Object.keys(ORDER_STATUS_LABEL_KEYS)).toContain('paid');
+    expect(Object.keys(ORDER_STATUS_LABEL_KEYS)).toHaveLength(8);
   });
   for (const [status, actions] of [
     ['pending', ['preparing', 'cancelled']], ['preparing', ['shipped', 'cancelled']],

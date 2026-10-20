@@ -27,6 +27,7 @@ export interface PurchasableProduct {
 
 /** Protected admin API only. Never return this from the public catalogue. */
 export interface AdminProduct extends CatalogueProduct {
+  readonly stripePriceCleanupPending?: boolean;
   readonly stripeProductId: string | null;
   readonly stripePriceId: string | null;
   readonly createdAt: string;

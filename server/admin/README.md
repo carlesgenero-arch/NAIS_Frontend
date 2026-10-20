@@ -62,9 +62,45 @@ This supersedes the read-only Stripe validation described in Phase 8.4A. No new 
 - Reuse the stored Stripe Product, or recover it from a legacy stored Price. Otherwise use a deterministic server-generated Stripe Product ID. Verify ownership metadata when present and write `nais_product_id`, name and description. Images are not synchronized.
 - Reuse a valid matching Price; otherwise create a new Price and retrieve/verify it. A deterministic unique lookup key based on the prior D1 revision and target amount recovers prepared Prices after a failed D1 write. Stripe idempotency keys also protect create retries. Product IDs/lookup keys extend duplicate protection beyond Stripe's temporary idempotency cache; do not transfer these lookup keys in Dashboard.
 - Commit managed fields, both Stripe IDs and active status together in one conditional D1 UPDATE. The full previous snapshot must still match; otherwise return `409 product_changed`. A concurrent loser never deactivates its prepared Price or overwrites the winning D1 mapping. Stripe may retain an unused prepared Price, which is not a purchasable D1 mapping.
-- Only after D1 commits, deactivate the previous Price if no catalogue row references it. Never delete a Product/Price or modify historical order snapshots. A failure before commit leaves D1 unchanged. A cleanup failure after commit returns generic `503 unavailable` but retains the new valid configuration; reload before retrying. The old Price can remain active in Stripe without being selected by checkout. Do not roll back to a Price whose deactivation outcome is uncertain.
+- Only after D1 commits, deactivate the previous Price if no catalogue row references it. Never delete a Product/Price or modify historical order snapshots. A failure before commit leaves D1 unchanged. A cleanup failure after commit returns success with `stripePriceCleanupPending: true` and retains the new valid configuration. The old Price can remain active in Stripe without being selected by checkout; reconcile it through the protected action below. Do not roll back to a Price whose deactivation outcome is uncertain.
 - There is no distributed transaction between D1 and Stripe. A failed/conflicting operation can leave Stripe descriptive fields or prepared objects ahead of D1; a subsequent successful PATCH of the current D1 fields resynchronizes them. D1 remains the checkout source of truth and all monetary configuration is committed atomically.
 
 Before Phase 8.5B: verify `STRIPE_SECRET_KEY` has Products read/write and Prices read/write permissions in the same Stripe account/mode as existing mappings. Test activation and price replacement using an Access-protected test deployment and test-mode resources. No migration or new secret binding is required. No real Stripe calls, deployment or remote D1 writes are made by automated tests.
 
 Stripe references: https://docs.stripe.com/api/products/create and https://docs.stripe.com/api/prices/create and https://docs.stripe.com/api/idempotent_requests
+
+
+## Recoverable post-commit Price cleanup
+
+Apply `0012_stripe_price_cleanup.sql` before deploying this version. The migration
+adds private `products.stripe_price_cleanup_ids` (a JSON array, initially empty).
+The conditional price UPDATE appends the previous Price in the SAME atomic write
+that changes the authoritative price/mapping. A failed/conflicting commit appends
+nothing. This is reconciliation metadata, not a queue; no scheduler is added.
+
+PATCH still returns the saved product with HTTP 200. Its additive admin-only
+`stripePriceCleanupPending` boolean is true if cleanup failed, is still referenced,
+or could not be confirmed. No final database read is needed to acknowledge the
+successful commit. Public product/checkout/order responses are unchanged.
+
+`POST /api/admin/products/:id/reconcile-prices` accepts no fields (empty body or
+`{}`). It inherits the existing Access JWT/allowlist and same-origin middleware.
+It retries at most 10 unreferenced Prices per request; referenced entries do not
+block later candidates, and any remaining entries stay
+pending. It never accepts a Price ID from the browser or changes pricing/status.
+Every candidate is checked against ALL D1 product references before deactivation.
+An already inactive Price only needs its pending entry removed. Entry removal
+filters the current array, retaining entries appended by concurrent edits. A
+failed acknowledgement remains retryable. Cleanup does not change `updated_at`.
+Repeated/simultaneous reconciliations are safe; Stripe deactivation is idempotent.
+A later PATCH also attempts previously pending cleanup after a successful commit.
+
+The admin list shows “Preu desat” with a non-blocking pending notice and a
+“Reintentar neteja Stripe” action. Refreshing preserves that notice because the
+pending state is durable. Do not roll back the committed mapping on cleanup errors.
+Test migration and recovery on an Access-protected preview with separate D1 and
+Stripe TEST resources; no LIVE changes are part of the implementation.
+
+Existing orphan Prices from BEFORE this migration are not inferred or bulk-archived;
+they still require an explicit audit. New successful switches record their old
+Price IDs durably. Entries are scoped to the product record's lifetime.

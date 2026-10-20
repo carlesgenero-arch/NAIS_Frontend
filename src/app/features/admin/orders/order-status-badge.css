@@ -1,0 +1,23 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: normal;
+}
+:host([data-status='pending']) { color: var(--admin-status-pending-text); background: var(--admin-status-pending-bg); }
+:host([data-status='preparing']) { color: var(--admin-status-preparing-text); background: var(--admin-status-preparing-bg); }
+:host([data-status='shipped']) { color: var(--admin-status-shipped-text); background: var(--admin-status-shipped-bg); }
+:host([data-status='delivered']) { color: var(--admin-status-delivered-text); background: var(--admin-status-delivered-bg); }
+:host([data-status='cancelled']) { color: var(--admin-status-cancelled-text); background: var(--admin-status-cancelled-bg); }
+:host([data-status='paid']) { color: var(--admin-status-paid-text); background: var(--admin-status-paid-bg); }
+:host([data-status='partially_refunded']) { color: var(--admin-status-partially_refunded-text); background: var(--admin-status-partially_refunded-bg); }
+:host([data-status='refunded']) { color: var(--admin-status-refunded-text); background: var(--admin-status-refunded-bg); }

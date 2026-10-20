@@ -56,6 +56,27 @@ describe('admin products', () => {
     expect(root.querySelectorAll('tbody button')).toHaveLength(6);
     expect(root.querySelectorAll('button[aria-label^="Eliminar definitivament"]')).toHaveLength(2);
   });
+  it.each([false, true])('shows saved pricing with a non-blocking cleanup warning and reconciles (still pending: %s)', pending => {
+    const fixture = render();
+    http.expectOne('/api/admin/products').flush([{ ...products[0], priceCents: 3750, stripePriceCleanupPending: true }]);
+    fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    expect(root.textContent).toContain('37.50');
+    expect(root.querySelector('tbody [role="status"]')?.textContent).toContain('Preu desat.');
+    expect(root.querySelector('[role="alert"]')).toBeNull();
+    const button = root.querySelector<HTMLButtonElement>('button[aria-label^="Reintentar neteja"]')!;
+    button.click(); button.click();
+    const request = http.expectOne('/api/admin/products/test-0/reconcile-prices');
+    expect(request.request.method).toBe('POST'); expect(request.request.body).toEqual({});
+    fixture.detectChanges(); expect(button.disabled).toBe(true);
+    request.flush({ ...products[0], priceCents: 3750, stripePriceCleanupPending: pending,
+      description: null, imageUrl: null, featureImageUrl: null });
+    fixture.detectChanges();
+    expect(root.textContent).toContain('37.50');
+    expect(root.querySelector('[role="alert"]')).toBeNull();
+    expect(root.querySelector('button[aria-label^="Reintentar neteja"]') !== null).toBe(pending);
+    expect(root.textContent).toContain(pending ? 'continua pendent' : 'completada');
+  });
   it('shows an empty state', () => {
     const fixture = render(); http.expectOne('/api/admin/products').flush([]); fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('No hi ha productes');
@@ -147,7 +168,7 @@ describe('admin products', () => {
     const next = vi.fn();
     TestBed.inject(AdminProductsService).list().subscribe(next);
     http.expectOne('/api/admin/products').flush(products.map(p => ({ ...p, unrelated: 'ignored' })));
-    expect(next).toHaveBeenCalledWith(products);
+    expect(next).toHaveBeenCalledWith(products.map(p => ({ ...p, stripePriceCleanupPending: false })));
   });
   it('cancels pending HTTP on navigation away', () => {
     const fixture = render(); const request = http.expectOne('/api/admin/products');

@@ -1,6 +1,16 @@
 import { LEGAL_CA } from './legal.ca';
 export const CA = {
   ...LEGAL_CA,
+  "admin.order.status.paid": "Pagat",
+  "admin.order.status.partially_refunded": "Reemborsat parcialment",
+  "admin.order.status.refunded": "Reemborsat",
+  "admin.order.status.pending": "Pendent",
+  "admin.order.status.preparing": "En preparació",
+  "admin.order.status.shipped": "Enviat",
+  "admin.order.status.delivered": "Lliurat",
+  "admin.order.status.cancelled": "Cancel·lat",
+  "admin.order.markStatus": "Marcar: {status}",
+  "admin.order.cancelFulfillment": "Cancel·lar preparació",
   "promo.verification.label": "Verificació de seguretat",
   "promo.verification.error": "No s’ha pogut completar la verificació de seguretat. Torna-ho a provar.",
   "cart.shipping.label": "Enviament",

@@ -120,7 +120,7 @@ test('archive is non-destructive, preserves order rows and is idempotent',async 
 });
 test('all mutations deny missing/unauthorized JWT and cross-origin requests',async t=>{
   const {send,sqlite}=await setup(t);
-  for(const action of ['create','update','archive','delete']) {
+  for(const action of ['create','update','archive','delete','reconcile']) {
     assert.equal((await send(action,valid,undefined,{jwt:null})).status,401);
     assert.equal((await send(action,valid,undefined,{jwt:await token('other@example.test')})).status,403);
     assert.equal((await send(action,valid,undefined,{origin:'https://evil.test'})).status,403);
@@ -192,4 +192,13 @@ test('delete fails safely when order history cannot be checked', async t => {
   const response = await send('delete', undefined, 'orange-spritz', { adapter: updateRoute });
   assert.equal(response.status, 503); assert.deepEqual(await response.json(), { status: 'unavailable' });
   assert.equal(sqlite.prepare('SELECT count(*) AS n FROM products WHERE id=?').get('orange-spritz').n, 1);
+});
+
+
+test('reconciliation endpoint accepts no client Stripe IDs, uses parent auth and handles unknown products', async t => {
+  const { send } = await setup(t);
+  const { onRequest } = await import('../functions/api/admin/products/[id]/reconcile-prices.ts');
+  assert.equal((await send('reconcile', {}, 'orange-spritz', { adapter: onRequest })).status, 200);
+  assert.equal((await send('reconcile', { stripePriceId: 'price_attack' })).status, 400);
+  assert.equal((await send('reconcile', {}, 'missing-product')).status, 404);
 });

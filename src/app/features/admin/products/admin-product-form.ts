@@ -90,7 +90,8 @@ export class AdminProductForm {
     const request = existing ? this.service.updateProduct(existing.id, input) : this.service.createProduct(input);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: product => { this.product.set(product); this.reset(product);
-        this.created.set(!existing); this.success.set(existing ? 'Producte desat.' : 'Producte creat.');
+        this.created.set(!existing); this.success.set(product.stripePriceCleanupPending
+          ? 'Producte desat. Neteja de Prices antics de Stripe pendent.' : existing ? 'Producte desat.' : 'Producte creat.');
         void this.router.navigate(['/admin/products'])
           .catch(() => { this.error.set('Producte desat. No s’ha pogut tornar al llistat. Utilitza l’enllaç Tornar als productes.'); })
           .finally(() => this.submitting.set(false)); },

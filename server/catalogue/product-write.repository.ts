@@ -16,18 +16,22 @@ export async function insertProduct(db: ProductDatabase, id: string, product: Ma
   return row !== null;
 }
 export async function updateProduct(db: ProductDatabase, previous: AdminProduct, product: ManagedProduct,
-  mapping: Pick<AdminProduct, 'stripeProductId' | 'stripePriceId'> = previous): Promise<boolean> {
+  mapping: Pick<AdminProduct, 'stripeProductId' | 'stripePriceId'> = previous): Promise<AdminProduct | null> {
   try {
     // Compare the full previous snapshot to avoid overwriting concurrent edits or Stripe configuration.
     const row = await db.prepare(`UPDATE products SET ${assignments}, stripe_product_id=?, stripe_price_id=?,
+      stripe_price_cleanup_ids=CASE WHEN stripe_price_id IS NOT NULL AND stripe_price_id IS NOT ?
+        THEN json_insert(stripe_price_cleanup_ids, '$[#]', stripe_price_id) ELSE stripe_price_cleanup_ids END,
       updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')
       WHERE id=? AND slug IS ? AND name IS ? AND description IS ? AND status IS ? AND price_cents IS ?
       AND currency IS ? AND image_url IS ? AND feature_image_url IS ?
-      AND stripe_product_id IS ? AND stripe_price_id IS ? AND updated_at IS ? RETURNING id`)
-      .bind(...values(product), mapping.stripeProductId, mapping.stripePriceId,
+      AND stripe_product_id IS ? AND stripe_price_id IS ? AND updated_at IS ? RETURNING updated_at AS updatedAt,
+      json_array_length(stripe_price_cleanup_ids) AS cleanupCount`)
+      .bind(...values(product), mapping.stripeProductId, mapping.stripePriceId, mapping.stripePriceId,
         previous.id, ...values(previous), previous.stripeProductId, previous.stripePriceId, previous.updatedAt)
-      .first<{ id: string }>();
-    return row !== null;
+      .first<{ updatedAt: string; cleanupCount: number }>();
+    return row ? { ...previous, ...product, stripeProductId: mapping.stripeProductId, stripePriceId: mapping.stripePriceId,
+      updatedAt: row.updatedAt, stripePriceCleanupPending: row.cleanupCount > 0 } : null;
   } catch (error) {
     if (slugConflict(error)) throw new ProductSlugConflict();
     throw error;
@@ -52,4 +56,22 @@ export async function deleteUnusedProduct(db: ProductDatabase, id: string): Prom
 export async function productHasOrders(db: ProductDatabase, id: string): Promise<boolean> {
   return await db.prepare('SELECT 1 AS found FROM order_items WHERE product_id=?1 LIMIT 1')
     .bind(id).first<{ found: number }>() !== null;
+}
+
+
+export async function pendingStripePrices(db: ProductDatabase, id: string): Promise<string[]> {
+  const row = await db.prepare('SELECT stripe_price_cleanup_ids AS ids FROM products WHERE id=?')
+    .bind(id).first<{ ids: string }>();
+  if (!row) return [];
+  const ids: unknown = JSON.parse(row.ids);
+  if (!Array.isArray(ids) || ids.some(value => typeof value !== 'string' || !/^price_[a-zA-Z0-9]{1,200}$/.test(value))) {
+    throw new Error('Invalid cleanup state');
+  }
+  return [...new Set(ids as string[])];
+}
+export async function removePendingStripePrice(db: ProductDatabase, id: string, priceId: string): Promise<void> {
+  // Filter the current array so concurrent price edits cannot lose newly appended entries.
+  await db.prepare(`UPDATE products SET stripe_price_cleanup_ids=(
+    SELECT json_group_array(value) FROM json_each(stripe_price_cleanup_ids) WHERE value<>?1
+  ) WHERE id=?2 RETURNING id`).bind(priceId, id).first<{ id: string }>();
 }
