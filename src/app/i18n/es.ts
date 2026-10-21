@@ -102,6 +102,8 @@ export const ES: Record<TranslationKey, string> = {
   "admin.order.status.cancelled": "Cancelado",
   "admin.order.markStatus": "Marcar: {status}",
   "admin.order.cancelFulfillment": "Cancelar preparación",
+  "promo.verification.pending": "VERIFICANDO…",
+  "promo.verification.instruction": "Completa la verificación de seguridad si se te solicita. Enviaremos la solicitud automáticamente.",
   "promo.verification.label": "Verificación de seguridad",
   "promo.verification.error": "No se ha podido completar la verificación de seguridad. Inténtalo de nuevo.",
   "cart.shipping.label": "Envío",

@@ -441,6 +441,48 @@ describe('Promotion', () => {
     },
   );
 
+  it.each(['ca', 'es'] as const)('distinguishes challenge waiting from POST submission in %s', async language => {
+    let receiveToken!: (value: string) => void;
+    let fail!: () => void;
+    const destroy = vi.fn();
+    TestBed.overrideProvider(TurnstileService, { useValue: {
+      mount: async (_container: HTMLElement, _language: string, token: (value: string) => void, failed: () => void) => {
+        receiveToken = token; fail = failed;
+        return { execute: vi.fn(), reset: vi.fn(), destroy };
+      },
+    } });
+    TestBed.inject(TranslationService).setLanguage(language);
+    let complete!: (result: string) => void;
+    register.mockReturnValueOnce(new Promise<string>(resolve => { complete = resolve; }));
+    const { fixture, element } = await create();
+    const input = element.querySelector('input')!;
+    input.value = 'user@example.com'; input.dispatchEvent(new Event('input'));
+    const submit = () => element.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    submit(); fixture.detectChanges(); await fixture.whenStable();
+    const button = element.querySelector<HTMLButtonElement>('button[type=submit]')!;
+    expect(button.disabled).toBe(true);
+    expect(button.textContent?.trim()).toBe(language === 'ca' ? 'VERIFICANT…' : 'VERIFICANDO…');
+    expect(element.querySelector('#promotion-error')?.textContent).toContain(
+      language === 'ca' ? 'Completa la verificació' : 'Completa la verificación');
+    expect(element.querySelector('#promotion-error')?.getAttribute('aria-live')).toBe('polite');
+    expect(register).not.toHaveBeenCalled();
+    // A provider failure releases the form, rather than keeping a fake sending state.
+    fail(); fixture.detectChanges();
+    expect(button.disabled).toBe(false);
+    expect(element.querySelector('#promotion-error')?.textContent).not.toContain(
+      language === 'ca' ? 'Completa la verificació' : 'Completa la verificación');
+    submit(); fixture.detectChanges(); await fixture.whenStable();
+    receiveToken('valid-token'); receiveToken('duplicate-token'); fixture.detectChanges();
+    expect(register).toHaveBeenCalledExactlyOnceWith('user@example.com', 'valid-token');
+    expect(button.disabled).toBe(true);
+    expect(button.textContent?.trim()).toBe(language === 'ca' ? 'ENVIANT…' : 'ENVIANDO…');
+    expect(element.querySelector('#promotion-error')?.textContent?.trim()).toBe('');
+    complete('registered'); await fixture.whenStable(); fixture.detectChanges();
+    expect(element.querySelector('.promotion-success')).not.toBeNull();
+    expect(element.querySelector('app-promo-turnstile')).toBeNull();
+    expect(destroy).toHaveBeenCalledTimes(2);
+  });
+
   it('can open and close when sessionStorage is unavailable', async () => {
     vi.spyOn(window, 'sessionStorage', 'get').mockImplementation(() => { throw new Error('blocked'); });
     const { element } = await create();

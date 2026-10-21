@@ -20,11 +20,12 @@
           <p id="promotion-error" class="promotion-error" aria-live="polite">
             @if (form.controls.email.touched && form.controls.email.invalid) { {{ 'ui.introdueix_un_correu_electronic_valid' | t }} }
             @if (error()) { {{ (error()) | t }} }
+            @if (challengeAttempts().length) { {{ 'promo.verification.instruction' | t }} }
           </p>
           @for (attempt of challengeAttempts(); track attempt) {
             <app-promo-turnstile (tokenChange)="verified($event, attempt)" (verificationFailed)="verificationFailed(attempt)" />
           }
-          <button class="button--buy" type="submit" [disabled]="pending()">{{ (pending() ? 'ui.enviant' : 'ui.obten_el_codi') | t }}</button>
+          <button class="button--buy" type="submit" [disabled]="pending()">{{ (pending() ? (challengeAttempts().length ? 'promo.verification.pending' : 'ui.enviant') : 'ui.obten_el_codi') | t }}</button>
           <p id="promotion-legal" class="promotion-legal">{{ 'promo.privacy_notice' | t }}</p>
         </form>
       }

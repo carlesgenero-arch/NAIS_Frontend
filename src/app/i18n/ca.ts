@@ -101,6 +101,8 @@ export const CA = {
   "admin.order.status.cancelled": "Cancel·lat",
   "admin.order.markStatus": "Marcar: {status}",
   "admin.order.cancelFulfillment": "Cancel·lar preparació",
+  "promo.verification.pending": "VERIFICANT…",
+  "promo.verification.instruction": "Completa la verificació de seguretat si se’t demana. Enviarem la sol·licitud automàticament.",
   "promo.verification.label": "Verificació de seguretat",
   "promo.verification.error": "No s’ha pogut completar la verificació de seguretat. Torna-ho a provar.",
   "cart.shipping.label": "Enviament",
