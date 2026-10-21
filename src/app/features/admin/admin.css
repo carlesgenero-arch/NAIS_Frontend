@@ -11,3 +11,10 @@ nav a.current { font-weight: 700; border-block-end: 2px solid currentColor; }
 nav { display: flex; flex-wrap: wrap; gap: 0.25rem; }
 h1 { font-size: clamp(1.5rem, 4vw, 2rem); }
 @media (max-width: 47.99rem) { section { padding-block: 1.5rem; } }
+
+/* Compact only the catalogue shell; other admin screens retain their spacing. */
+@media (min-width: 64rem) {
+  section:has(app-admin-products) { padding-block: 1.25rem; }
+  section:has(app-admin-products) > h1 { margin-block: 0 1rem; }
+  section:has(app-admin-products) > nav { margin-block: 1rem; }
+}

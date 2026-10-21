@@ -1,11 +1,11 @@
-<nav class="navigation" [class.navigation--home]="isHome()" [attr.aria-label]="'ui.navegacio_principal' | t">
+<nav class="navigation" [class.navigation--home]="isRootHome()" [attr.aria-label]="'ui.navegacio_principal' | t">
   <button class="shop" type="button" routerLink="/products" routerLinkActive #shopLink="routerLinkActive"
     [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
     [hidden]="shopLink.isActive" [attr.aria-label]="'ui.botiga' | t"><span class="shop__label">{{ 'ui.botiga_' | t }}</span></button>
-  @if (isHome()) {
+  @if (isLogoStatic()) {
     <div class="brand brand--static"><ng-container [ngTemplateOutlet]="brandImage" /></div>
   } @else {
-    <a class="brand" routerLink="/" [attr.aria-label]="'ui.nais_drinks_inici' | t">
+    <a class="brand" routerLink="/home" [attr.aria-label]="'ui.nais_drinks_inici' | t">
       <ng-container [ngTemplateOutlet]="brandImage" />
     </a>
   }

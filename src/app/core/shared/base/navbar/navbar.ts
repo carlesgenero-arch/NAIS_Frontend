@@ -1,6 +1,6 @@
 import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, map } from 'rxjs';
@@ -13,11 +13,13 @@ import { filter, map } from 'rxjs';
 })
 export class Navbar {
   private readonly router = inject(Router);
-  protected readonly isHome = toSignal(
+  private readonly currentPath = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(event => event.urlAfterRedirects.split(/[?#]/)[0] === '/'),
+      map(event => event.urlAfterRedirects.split(/[?#]/)[0]),
     ),
-    { initialValue: this.router.url.split(/[?#]/)[0] === '/' },
+    { initialValue: this.router.url.split(/[?#]/)[0] },
   );
+  protected readonly isRootHome = computed(() => this.currentPath() === '/');
+  protected readonly isLogoStatic = computed(() => this.isRootHome() || this.currentPath() === '/home');
 }

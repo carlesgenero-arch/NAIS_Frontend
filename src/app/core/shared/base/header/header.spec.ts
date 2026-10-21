@@ -53,7 +53,7 @@ describe('Header cart drawer', () => {
     await TestBed.inject(Router).navigateByUrl('/products');
     const { fixture } = setup();
     const brand = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>('a.brand')!;
-    expect(brand.getAttribute('href')).toBe('/');
+    expect(brand.getAttribute('href')).toBe('/home');
     expect(brand.getAttribute('aria-label')).toBe('NAIS Drinks, inici');
     const source = brand.querySelector('source')!;
     expect(source.getAttribute('media')).toBe('(max-width: 47.99rem)');
@@ -89,7 +89,7 @@ describe('Header cart drawer', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it.each(['/', '/?source=demo#top'])('renders a non-interactive home logo at %s', async url => {
+  it.each(['/', '/?source=demo#top', '/home', '/home?source=demo#top'])('renders a non-interactive home logo at %s', async url => {
     const router = TestBed.inject(Router);
     await router.navigateByUrl(url);
     const { fixture } = setup();
@@ -104,6 +104,9 @@ describe('Header cart drawer', () => {
     expect(brand.querySelector('img')?.alt).toBe('NAIS Drinks');
     expect(brand.hasAttribute('href')).toBe(false);
     expect(brand.hasAttribute('tabindex')).toBe(false);
+    expect(brand.querySelector('a, button, [tabindex]')).toBeNull();
+    expect(getComputedStyle(brand).cursor).toBe('default');
+    expect(brand.tabIndex).toBe(-1);
     const navigate = vi.spyOn(router, 'navigateByUrl');
     const click = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
     brand.dispatchEvent(click);
@@ -114,22 +117,26 @@ describe('Header cart drawer', () => {
     subscription.unsubscribe();
   });
 
-  it('navigates from Shop to home through the accessible logo link', async () => {
-    const router = TestBed.inject(Router);
-    await router.navigateByUrl('/products');
-    const { fixture } = setup();
-    const brand = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>('a.brand')!;
-    const click = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
-    brand.dispatchEvent(click);
-    await fixture.whenStable();
-    expect(click.defaultPrevented).toBe(true);
-    expect(router.url).toBe('/');
-    expect((fixture.nativeElement as HTMLElement).querySelector('a.brand')).toBeNull();
-    expect((fixture.nativeElement as HTMLElement).querySelector('.brand')?.tagName).toBe('DIV');
-    await router.navigateByUrl('/products');
-    await fixture.whenStable();
-    expect((fixture.nativeElement as HTMLElement).querySelector('a.brand')?.getAttribute('href')).toBe('/');
-  });
+  it.each(['/products', '/cart', '/checkout/cancel', '/privacy'])(
+    'navigates from %s to /home through the accessible logo link', async url => {
+      const router = TestBed.inject(Router);
+      await router.navigateByUrl(url);
+      const { fixture } = setup();
+      const brand = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>('a.brand')!;
+      expect(brand.getAttribute('href')).toBe('/home');
+      expect(brand.tabIndex).toBe(0);
+      const click = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+      brand.dispatchEvent(click);
+      await fixture.whenStable();
+      expect(click.defaultPrevented).toBe(true);
+      expect(router.url).toBe('/home');
+      expect((fixture.nativeElement as HTMLElement).querySelector('a.brand')).toBeNull();
+      expect((fixture.nativeElement as HTMLElement).querySelector('.brand')?.tagName).toBe('DIV');
+      await router.navigateByUrl('/products');
+      await fixture.whenStable();
+      expect((fixture.nativeElement as HTMLElement).querySelector('a.brand')?.getAttribute('href')).toBe('/home');
+    },
+  );
 
   it('closes on the backdrop and Escape cancellation but not clicks inside the panel', () => {
     const { dialog, trigger } = setup();
