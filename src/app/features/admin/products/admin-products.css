@@ -32,3 +32,18 @@ th[scope='row'], td { max-width: 20rem; }
 .amount { min-width: 6rem; }
 
 [role='status'], [role='alert'] { max-width: 100%; overflow-wrap: anywhere; }
+
+/* Keep the desktop catalogue compact without restricting its content height. */
+@media (min-width: 64rem) {
+  header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-block-end: 1rem; }
+  h2 { margin-block: 0; }
+  #products-scroll-hint { margin-block: 0.5rem; }
+  caption { padding: 0.625rem; }
+  th, td { padding: 0.5rem 0.625rem; }
+  th[scope='row'] { min-width: 8rem; }
+  code { min-width: 6rem; }
+  table { min-width: 68rem; }
+  .amount { min-width: 4.5rem; }
+  .row-actions { min-width: 10rem; gap: 0.25rem; }
+  button, a { padding-inline: 0.625rem; }
+}
