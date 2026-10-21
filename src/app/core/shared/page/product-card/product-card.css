@@ -387,6 +387,11 @@
   :host(.product-card--joined) .visual::before {
     width: min(96%, 17rem);
   }
+
+  :host(.product-card--joined) .can {
+    /* Optical lift without replacing the scale/rotation or hover transform. */
+    translate: 0 -0.5rem;
+  }
 }
 
 :host(.product-card--joined) .can {

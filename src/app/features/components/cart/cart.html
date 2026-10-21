@@ -15,7 +15,7 @@
       @for (item of cart.items(); track item.product.id) {
         <li class="cart-panel cart-item">
           @if (item.product.cardImageUrl ?? item.product.imageUrl; as image) {
-            <img class="cart-image" [src]="image" [alt]="(item.product.imageAlt ?? item.product.name) | t" width="160" height="160" />
+            <img responsiveImage responsiveSizes="80px" class="cart-image" [src]="image" [alt]="(item.product.imageAlt ?? item.product.name) | t" width="160" height="160" />
           }
           <div class="cart-details">
             <h2>

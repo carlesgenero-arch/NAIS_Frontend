@@ -1,10 +1,10 @@
 <article class="product-feature" [attr.aria-label]="(product().name) | t">
   <div class="product-feature__visual">
     @if (product().featureBackgroundImageUrl; as backgroundUrl) {
-      <img class="product-feature__background" [src]="backgroundUrl" alt="" loading="lazy" />
+      <img responsiveImage responsiveSizes="(min-width: 1024px) 50vw, 96vw" class="product-feature__background" [src]="backgroundUrl" alt="" loading="lazy" />
     }
     @if (imageUrl(); as image) {
-      <img class="product-feature__image" [src]="image" [alt]="(imageAlt()) | t" loading="lazy" />
+      <img responsiveImage responsiveSizes="(min-width: 1024px) 50vw, 96vw" class="product-feature__image" [src]="image" [alt]="(imageAlt()) | t" loading="lazy" />
     }
   </div>
   <div class="product-feature__content">

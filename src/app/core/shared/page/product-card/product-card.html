@@ -13,10 +13,10 @@
   </div>
   <figure class="visual" [attr.tabindex]="product().fruitImage ? 0 : null" [attr.aria-label]="(product().name) | t">
     @if (product().imageUrl; as imageUrl) {
-      <img class="image can" [src]="imageUrl" [alt]="(imageAlt()) | t" loading="lazy" />
+      <img responsiveImage responsiveSizes="(min-width: 1024px) 512px, (min-width: 768px) 50vw, 96vw" class="image can" [src]="imageUrl" [alt]="(imageAlt()) | t" loading="lazy" />
     }
     @if (product().fruitImage; as fruitImage) {
-      <img class="image fruit" [src]="fruitImage.url" [alt]="(fruitImage.alt) | t" loading="lazy" />
+      <img responsiveImage responsiveSizes="(min-width: 1024px) 512px, (min-width: 768px) 50vw, 96vw" class="image fruit" [src]="fruitImage.url" [alt]="(fruitImage.alt) | t" loading="lazy" />
     }
   </figure>
 </article>

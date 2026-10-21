@@ -1,0 +1,63 @@
+"""Rebuild public image variants with Pillow (original assets are never modified)."""
+from pathlib import Path
+from PIL import Image, ImageOps
+import csv, json, re
+ROOT=Path(__file__).resolve().parents[1]
+manifest={}; audit=[]
+for source in sorted((ROOT/'public/images').rglob('*')):
+ if 'optimized' in source.parts or source.suffix.lower() not in ('.png','.jpg','.jpeg'): continue
+ key=source.relative_to(ROOT/'public').as_posix()
+ with Image.open(source) as raw:
+  image=ImageOps.exif_transpose(raw)
+  colour_profile=image.info.get('icc_profile', b'')
+  image=image.convert('RGBA' if image.mode in ('RGBA','LA') or 'transparency' in image.info else 'RGB')
+  width,height=image.size
+  if '/brand/' in key:
+   if source.name!='nais logos-10.png': continue
+   targets=[34,68,102]; profile='header'; sizes='34px'; loading='eager'; rendered='34 x 34 CSS px'
+  elif '/products/' in key and source.name!='hop2.jpg':
+   targets=[160,320,640,960]; profile='product'; sizes='component-specific'; loading='lazy cards / eager detail'; rendered='Shop 224-288px high; Home up to 512px high; detail up to 576px high'
+  elif '/info-card/' in key:
+   targets=[128,320,640]; profile='ingredient'; sizes='64px stickers / up to 320px bubbles'; loading='lazy'; rendered='32-64px stickers; bubbles up to 320px'
+  elif '/carousel/' in key:
+   targets=[160,320,480,640]; profile='social'; sizes='mobile 40vw / desktop 16vw capped 240px'; loading='lazy collage / eager prelaunch'; rendered='128-240px wide, 2:3 frame; prelaunch up to 240px'
+  elif '/hero/' in key:
+   targets=[480,800,1200,1600]; profile='hero'; sizes='up to 1792px'; loading='eager high priority (LCP)'; rendered='public content width; original limits resolution to 1600px'
+  elif '/promotion/' in key:
+   targets=[480,926]; profile='popup'; sizes='CSS background'; loading='when popup mounted'; rendered='up to 576px wide'
+  else:
+   targets=[480,960,1440,1920,2560,3840]; profile='editorial'; sizes='content/visual width'; loading='lazy except selected detail'; rendered='brand message up to 1792px; Harvest background up to visual width'
+  targets=sorted(set([v for v in targets if v<=width]+([width] if width<max(targets) else [])))
+  variants=[]
+  folder=ROOT/'public/images/optimized'/source.parent.name; folder.mkdir(parents=True,exist_ok=True)
+  stem=re.sub(r'[^a-z0-9_-]+','-',source.stem.lower()).strip('-')
+  for target in targets:
+   h=round(height*target/width)
+   resized=image.resize((target,h),Image.Resampling.LANCZOS) if (target,h)!=image.size else image
+   dest=folder/f'{stem}-{target}.webp'
+   resized.save(dest,'WEBP',quality=95 if profile=='product' else 88,method=6,lossless=profile=='header',alpha_quality=100,icc_profile=colour_profile)
+   variants.append({'src':dest.relative_to(ROOT/'public').as_posix(),'width':target,'height':h,'bytes':dest.stat().st_size})
+  # Keep the original as the largest candidate when a derivative would cost more.
+  expensive=[v for v in variants if v['bytes']>=source.stat().st_size]
+  for v in expensive:
+   (ROOT/'public'/v['src']).unlink()
+  variants=[v for v in variants if v not in expensive]
+  if expensive:
+   variants.append({'src':key,'width':width,'height':height,'bytes':source.stat().st_size})
+   variants.sort(key=lambda v:v['width'])
+  manifest[key]={'width':width,'height':height,'variants':variants}
+  preferred=next((v for v in variants if v['width']>=({'header':68,'product':640,'ingredient':320,'social':320,'hero':1200,'editorial':1440,'popup':926}[profile])),variants[-1])
+  audit.append({'source':key,'intrinsic':f'{width}x{height}','original_bytes':source.stat().st_size,'format':source.suffix[1:],'rendered_css':rendered,'loading':loading,'responsive_sizes':sizes,'representative_variant':preferred['src'],'variant_dimensions':f"{preferred['width']}x{preferred['height']}",'variant_bytes':preferred['bytes'],'largest_variant':f"{variants[-1]['width']}x{variants[-1]['height']}",'largest_bytes':variants[-1]['bytes'],'all_variant_widths':','.join(str(v['width']) for v in variants)})
+# Record source references separately from operational API-provided product images.
+frontend=[p for p in (ROOT/'src/app').rglob('*') if p.suffix in ('.ts','.html','.css') and '.spec.' not in p.name and p.name!='image-manifest.ts' and 'testing' not in p.parts]
+for row in audit:
+ key=row['source']
+ refs=[p.relative_to(ROOT).as_posix() for p in frontend if key in p.read_text(encoding='utf-8-sig')]
+ row['usage']=('; '.join(refs) if refs else 'API-controlled product image' if '/products/' in key else 'No active static source reference; retained asset')
+ row['above_fold']=('yes' if '/brand/' in key or '/hero/' in key else 'route-dependent: detail/catalogue/cart' if '/products/' in key else 'prelaunch when used there; otherwise below fold' if '/carousel/' in key else 'below fold / popup on demand')
+ row['fetch_priority']='high for Home hero; auto in prelaunch' if '/hero/' in key else 'auto'
+(ROOT/'src/app/core/images/image-manifest.ts').write_text('// Generated by scripts/optimize-public-images.py; do not edit by hand.\nexport interface ImageAsset { readonly width: number; readonly height: number; readonly variants: readonly { readonly src: string; readonly width: number; readonly height: number; readonly bytes: number }[]; }\nexport const IMAGE_ASSETS: Readonly<Record<string, ImageAsset>> = '+json.dumps(manifest,indent=2)+';\n',encoding='utf-8')
+with (ROOT/'docs/image-audit.csv').open('w',newline='',encoding='utf-8') as f:
+ writer=csv.DictWriter(f,fieldnames=list(audit[0]));writer.writeheader();writer.writerows(audit)
+original=sum(r['original_bytes'] for r in audit);chosen=sum(r['variant_bytes'] for r in audit)
+print(json.dumps({'assets':len(audit),'variants':sum(len(v['variants']) for v in manifest.values()),'original_bytes':original,'representative_bytes':chosen,'estimated_reduction_percent':round(100*(1-chosen/original),1)}))

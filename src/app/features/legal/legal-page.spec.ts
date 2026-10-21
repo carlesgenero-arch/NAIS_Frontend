@@ -48,7 +48,7 @@ describe('Launch legal pages and navigation', () => {
     expect(translations.t('legal.cookies.analytics.body')).toContain(language === 'ca' ? 'abans d’activar-les' : 'antes de activarlas');
   });
 
-  it('exposes all six legal routes in footer and prelaunch without a newsletter', async () => {
+  it('preserves all six legal routes in the footer but excludes legal links from prelaunch, without a newsletter', async () => {
     for (const component of [Footer, PrelaunchLanding]) {
       const fixture = TestBed.createComponent<unknown>(component);
       fixture.detectChanges();
@@ -56,8 +56,12 @@ describe('Launch legal pages and navigation', () => {
       const root = fixture.nativeElement as HTMLElement;
       for (const link of LEGAL_LINKS) {
         expect(routes.some(route => route.path === link.url.slice(1))).toBe(true);
-        expect(root.querySelector(`a[href="${link.url}"]`)?.getAttribute('aria-disabled')).toBeNull();
-        expect(root.querySelector(`a[href="${link.url}"]`)).not.toBeNull();
+        if (component === Footer) {
+          expect(root.querySelector(`a[href="${link.url}"]`)?.getAttribute('aria-disabled')).toBeNull();
+          expect(root.querySelector(`a[href="${link.url}"]`)).not.toBeNull();
+        } else {
+          expect(root.querySelector(`a[href="${link.url}"]`)).toBeNull();
+        }
       }
       expect(root.querySelector('app-newsletter')).toBeNull();
       fixture.destroy();

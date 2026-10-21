@@ -15,7 +15,7 @@ import { PromotionModal } from './services/promotion-modal';
   imports: [LanguageSelector, Header, RouterOutlet, Footer, Promotion],
   templateUrl: './app.html',
   styleUrl: './app.css',
-  host: { '[class.prelaunch]': 'isPrelaunch()' },
+  host: { '[class.prelaunch]': 'isPrelaunch()', '[class.public-site]': '!isAdmin()' },
 })
 export class App {
   private readonly router = inject(Router);

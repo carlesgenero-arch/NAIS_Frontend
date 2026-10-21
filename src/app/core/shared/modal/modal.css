@@ -17,7 +17,7 @@ dialog {
 }
 
 dialog::backdrop {
-  background: color-mix(in srgb, var(--color-negro) 45%, transparent);
+  background: var(--modal-backdrop);
 }
 
 h2 {
@@ -106,7 +106,7 @@ dialog.promotion {
     color-mix(in srgb, var(--surface-card) 60%, transparent),
     color-mix(in srgb, var(--surface-card) 65%, transparent) 75%,
     color-mix(in srgb, var(--surface-card) 62%, transparent)
-  ), url('/images/promotion/nais-ma.jpeg');
+  ), url('/images/optimized/promotion/nais-ma-926.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

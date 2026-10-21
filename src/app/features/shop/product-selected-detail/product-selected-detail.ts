@@ -1,3 +1,4 @@
+import { ResponsiveImage } from '../../../core/images/responsive-image.directive';
 import { TranslationService } from '../../../i18n/translation.service';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { DOCUMENT } from '@angular/common';
@@ -8,7 +9,7 @@ import { Product } from '../../../models/product.interface';
 @Component({
   selector: 'app-product-selected-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, Modal],
+  imports: [ResponsiveImage, TranslatePipe, Modal],
   templateUrl: './product-selected-detail.html',
   styleUrl: './product-selected-detail.css',
 })

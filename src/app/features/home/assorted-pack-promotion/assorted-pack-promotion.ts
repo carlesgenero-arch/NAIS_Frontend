@@ -1,3 +1,4 @@
+import { ResponsiveImage } from '../../../core/images/responsive-image.directive';
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
@@ -5,7 +6,7 @@ import { Product } from '../../../models/product.interface';
 
 @Component({
   selector: 'app-assorted-pack-promotion',
-  imports: [RouterLink, TranslatePipe],
+  imports: [ResponsiveImage, RouterLink, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './assorted-pack-promotion.html',
   styleUrl: './assorted-pack-promotion.css',

@@ -1,3 +1,4 @@
+import { ResponsiveImage } from '../../../images/responsive-image.directive';
 import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { ChangeDetectionStrategy, Component, ElementRef, inject, input, signal } from '@angular/core';
 
@@ -11,7 +12,7 @@ export interface InfoCardContent {
   selector: 'app-info-card',
   host: { '[class.bubble-idle]': 'idle()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, ],
+  imports: [ResponsiveImage, TranslatePipe, ],
   templateUrl: './info-card.html',
   styleUrl: './info-card.css',
 })

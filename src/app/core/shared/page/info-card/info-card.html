@@ -1,6 +1,6 @@
 <article class="info-card" [attr.data-colour]="content().colour">
   <span class="info-card__bubble">
-    <img class="info-card__image" (transitionend)="startIdle($event)" [src]="content().image.src" [alt]="(content().image.alt) | t" />
+    <img loading="lazy" responsiveImage responsiveSizes="(min-width: 1024px) 320px, 240px" class="info-card__image" (transitionend)="startIdle($event)" [src]="content().image.src" [alt]="(content().image.alt) | t" />
   </span>
   <h2>{{ (content().text) | t }}</h2>
 </article>

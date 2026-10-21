@@ -21,7 +21,10 @@ describe('PrelaunchLanding composition', () => {
       expect(image.getAttribute('src')).toMatch(/^images\//);
     }
     expect(element.querySelector('button, input, app-product-grid')).toBeNull();
-    expect(element.querySelector('app-legal-navigation a[href="/privacy"]')).not.toBeNull();
+    expect(element.querySelector('app-legal-navigation')).toBeNull();
+    expect(Array.from(element.querySelectorAll('a'), link => link.getAttribute('href'))).toEqual([
+      'mailto:info@naisdrinks.com', 'tel:684758843',
+    ]);
     const section = element.querySelector('section')!;
     expect(document.documentElement.lang).toBe('ca');
     expect(section.getAttribute('aria-labelledby')).toBe(element.querySelector('h1')?.id);

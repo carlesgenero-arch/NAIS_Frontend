@@ -17,10 +17,10 @@
         <div class="media-carousel__card" role="group">
           @if (image.href; as href) {
             <a class="media-carousel__link" [href]="href">
-              <img class="media-carousel__image" [src]="image.src" [alt]="(image.alt) | t" loading="lazy" />
+              <img responsiveImage responsiveSizes="(min-width: 768px) 320px, 70vw" class="media-carousel__image" [src]="image.src" [alt]="(image.alt) | t" loading="lazy" />
             </a>
           } @else {
-            <img class="media-carousel__image" [src]="image.src" [alt]="(image.alt) | t" loading="lazy" />
+            <img responsiveImage responsiveSizes="(min-width: 768px) 320px, 70vw" class="media-carousel__image" [src]="image.src" [alt]="(image.alt) | t" loading="lazy" />
           }
         </div>
       }

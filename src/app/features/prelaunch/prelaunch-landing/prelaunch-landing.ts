@@ -1,4 +1,4 @@
-import { LegalNavigation } from '../../legal/legal-navigation';
+import { ResponsiveImage } from '../../../core/images/responsive-image.directive';
 import { CA } from '../../../i18n/ca';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
@@ -10,7 +10,7 @@ export interface LandingAsset {
 }
 
 @Component({
-  imports: [TranslatePipe, LegalNavigation],
+  imports: [ResponsiveImage, TranslatePipe],
   selector: 'app-prelaunch-landing',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './prelaunch-landing.html',

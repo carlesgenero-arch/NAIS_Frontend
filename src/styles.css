@@ -63,6 +63,8 @@
   --space-section: clamp(0.5rem, 4vw, 4rem);
   --surface-padding: clamp(3rem, 4vw, 4rem);
   --surface-page: #FFFFFF;
+  --surface-public-page: #F5F5F3;
+  --modal-backdrop: rgb(24 24 24 / 40%);
   --surface-card: #FFFFFF;
   --surface-product-assorted: #bcd6f0;
   /* Blue sampled from the Harvest hop photograph, shared by Shop surfaces. */
@@ -140,6 +142,11 @@ body {
   background-color: var(--surface-page);
   color: var(--color-negro);
   margin: 0;
+}
+
+/* Public canvas only: keep white component surfaces and the admin unchanged. */
+body:has(app-root.public-site) {
+  background-color: var(--surface-public-page);
 }
 
 html.nais-drawer-open,

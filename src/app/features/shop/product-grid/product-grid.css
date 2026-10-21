@@ -6,7 +6,7 @@
   gap: clamp(1rem, 2.5vw, var(--space-group));
 }
 
-@media (min-width: 22.5rem) {
+@media (min-width: 37.5rem) {
   .product-catalogue {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -14,13 +14,6 @@
 
 @media (min-width: 64rem) {
   .product-catalogue {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-
-@media (min-width: 22.5rem) and (max-width: 37.49rem) {
-  .product-catalogue {
-    gap: calc(var(--space-group) * 0.375);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

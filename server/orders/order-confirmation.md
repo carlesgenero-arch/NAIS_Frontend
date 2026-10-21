@@ -36,7 +36,7 @@ no recovery UI or scheduled retry is implemented here.
 ## Production rollout (manual)
 
 1. Verify Resend's sending domain and Production `RESEND_API_KEY`, `EMAIL_FROM`,
-   optional `EMAIL_REPLY_TO`. `EMAIL_TEST_TO` is only for the smoke-test endpoint.
+   optional `EMAIL_REPLY_TO`.
    Do not use the restricted Resend dev sender for real customer confirmations.
 2. Authenticate with `npx wrangler login` if needed. Review pending migrations:
    `npx wrangler d1 migrations list nais-promo-production --remote`.

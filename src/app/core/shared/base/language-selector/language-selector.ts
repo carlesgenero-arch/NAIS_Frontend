@@ -11,7 +11,7 @@ import { TranslationService } from '../../../../i18n/translation.service';
   </div>`,
   styles: `:host { display: block; max-width: 100%; }
     div { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; }
-    button { min-width: var(--control-min-size, 44px); min-height: var(--control-min-size, 44px); padding: .25rem .5rem; border: 0; background: transparent; color: var(--color-negro); font: inherit; font-size: .875rem; cursor: pointer; }
+    button { min-width: var(--control-min-size, 44px); min-height: var(--control-min-size, 44px); padding: .25rem .5rem; border: 0; background: transparent; color: var(--color-negro); font: inherit; font-size: var(--language-selector-font-size, .875rem); cursor: pointer; }
     button[aria-pressed="true"] { font-weight: 700; text-decoration: underline; text-underline-offset: .3em; }
     button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }`,
 })

@@ -4,6 +4,7 @@
 
 .footer {
   padding: var(--surface-padding) var(--page-gutter);
+  border-radius: var(--radius-panel);
   background: var(--surface-card);
   color: var(--color-negro);
   font-family: var(--font-body);
@@ -69,13 +70,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: var(--control-min-size);
-  min-height: var(--control-min-size);
+  min-width: max(var(--control-min-size), 3rem);
+  min-height: max(var(--control-min-size), 3rem);
 }
 
 .footer__icon {
-  width: 2rem;
-  height: 2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   stroke: currentColor;
   stroke-width: 1.5;
 }

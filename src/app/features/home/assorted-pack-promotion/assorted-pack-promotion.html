@@ -8,28 +8,28 @@
     <div #botanicals class="pack-botanicals" aria-hidden="true"
       [class.stickers-reveal]="revealEnabled()" [class.stickers-revealed]="revealed()">
       <div class="pack-fruit">
-        <img src="images/info-card/orange.png" alt="" width="1254" height="1254" loading="lazy" />
+        <img responsiveImage responsiveSizes="64px" src="images/info-card/orange.png" alt="" width="1254" height="1254" loading="lazy" />
       </div>
       <div class="pack-mint">
-        <img src="images/info-card/mint.png" alt="" width="1254" height="1254" loading="lazy" />
+        <img responsiveImage responsiveSizes="64px" src="images/info-card/mint.png" alt="" width="1254" height="1254" loading="lazy" />
       </div>
       <div class="pack-ginger">
-        <img src="images/info-card/gingebre.png" alt="" width="1254" height="1254" loading="lazy" />
+        <img responsiveImage responsiveSizes="64px" src="images/info-card/gingebre.png" alt="" width="1254" height="1254" loading="lazy" />
       </div>
       <div class="pack-raspberry">
-        <img src="images/info-card/raspberries (1).png" alt="" width="1254" height="1254" loading="lazy" />
+        <img responsiveImage responsiveSizes="64px" src="images/info-card/raspberries (1).png" alt="" width="1254" height="1254" loading="lazy" />
       </div>
       <div class="pack-lemon">
-        <img src="images/info-card/lemon.jpg" alt="" width="1254" height="1254" loading="lazy" />
+        <img responsiveImage responsiveSizes="64px" src="images/info-card/lemon.jpg" alt="" width="1254" height="1254" loading="lazy" />
       </div>
       <div class="pack-mango">
-        <img src="images/info-card/mango.png" alt="" width="1254" height="1254" loading="lazy" />
+        <img responsiveImage responsiveSizes="64px" src="images/info-card/mango.png" alt="" width="1254" height="1254" loading="lazy" />
       </div>
     </div>
     <a class="button--buy pack-cta" [routerLink]="['/products', product().slug]">{{ 'home.assortedPack.cta' | t }}</a>
   </div>
   <a class="pack-feature" [routerLink]="['/products', product().slug]"
     [attr.aria-label]="'home.assortedPack.cta' | t">
-    <img class="pack-image" src="images/products/pack_3.png" [alt]="'home.assortedPack.label' | t" width="500" height="500" loading="lazy" />
+    <img responsiveImage responsiveSizes="(min-width: 1024px) 576px, 82vw" class="pack-image" src="images/products/pack_3.png" [alt]="'home.assortedPack.label' | t" width="500" height="500" loading="lazy" />
   </a>
 </section>
