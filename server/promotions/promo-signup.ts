@@ -43,35 +43,6 @@ function response(status: number, result: string): Response {
   });
 }
 
-// Temporary UAT diagnostics: fixed stages/categories only; remove this helper with the call sites.
-type PromoFailureStage = 'turnstile' | 'database_binding' | 'configuration' | 'stripe_client'
-  | 'signup_insert' | 'coupon_lookup' | 'coupon_validation' | 'promotion_create'
-  | 'promotion_result' | 'promotion_persist' | 'email_delivery';
-const SAFE_ERROR_TYPES = new Set(['Error', 'TypeError', 'SyntaxError', 'AbortError', 'TimeoutError',
-  'StripeAuthenticationError', 'StripePermissionError', 'StripeInvalidRequestError',
-  'StripeConnectionError', 'StripeAPIError', 'StripeRateLimitError', 'StripeIdempotencyError']);
-
-function unavailable(env: PromoEnvironment, stage: PromoFailureStage,
-  error?: unknown, stripeResponseReceived = false): Response {
-  if (env.NAIS_ENVIRONMENT === 'uat') {
-    try {
-      const details = error && typeof error === 'object' ? error as Record<string, unknown> : {};
-      const type = typeof details['type'] === 'string' && SAFE_ERROR_TYPES.has(details['type'])
-        ? details['type'] : typeof details['name'] === 'string' && SAFE_ERROR_TYPES.has(details['name'])
-          ? details['name'] : error === undefined ? 'Unavailable' : 'OtherError';
-      // These fixed guard errors occur after the SDK returned an object. Never print its message.
-      const testModeRejected = error instanceof Error && (error.message === 'UAT Stripe TEST response required'
-        || error.message === 'UAT Stripe TEST list required');
-      const stripeErrorResponse = type.startsWith('Stripe')
-        && typeof details['requestId'] === 'string' && details['requestId'].length > 0;
-      console.warn(JSON.stringify({ event: 'promo_signup_failed', stage,
-        error_type: testModeRejected ? 'StripeTestModeError' : type,
-        stripe_response_received: stripeResponseReceived || stripeErrorResponse || testModeRejected }));
-    } catch { /* Diagnostics must never alter the API response or expose the error. */ }
-  }
-  return response(503, 'unavailable');
-}
-
 function normalizeEmail(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   const email = value.trim().toLowerCase();
@@ -133,52 +104,40 @@ export async function promoSignup(
   if (!email) return response(400, 'invalid_email');
   const verification = await verifyPromoToken(fields['turnstileToken'], request, env, verificationFetch);
   if (verification !== 'valid') return verification === 'invalid'
-    ? response(400, 'verification_failed') : unavailable(env, 'turnstile');
-  if (!env.PROMO_DB) return unavailable(env, 'database_binding');
-  let stage: PromoFailureStage = 'configuration';
-  let stripeResponseReceived = false;
+    ? response(400, 'verification_failed') : response(503, 'unavailable');
+  if (!env.PROMO_DB) return response(503, 'unavailable');
   try {
     if (!env.STRIPE_SECRET_KEY?.trim() || !env.STRIPE_PROMO_COUPON_ID?.trim()) {
-      return unavailable(env, stage);
+      return response(503, 'unavailable');
     }
-    stage = 'stripe_client';
     const client = guardedStripeClient(env, () => clientFactory({ STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY!, NAIS_ENVIRONMENT: env.NAIS_ENVIRONMENT }));
     // Durable opaque correlation/idempotency key; never send the email to Stripe.
-    stage = 'signup_insert';
     const requestId = crypto.randomUUID();
     // Uniqueness check and registration are one atomic write, never SELECT then INSERT.
     const result = await env.PROMO_DB.prepare(
       'INSERT INTO promo_signups (email, promotion_request_id) VALUES (?1, ?2) ON CONFLICT(email) DO NOTHING',
     ).bind(email, requestId).run();
-    if (!result.success) return unavailable(env, stage);
+    if (!result.success) return response(503, 'unavailable');
     // Never expose delivery/provider state through duplicate submissions.
     if (result.meta.changes === 0) return response(200, 'already_registered');
-    if (result.meta.changes !== 1) return unavailable(env, stage);
-    stage = 'coupon_lookup';
+    if (result.meta.changes !== 1) return response(503, 'unavailable');
     const coupon = await client.coupons.retrieve(env.STRIPE_PROMO_COUPON_ID);
-    stripeResponseReceived = true;
-    stage = 'coupon_validation';
-    if (!coupon.valid || coupon.percent_off !== 10) return unavailable(env, stage, undefined, stripeResponseReceived);
-    stage = 'promotion_create';
-    stripeResponseReceived = false;
+    if (!coupon.valid || coupon.percent_off !== 10) return response(503, 'unavailable');
     const promotion = await client.promotionCodes.create({
       promotion: { type: 'coupon', coupon: env.STRIPE_PROMO_COUPON_ID },
       max_redemptions: 1,
       restrictions: { first_time_transaction: true },
       metadata: { nais_promo_request_id: requestId },
     }, { idempotencyKey: `nais-promo-${requestId}` });
-    stripeResponseReceived = true;
-    stage = 'promotion_result';
-    if (!promotion.id?.trim() || !promotion.code?.trim()) return unavailable(env, stage, undefined, stripeResponseReceived);
-    stage = 'promotion_persist';
+    if (!promotion.id?.trim() || !promotion.code?.trim()) return response(503, 'unavailable');
     const saved = await env.PROMO_DB.prepare(
       'UPDATE promo_signups SET stripe_promotion_code_id = ?1, promotion_code = ?2 WHERE email = ?3 AND promotion_request_id = ?4 AND stripe_promotion_code_id IS NULL',
     ).bind(promotion.id, promotion.code, email, requestId).run();
-    if (!saved.success || saved.meta.changes !== 1) return unavailable(env, stage, undefined, stripeResponseReceived);
-    stage = 'email_delivery';
-    if (!await deliverPromo(env.PROMO_DB, requestId, env)) return unavailable(env, stage, undefined, stripeResponseReceived);
+    if (!saved.success || saved.meta.changes !== 1) return response(503, 'unavailable');
+    if (!await deliverPromo(env.PROMO_DB, requestId, env)) return response(503, 'unavailable');
     return response(201, 'registered');
-  } catch (error) {
-    return unavailable(env, stage, error, stripeResponseReceived);
+  } catch {
+    // Never return SQL, binding details or email addresses to the client or logs.
+    return response(503, 'unavailable');
   }
 }
