@@ -235,3 +235,17 @@ test('ambiguous D1 Price mappings fail before Session creation', async () => {
   assert.equal((await checkout(request([item(1), item(1,'ginger-crush')]), env, mock.factory)).status, 503);
   assert.equal(mock.calls.length, 0);
 });
+
+for (const mode of [false, true, undefined]) test('UAT checkout validates Price TEST mode before creating a Session: ' + mode, async () => {
+  let calls = 0;
+  const response = await checkout(request(), { ...env, NAIS_ENVIRONMENT: 'uat', STRIPE_SECRET_KEY: 'sk_test_fixture' }, () => ({
+    prices: { async retrieve(id) { return { ...stripePrice(id), livemode: mode }; } },
+    checkout: { sessions: { async create() { calls++; return { url: checkoutUrl, livemode: false }; } } },
+  }));
+  assert.equal(response.status, mode === false ? 200 : 502);
+  assert.equal(calls, mode === false ? 1 : 0);
+});
+test('UAT checkout LIVE key never constructs Stripe client', async () => {
+  const response = await checkout(request(), { ...env, NAIS_ENVIRONMENT: 'uat', STRIPE_SECRET_KEY: 'sk_live_fixture' }, () => { assert.fail('No client'); });
+  assert.equal(response.status, 503);
+});

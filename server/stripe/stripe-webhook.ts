@@ -1,3 +1,4 @@
+import { guardedStripeClient, assertStripeConfiguration, assertStripeTestObject, type StripeSafetyEnvironment } from './stripe-safety.ts';
 import Stripe from 'stripe';
 import { createStripeClient } from './stripe-client.ts';
 import { LEGACY_PRODUCT_PRICE_BINDINGS, type LegacyProductPriceBindings } from './legacy-product-bindings.ts';
@@ -8,7 +9,7 @@ import { confirmOrderEmail } from '../orders/order-confirmation.service.ts';
 import { notifyNewOrder, type OrderNotificationEnvironment } from '../orders/order-notification.service.ts';
 
 export type { OrderDatabase } from '../orders/order.repository.ts';
-export interface WebhookEnvironment extends Partial<LegacyProductPriceBindings>, OrderNotificationEnvironment {
+export interface WebhookEnvironment extends Partial<LegacyProductPriceBindings>, OrderNotificationEnvironment, StripeSafetyEnvironment {
   PROMO_DB?: OrderDatabase;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
@@ -19,7 +20,7 @@ export interface WebhookClient {
     listLineItems(id: string, params: Stripe.Checkout.SessionListLineItemsParams): Promise<Stripe.ApiList<Stripe.LineItem>>;
   } };
 }
-type ClientFactory = (env: { STRIPE_SECRET_KEY: string }) => WebhookClient;
+type ClientFactory = (env: StripeSafetyEnvironment & { STRIPE_SECRET_KEY: string }) => WebhookClient;
 
 function reply(status: number): Response {
   return Response.json({ status: status === 200 ? 'received' : 'unavailable' }, {
@@ -154,12 +155,14 @@ async function savePaidSession(event: Stripe.Event, env: WebhookEnvironment, cli
 export async function stripeWebhook(request: Request, env: WebhookEnvironment, clientFactory: ClientFactory = createStripeClient): Promise<Response> {
   if (request.method !== 'POST') return reply(405);
   if (!env.STRIPE_WEBHOOK_SECRET?.trim()) return reply(503);
+  try { assertStripeConfiguration(env); } catch { return reply(503); }
   const signature = request.headers.get('Stripe-Signature');
   if (!signature) return reply(400);
   let event: Stripe.Event;
   try {
     event = await Stripe.webhooks.constructEventAsync(await rawBody(request), signature,
       env.STRIPE_WEBHOOK_SECRET, undefined, Stripe.createSubtleCryptoProvider());
+    assertStripeTestObject(env, event);
     if (event.object !== 'event' || !event.id || typeof event.type !== 'string'
       || !event.data?.object || !Number.isSafeInteger(event.created) || typeof event.livemode !== 'boolean') return reply(400);
   } catch { return reply(400); }
@@ -167,7 +170,7 @@ export async function stripeWebhook(request: Request, env: WebhookEnvironment, c
   if (event.type !== 'checkout.session.completed') return reply(200);
   if (!env.PROMO_DB || !env.STRIPE_SECRET_KEY?.trim()) return reply(503);
   try {
-    await savePaidSession(event, env, clientFactory({ STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY }));
+    await savePaidSession(event, env, guardedStripeClient(env, () => clientFactory({ STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY!, NAIS_ENVIRONMENT: env.NAIS_ENVIRONMENT })));
     return reply(200);
   } catch { return reply(503); } // Stripe retries; never return/log customer data or internal errors.
 }

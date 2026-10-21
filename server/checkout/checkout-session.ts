@@ -1,3 +1,4 @@
+import { guardedStripeClient } from '../stripe/stripe-safety.ts';
 import type Stripe from 'stripe';
 import type { CheckoutEnvironment } from './checkout-env.ts';
 import { validateCheckout } from './checkout-validation.ts';
@@ -11,7 +12,7 @@ export interface CheckoutClient {
     create(params: Stripe.Checkout.SessionCreateParams): Promise<{ url: string | null }>;
   } };
 }
-type ClientFactory = (env: Pick<CheckoutEnvironment, 'STRIPE_SECRET_KEY'>) => CheckoutClient;
+type ClientFactory = (env: Pick<CheckoutEnvironment, 'STRIPE_SECRET_KEY' | 'NAIS_ENVIRONMENT'>) => CheckoutClient;
 
 function json(status: number, body: { status: string } | { url: string }): Response {
   return Response.json(body, { status, headers: {
@@ -45,7 +46,7 @@ export async function checkout(
       if (typeof env.STRIPE_SECRET_KEY !== 'string' || !env.STRIPE_SECRET_KEY.trim()) {
         return json(503, { status: 'unavailable' });
       }
-      client = clientFactory({ STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY });
+      client = guardedStripeClient(env, () => clientFactory({ STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY!, NAIS_ENVIRONMENT: env.NAIS_ENVIRONMENT }));
     } catch {
       return json(503, { status: 'unavailable' });
     }

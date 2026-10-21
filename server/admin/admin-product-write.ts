@@ -1,9 +1,10 @@
+import { guardedStripeClient, type StripeSafetyEnvironment } from '../stripe/stripe-safety.ts';
 import type { AdminReadContext } from './admin-read.ts';
 import { createAdminProduct, updateAdminProduct, archiveAdminProduct, deleteAdminProduct, reconcileAdminProductPrices, ProductMutationError } from '../catalogue/product-write.service.ts';
 import { createStripeClient } from '../stripe/stripe-client.ts';
 import type { StripeCatalogueClient } from '../stripe/stripe-catalogue.ts';
 export interface AdminProductWriteContext extends AdminReadContext {
-  env: AdminReadContext['env'] & { STRIPE_SECRET_KEY?: string };
+  env: AdminReadContext['env'] & StripeSafetyEnvironment;
 }
 async function body(request: Request, allowEmpty = false): Promise<unknown> {
   const isJson = request.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() === 'application/json';
@@ -29,7 +30,7 @@ async function body(request: Request, allowEmpty = false): Promise<unknown> {
   finally { reader.releaseLock(); }
 }
 export async function adminProductWrite(context: AdminProductWriteContext, action: 'create' | 'update' | 'archive' | 'delete' | 'reconcile',
-  clientFactory: (env: { STRIPE_SECRET_KEY: string }) => StripeCatalogueClient = createStripeClient): Promise<Response> {
+  clientFactory: (env: StripeSafetyEnvironment & { STRIPE_SECRET_KEY: string }) => StripeCatalogueClient = createStripeClient): Promise<Response> {
   const reply = (status: number, value: unknown, headers = {}) => Response.json(value, { status,
     headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', ...headers } });
   if (!context.data.admin) return reply(401, { status: 'unauthenticated' });
@@ -51,12 +52,12 @@ export async function adminProductWrite(context: AdminProductWriteContext, actio
       }
       return reply(200, action === 'archive' ? await archiveAdminProduct(context.env.PROMO_DB, productId)
         : await reconcileAdminProductPrices(context.env.PROMO_DB, productId,
-          () => clientFactory({ STRIPE_SECRET_KEY: context.env.STRIPE_SECRET_KEY ?? '' })));
+          () => guardedStripeClient(context.env, () => clientFactory({ STRIPE_SECRET_KEY: context.env.STRIPE_SECRET_KEY ?? '', NAIS_ENVIRONMENT: context.env.NAIS_ENVIRONMENT }))));
     }
     const payload = await body(context.request);
     const result = action === 'create' ? await createAdminProduct(context.env.PROMO_DB, payload)
       : await updateAdminProduct(context.env.PROMO_DB, productId, payload,
-        () => clientFactory({ STRIPE_SECRET_KEY: context.env.STRIPE_SECRET_KEY ?? '' }));
+        () => guardedStripeClient(context.env, () => clientFactory({ STRIPE_SECRET_KEY: context.env.STRIPE_SECRET_KEY ?? '', NAIS_ENVIRONMENT: context.env.NAIS_ENVIRONMENT })));
     return reply(action === 'create' ? 201 : 200, result);
   } catch (error) {
     return error instanceof ProductMutationError ? reply(error.status, { status: error.code })

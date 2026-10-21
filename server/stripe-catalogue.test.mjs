@@ -298,3 +298,41 @@ test('bounded reconciliation keeps remaining Prices durable for the next action'
   assert.equal(stripe.calls.filter(c => c[0] === 'price.update').length, 11);
   assert.equal(stripe.prices.get(current).active, true);
 });
+
+for (const mode of [false, true, undefined]) test('UAT admin validates existing Price before Stripe writes and D1 price change: ' + mode, async t => {
+  const { db, sqlite, stripe, row } = setup(t);
+  const before = { ...row('orange-spritz') };
+  // Add authentic mode fields only to the UAT fixture, keeping existing production tests unchanged.
+  for (const name of ['products', 'prices']) {
+    for (const method of Object.keys(stripe.client[name])) {
+      const original = stripe.client[name][method];
+      stripe.client[name][method] = async (...args) => {
+        const value = await original(...args);
+        if (method === 'list') return { ...value, data: value.data.map(item => ({ ...item, livemode: false })) };
+        return { ...value, livemode: name === 'prices' && method === 'retrieve' ? mode : false };
+      };
+    }
+  }
+  const response = await adminProductWrite({
+    request: new Request('https://uat.example/api/admin/products/orange-spritz', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceCents: 3750 }),
+    }), params: { id: 'orange-spritz' }, data: { admin: { role: 'admin' } },
+    env: { PROMO_DB: db, NAIS_ENVIRONMENT: 'uat', STRIPE_SECRET_KEY: 'sk_test_fixture' },
+  }, 'update', () => stripe.client);
+  assert.equal(response.status, mode === false ? 200 : 503);
+  if (mode === false) assert.equal(row('orange-spritz').price_cents, 3750);
+  else {
+    assert.deepEqual({ ...row('orange-spritz') }, before);
+    assert.equal(stripe.calls.length, 0);
+  }
+});
+test('UAT admin LIVE credential rejected before Stripe factory and D1 update', async t => {
+  const { db, row } = setup(t); const before = { ...row('orange-spritz') };
+  const response = await adminProductWrite({
+    request: new Request('https://uat.example/api/admin/products/orange-spritz', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceCents: 3750 }),
+    }), params: { id: 'orange-spritz' }, data: { admin: { role: 'admin' } },
+    env: { PROMO_DB: db, NAIS_ENVIRONMENT: 'uat', STRIPE_SECRET_KEY: 'sk_live_fixture' },
+  }, 'update', () => { assert.fail('No Stripe client'); });
+  assert.equal(response.status, 503); assert.deepEqual({ ...row('orange-spritz') }, before);
+});
