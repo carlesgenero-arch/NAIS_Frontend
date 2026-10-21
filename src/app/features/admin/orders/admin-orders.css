@@ -37,3 +37,5 @@ table { min-width: 48rem; }
 .order-views, .archive-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-block: 1rem; }
 .order-views button[aria-pressed='true'] { font-weight: 700; border-width: 2px; }
 .archive-label { display: block; font-size: 0.875rem; font-weight: 700; overflow-wrap: anywhere; }
+
+[role='status'], [role='alert'] { max-width: 100%; overflow-wrap: anywhere; }

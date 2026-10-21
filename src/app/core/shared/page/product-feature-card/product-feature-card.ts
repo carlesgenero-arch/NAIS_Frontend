@@ -1,3 +1,4 @@
+import { ResponsiveImage } from '../../../images/responsive-image.directive';
 import { CA } from '../../../../i18n/ca';
 import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
@@ -6,7 +7,7 @@ import { Product } from '../../../../models/product.interface';
 
 @Component({
   selector: 'app-product-feature-card',
-  imports: [TranslatePipe, RouterLink],
+  imports: [ResponsiveImage, TranslatePipe, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './product-feature-card.html',
   styleUrl: './product-feature-card.css',

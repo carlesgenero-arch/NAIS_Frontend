@@ -17,6 +17,14 @@ describe('App routes', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
+  function expectPrelaunchControls(element: HTMLElement): void {
+    expect(element.querySelector('main button, main input')).toBeNull();
+    expect(element.querySelector('app-prelaunch-landing app-legal-navigation')).toBeNull();
+    expect(Array.from(element.querySelectorAll('main a'), link => link.getAttribute('href'))).toEqual([
+      'mailto:info@naisdrinks.com', 'tel:684758843',
+    ]);
+  }
+
   it('shows only the prelaunch page at the root, including query strings and fragments', async () => {
     const fixture = TestBed.createComponent(App);
     const router = TestBed.inject(Router);
@@ -29,7 +37,7 @@ describe('App routes', () => {
       expect(element.querySelector('app-prelaunch-landing h1')?.textContent?.toLowerCase()).toContain('nais');
       expect(element.querySelector('app-prelaunch-landing [data-type="logo"] img')?.getAttribute('alt')).toBe('NAIS Drinks');
       expect(element.querySelector('app-header, app-footer, app-navbar, app-product-grid')).toBeNull();
-      expect(element.querySelector('main a, main button, main input')).toBeNull();
+      expectPrelaunchControls(element);
     }
     expect(routes.find(route => route.path === '')?.loadComponent).toBeDefined();
   });
@@ -45,7 +53,11 @@ describe('App routes', () => {
     expect(element.querySelector('app-home-page')).not.toBeNull();
     expect(element.querySelector('app-hero')).not.toBeNull();
     expect(element.querySelectorAll('app-info-card').length).toBe(3);
-    expect(element.querySelectorAll('a.button--buy').length).toBe(4);
+    expect(Array.from(element.querySelectorAll('app-product-card a.button--buy'), link => link.getAttribute('href'))).toEqual([
+      '/products/orange-spritz', '/products/passion-hugo', '/products/ginger-crush', '/products/tropical-hops',
+    ]);
+    expect(element.querySelector('app-assorted-pack-promotion a.pack-cta')?.getAttribute('href')).toBe('/products/pack-variat');
+    expect(element.querySelectorAll('a.button--buy').length).toBe(5);
     expect(element.querySelector('app-prelaunch-landing')).toBeNull();
     expect(element.querySelector('app-header')).not.toBeNull();
     expect(element.querySelector('app-footer')).not.toBeNull();
@@ -75,6 +87,7 @@ describe('App routes', () => {
     await router.navigateByUrl('/');
     await fixture.whenStable();
     expect(element.querySelector('app-prelaunch-landing')).not.toBeNull();
-    expect(element.querySelector('app-header, app-footer, main button, main a')).toBeNull();
+    expect(element.querySelector('app-header, app-footer')).toBeNull();
+    expectPrelaunchControls(element);
   });
 });

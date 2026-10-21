@@ -1,3 +1,4 @@
+import { ResponsiveImage } from '../../../core/images/responsive-image.directive';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { CarouselImage } from '../../../models/carousel-image.interface';
@@ -10,7 +11,7 @@ export interface SocialCollageImage extends CarouselImage {
 
 @Component({
   selector: 'app-social-collage',
-  imports: [TranslatePipe, HomeReveal],
+  imports: [ResponsiveImage, TranslatePipe, HomeReveal],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './social-collage.html',
   styleUrl: './social-collage.css',

@@ -10,7 +10,7 @@
       <span class="product-harvest-ribbon">{{ 'product.harvestRibbon' | t }}</span>
     }
     @if (product().cardImageUrl ?? product().imageUrl; as imageUrl) {
-      <img [src]="imageUrl" [alt]="(imageAlt()) | t" loading="lazy" />
+      <img responsiveImage responsiveSizes="(min-width: 1024px) 24vw, (min-width: 600px) 48vw, 96vw" [src]="imageUrl" [alt]="(imageAlt()) | t" loading="lazy" />
     }
   </a>
 

@@ -2,7 +2,7 @@
   <div class="prelaunch__composition" [class.prelaunch__composition--waiting]="!imagesReady()" [style.--asset-count]="assets.length" role="group" [attr.aria-label]="'ui.l_univers_de_nais_drinks' | t">
     @for (asset of assets; track asset.src) {
       <div class="prelaunch__card" [attr.data-type]="asset.type" [style.--asset-order]="$index">
-        <img [src]="asset.src" [alt]="(asset.alt) | t" width="240" height="300" (load)="onAssetSettled(asset.src)" (error)="onAssetSettled(asset.src)" />
+        <img responsiveImage responsiveSizes="(min-width: 640px) 240px, 45vw" [src]="asset.src" [alt]="(asset.alt) | t" width="240" height="300" (load)="onAssetSettled(asset.src)" (error)="onAssetSettled(asset.src)" />
       </div>
     }
   </div>
@@ -21,5 +21,4 @@
       <a href="tel:684758843">+34 684 758 843</a>
     </address>
   </section>
-  <app-legal-navigation />
 </section>

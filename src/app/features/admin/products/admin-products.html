@@ -1,23 +1,26 @@
 <section aria-labelledby="products-heading">
-  <header><h2 id="products-heading">Productes</h2><a routerLink="/admin/products/new">Crear producte</a></header>
-  @if (feedback()) { <p role="status">{{ feedback() }}</p> }
-  @if (mutationError()) { <p role="alert">{{ mutationError() }}</p> }
+  <header><h2 id="products-heading">Productes</h2><a routerLink="/admin/products/new">{{ 'admin.feedback.createProduct' | t }}</a></header>
+  @if (feedback()) { <p role="status">{{ feedback() | t }}</p> }
+  @if (mutationError()) { <p role="alert">{{ mutationError() | t }}</p><button type="button" data-refresh-products (click)="load()" [disabled]="loading() || archiving() || deleting() || reconciling()">{{ 'admin.feedback.reloadProducts' | t }}</button> }
+  @if (archiving() || deleting() || reconciling()) { <p role="status">{{ (reconciling() ? 'admin.feedback.cleaningPrices' : deleting() ? 'admin.feedback.deleteBusy' : 'admin.feedback.archiveBusy') | t }}</p> }
   @let current = state();
   @if (current.kind === 'loading') {
-    <p role="status">Carregant productes…</p>
+    <p role="status">{{ 'admin.feedback.loadingProducts' | t }}</p>
   } @else if (current.kind === 'error') {
     <div role="alert">
       @if (current.accessDenied) {
-        <p>No tens accés o la sessió ha caducat.</p><a routerLink="/admin/login">Tornar a l’accés</a>
+        <p>{{ 'admin.feedback.accessDenied' | t }}</p><a routerLink="/admin/login">{{ 'admin.feedback.login' | t }}</a>
       } @else {
-        <p>No hem pogut carregar els productes. Torna-ho a provar.</p>
-        <button type="button" (click)="load()">Tornar-ho a provar</button>
+        <p>{{ 'admin.feedback.productListError' | t }}</p>
+        <button type="button" (click)="load()">{{ 'admin.feedback.retry' | t }}</button>
       }
     </div>
-  } @else if (current.products.length === 0) {
-    <p role="status">No hi ha productes al catàleg.</p>
-  } @else {
-    <p id="products-scroll-hint">{{ current.products.length }} productes. Desplaça la taula horitzontalment per veure totes les columnes.</p>
+  }
+  @if (current.kind === 'ready' && visibleProducts().length === 0) {
+    <p role="status">{{ 'admin.feedback.noProducts' | t }}</p>
+  }
+  @if (visibleProducts().length) {
+    <p id="products-scroll-hint">{{ visibleProducts().length }} productes. Desplaça la taula horitzontalment per veure totes les columnes.</p>
     <div class="table-scroll" tabindex="0" role="region" aria-label="Taula de productes" aria-describedby="products-scroll-hint">
       <table>
         <caption>Catàleg de productes — tots els estats</caption>
@@ -27,7 +30,7 @@
           <th scope="col">Stripe Product ID</th><th scope="col">Stripe Price ID</th><th scope="col">Actualitzat (UTC)</th><th scope="col">Accions</th>
         </tr></thead>
         <tbody>
-          @for (product of current.products; track product.id) {
+          @for (product of visibleProducts(); track product.id) {
             <tr>
               <th scope="row">{{ product.name }}</th>
               <td><code>{{ product.id }}</code></td><td><code>{{ product.slug }}</code></td>
@@ -40,25 +43,25 @@
                   @if (product.stripePriceId && !product.stripeProductId) { <span> · Product ID pendent de sincronitzar</span> }
                 }
                 @if (product.stripePriceCleanupPending) {
-                  <span role="status">Preu desat. Neteja de Prices antics de Stripe pendent.</span>
+                  <span role="status">{{ 'admin.feedback.priceSavedCleanupPending' | t }}</span>
                 }
               </td>
               <td><time [attr.datetime]="product.updatedAt">{{ product.updatedAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></td>
               <td><div class="row-actions">
                 <a [routerLink]="['/admin/products', product.id, 'edit']" [attr.aria-label]="'Editar ' + product.name">Editar</a>
-                <button type="button" (click)="archive(product)" [disabled]="archiving() !== null || deleting() !== null || reconciling() !== null || product.status === 'archived'"
-                  [attr.aria-label]="'Arxivar ' + product.name">{{ archiving() === product.id ? 'Arxivant…' : 'Arxivar' }}</button>
+                <button type="button" (click)="archive(product)" [disabled]="current.kind !== 'ready' || archiving() !== null || deleting() !== null || reconciling() !== null || product.status === 'archived'"
+                  [attr.aria-label]="('admin.feedback.archiveAction' | t) + ' ' + product.name">{{ (archiving() === product.id ? 'Arxivant…' : 'Arxivar') | t }}</button>
                 @if (product.stripePriceCleanupPending) {
                   <button type="button" (click)="reconcile(product)"
-                    [disabled]="reconciling() !== null || archiving() !== null || deleting() !== null"
-                    [attr.aria-label]="'Reintentar neteja Stripe de ' + product.name">
-                    {{ reconciling() === product.id ? 'Netejant…' : 'Reintentar neteja Stripe' }}
+                    [disabled]="current.kind !== 'ready' || reconciling() !== null || archiving() !== null || deleting() !== null"
+                    [attr.aria-label]="('admin.feedback.cleanupAction' | t) + ' de ' + product.name">
+                    {{ (reconciling() === product.id ? 'Netejant…' : 'Reintentar neteja Stripe') | t }}
                   </button>
                 }
                 @if (product.status === 'draft' || product.status === 'archived') {
-                  <button type="button" (click)="deletePermanently(product)" [disabled]="archiving() !== null || deleting() !== null || reconciling() !== null"
-                    [attr.aria-label]="'Eliminar definitivament ' + product.name">
-                    {{ deleting() === product.id ? 'Eliminant…' : 'Eliminar definitivament' }}
+                  <button type="button" (click)="deletePermanently(product)" [disabled]="current.kind !== 'ready' || archiving() !== null || deleting() !== null || reconciling() !== null"
+                    [attr.aria-label]="('admin.feedback.deleteAction' | t) + ' ' + product.name">
+                    {{ (deleting() === product.id ? 'Eliminant…' : 'Eliminar definitivament') | t }}
                   </button>
                 }
               </div></td>

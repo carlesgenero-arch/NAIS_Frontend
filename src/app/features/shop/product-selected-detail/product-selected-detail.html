@@ -1,12 +1,12 @@
 <section class="selected-detail" [class.selected-detail--featured]="!!product().featureBackgroundImageUrl" [attr.data-variant]="product().variant" [attr.aria-label]="(product().name) | t">
   <div class="selected-detail__visual" [class.selected-detail__visual--paired]="product().imageUrl && product().fruitImage && !product().featureBackgroundImageUrl">
     @if (product().imageUrl; as imageUrl) {
-      <img class="selected-detail__can" [src]="imageUrl" [alt]="(imageAlt()) | t" />
+      <img responsiveImage responsiveSizes="(min-width: 1024px) 50vw, 96vw" class="selected-detail__can" [src]="imageUrl" [alt]="(imageAlt()) | t" />
     }
     @if (product().featureBackgroundImageUrl; as backgroundUrl) {
-      <img class="selected-detail__background" [src]="backgroundUrl" alt="" />
+      <img responsiveImage responsiveSizes="(min-width: 1024px) 50vw, 96vw" class="selected-detail__background" [src]="backgroundUrl" alt="" />
     } @else if (product().fruitImage; as fruitImage) {
-      <img class="selected-detail__fruit" [src]="fruitImage.url" [alt]="(fruitImage.alt) | t" />
+      <img responsiveImage responsiveSizes="(min-width: 1024px) 50vw, 96vw" class="selected-detail__fruit" [src]="fruitImage.url" [alt]="(fruitImage.alt) | t" />
     }
   </div>
   <div class="selected-detail__content">

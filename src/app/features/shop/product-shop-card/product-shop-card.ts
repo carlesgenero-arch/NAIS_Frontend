@@ -1,3 +1,4 @@
+import { ResponsiveImage } from '../../../core/images/responsive-image.directive';
 import { TranslationService } from '../../../i18n/translation.service';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
 import { inject, ChangeDetectionStrategy, Component, computed, input, linkedSignal, output } from '@angular/core';
@@ -7,7 +8,7 @@ import { AddProductRequest, Product } from '../../../models/product.interface';
 @Component({
   selector: 'app-product-shop-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, RouterLink],
+  imports: [ResponsiveImage, TranslatePipe, RouterLink],
   templateUrl: './product-shop-card.html',
   styleUrl: './product-shop-card.css',
 })

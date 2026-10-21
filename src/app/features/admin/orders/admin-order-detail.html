@@ -1,8 +1,8 @@
 <section aria-labelledby="order-title">
   <h2 id="order-title">Detall de la comanda</h2><a routerLink="/admin/orders">Tornar a les comandes</a>
-  @if (loading()) { <p role="status">Carregant comanda…</p> }
-  @if (notFound()) { <p role="status">No s’ha trobat aquesta comanda.</p> }
-  @if (error()) { <p role="alert">{{ error() }}</p><button type="button" (click)="reload()">Tornar-ho a provar</button> }
+  @if (loading()) { <p role="status">{{ 'admin.feedback.loadingOrder' | t }}</p> }
+  @if (notFound()) { <p role="status">{{ 'admin.feedback.orderNotFound' | t }}</p> }
+  @if (error()) { <p role="alert">{{ error() | t }}</p><button type="button" (click)="reload()">{{ 'admin.feedback.retry' | t }}</button> }
   @if (order(); as current) {
     <h3>{{ current.orderNumber }}</h3>
     @if (current.archivedAt) {
@@ -10,7 +10,7 @@
     }
     @if (current.fulfillmentStatus === 'delivered') {
       <div class="archive-actions" [attr.aria-busy]="saving()">
-        <button type="button" data-order-archive (click)="setArchived(!current.archivedAt)" [disabled]="saving() || loading()">{{ (current.archivedAt ? 'admin.order.restore' : 'admin.order.archive') | t }}</button>
+        <button type="button" data-order-archive (click)="setArchived(!current.archivedAt)" [disabled]="saving() || loading() || !!error()">{{ (current.archivedAt ? 'admin.order.restore' : 'admin.order.archive') | t }}</button>
       </div>
     }
     <dl><dt>Creada (UTC)</dt><dd><time [attr.datetime]="current.createdAt">{{ current.createdAt | date:'yyyy-MM-dd HH:mm':'UTC' }}</time></dd>
@@ -20,13 +20,13 @@
     <section class="fulfillment-panel" aria-labelledby="fulfillment-actions-title" [attr.aria-busy]="saving()">
       <h3 id="fulfillment-actions-title">Gestionar preparació</h3>
       <p>El pagament és de només lectura. Cancel·lar la preparació no implica cap reemborsament.</p>
-      @if (saving()) { <p role="status">Desant estat…</p> }
-      @if (saveError()) { <p #feedback role="alert" tabindex="-1">{{ saveError() }}</p><button type="button" (click)="reload()" [disabled]="saving()">Recarregar comanda</button> }
-      @if (saved()) { <p #feedback role="status" tabindex="-1">{{ saved() }}</p> }
+      @if (saving()) { <p role="status">{{ 'admin.feedback.savingOrder' | t }}</p> }
+      @if (saveError()) { <p #feedback role="alert" tabindex="-1">{{ saveError() | t }}</p><button type="button" (click)="reload()" [disabled]="saving() || loading()">{{ 'admin.feedback.reloadOrder' | t }}</button> }
+      @if (saved()) { <p #feedback role="status" tabindex="-1">{{ saved() | t }}</p> }
       <div class="fulfillment-buttons">
       @for (next of nextStatuses(); track next) {
-        <button type="button" [attr.data-fulfillment]="next" (click)="changeFulfillment(next)" [disabled]="saving()">{{ next === 'cancelled' ? ('admin.order.cancelFulfillment' | t) : ('admin.order.markStatus' | t: { status: (statusLabels[next] | t) }) }}</button>
-      } @empty { <p>No hi ha més transicions disponibles.</p> }
+        <button type="button" [attr.data-fulfillment]="next" (click)="changeFulfillment(next)" [disabled]="saving() || loading() || !!error()">{{ next === 'cancelled' ? ('admin.order.cancelFulfillment' | t) : ('admin.order.markStatus' | t: { status: (statusLabels[next] | t) }) }}</button>
+      } @empty { <p>{{ 'admin.feedback.noTransitions' | t }}</p> }
       </div>
     </section>
     <div class="details-grid">

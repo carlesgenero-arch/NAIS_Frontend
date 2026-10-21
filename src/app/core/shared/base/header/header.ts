@@ -1,3 +1,4 @@
+import { ResponsiveImage } from '../../../images/responsive-image.directive';
 import { LanguageSelector } from '../language-selector/language-selector';
 import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { Component, inject, viewChild } from '@angular/core';
@@ -10,7 +11,7 @@ import { Cart } from '../../../../features/components/cart/cart';
 
 @Component({
   selector: 'app-header',
-  imports: [LanguageSelector, TranslatePipe, Navbar, Modal, Cart],
+  imports: [ResponsiveImage, LanguageSelector, TranslatePipe, Navbar, Modal, Cart],
   templateUrl: './header.html',
   styleUrl: './header.css',
 })

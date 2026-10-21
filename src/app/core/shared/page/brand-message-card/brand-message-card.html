@@ -1,5 +1,5 @@
 <section class="brand-message" [attr.aria-label]="(heading()) | t" [class.brand-message--ready]="imageReady()" [class.brand-message--failed]="imageFailed()">
-  <img class="brand-message-image" [src]="imageSrc()" alt="" aria-hidden="true"
+  <img loading="lazy" responsiveImage responsiveSizes="(max-width: 767px) 640px, (min-width: 1800px) 1792px, 96vw" class="brand-message-image" [src]="imageSrc()" alt="" aria-hidden="true"
     (load)="loadedSource.set(imageSrc())" (error)="failedSource.set(imageSrc())" />
   <div class="brand-message-content">
     <h2>{{ (heading()) | t }}</h2>

@@ -7,9 +7,9 @@
   --shop-button-width: 17rem; /* Shop button preferred width. */
   --shop-button-height: 8rem; /* Shop button minimum height. */
   --shop-button-font-size: 2.5rem; /* Shop button text size. */
-  --shop-button-left-inset: clamp(0.5rem, 2vw, 2rem); /* Move Shop inward from the left. */
   --main-logo-width: 80rem; /* Main logo maximum width. */
-  --header-action-size: 30px; /* Shared cart and secondary logo dimensions. */
+  --header-action-size: 34px; /* Shared cart and secondary logo dimensions. */
+  --language-selector-font-size: 1rem;
   --header-actions-gap: 0.5rem; /* Gap between the two action slots. */
   --navbar-border-width: 1px; /* Continuous Navbar outline thickness. */
   --navbar-border-radius: var(--radius-panel); /* Rounded Navbar corners. */
@@ -25,11 +25,13 @@
 }
 
 .utilities {
+  box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--header-column-gap);
+  gap: clamp(0.5rem, 2vw, var(--header-column-gap));
+  padding-inline: clamp(0.5rem, 2vw, 1.5rem);
 }
 
 .languages {
@@ -75,7 +77,10 @@ button:focus-visible,
   height: var(--header-action-size);
   object-fit: contain;
   flex-shrink: 0;
-  cursor: pointer;
+}
+
+.brand-mark {
+  cursor: default;
 }
 
 .cart {

@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { map, type Observable } from 'rxjs';
+import { map, timeout, type Observable } from 'rxjs';
+import { ADMIN_REQUEST_TIMEOUT_MS } from './admin-request';
 import { isPublicOrderSummary } from '../../shared/order-summary';
 import type { AdminOrder, AdminOrderPage } from '../models/admin-order.interface';
 import type { FulfillmentStatus } from '../../shared/order-fulfillment';
@@ -55,21 +56,21 @@ export class AdminOrdersService {
     let params = new HttpParams().set('limit', limit);
     if (cursor) params = params.set('cursor', cursor);
     if (view === 'archived') params = params.set('view', view);
-    return this.http.get<unknown>('/api/admin/orders', { params }).pipe(map(value => {
+    return this.http.get<unknown>('/api/admin/orders', { params }).pipe(timeout(ADMIN_REQUEST_TIMEOUT_MS), map(value => {
       const row = record(value); const cursor = row['nextCursor'];
       if (!Array.isArray(row['items']) || (cursor !== null && (typeof cursor !== 'string' || !cursor || cursor.length > 256))) throw new Error('Invalid admin orders');
       return { items: row['items'].map(readOrder), nextCursor: cursor };
     }));
   }
   getOrder(id: string): Observable<AdminOrder> {
-    return this.http.get<unknown>('/api/admin/orders/' + encodeURIComponent(id)).pipe(map(readOrder));
+    return this.http.get<unknown>('/api/admin/orders/' + encodeURIComponent(id)).pipe(timeout(ADMIN_REQUEST_TIMEOUT_MS), map(readOrder));
   }
   setArchived(id: string, archived: boolean): Observable<AdminOrder> {
     return this.http.post<unknown>('/api/admin/orders/' + encodeURIComponent(id) + (archived ? '/archive' : '/restore'), null)
-      .pipe(map(readOrder));
+      .pipe(timeout(ADMIN_REQUEST_TIMEOUT_MS), map(readOrder));
   }
   updateFulfillment(id: string, fulfillmentStatus: FulfillmentStatus): Observable<AdminOrder> {
     return this.http.patch<unknown>('/api/admin/orders/' + encodeURIComponent(id) + '/fulfillment',
-      { fulfillmentStatus }).pipe(map(readOrder));
+      { fulfillmentStatus }).pipe(timeout(ADMIN_REQUEST_TIMEOUT_MS), map(readOrder));
   }
 }

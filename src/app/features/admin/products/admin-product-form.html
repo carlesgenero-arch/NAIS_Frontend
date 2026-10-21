@@ -1,10 +1,13 @@
 <section aria-labelledby="form-title">
   <h2 id="form-title">{{ product() ? 'Editar producte' : 'Crear producte' }}</h2>
   <a routerLink="/admin/products">Tornar als productes</a>
-  @if (loading()) { <p role="status">Carregant producte…</p> }
-  @else if (loadError()) { <p role="alert">{{ loadError() }}</p> }
+  @if (loading()) { <p role="status">{{ 'admin.feedback.loadingProduct' | t }}</p> }
+  @else if (loadError()) { <p role="alert">{{ loadError() | t }}</p><button type="button" data-retry-product (click)="retryLoad()">{{ 'admin.feedback.retry' | t }}</button> }
   @else {
-    @if (success()) { <p role="status">{{ success() }}</p> }
+    @if (submitting() && !uploadingImage()) { <p role="status">{{ 'admin.feedback.savingProduct' | t }}</p> }
+    @if (success()) { <p role="status">{{ success() | t }}</p> }
+    @if (navigating()) { <p role="status">{{ 'admin.feedback.returningToList' | t }}</p> }
+    @if (error()) { <p #errorSummary id="form-error" role="alert" tabindex="-1">{{ error() | t }}</p> }
     @if (created()) {
       <a [routerLink]="['/admin/products', product()!.id, 'edit']">Editar el producte creat</a>
     } @else {
@@ -13,16 +16,15 @@
       } @else {
         <p>Desa primer el producte com a esborrany o properament; després podràs activar-lo amb Stripe.</p>
       }
-      @if (error()) { <p #errorSummary id="form-error" role="alert" tabindex="-1">{{ error() }}</p> }
-      <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting() || uploadingImage()" novalidate>
-        <fieldset [disabled]="submitting() || uploadingImage()">
+      <form [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting() || uploadingImage() || navigating()" novalidate>
+        <fieldset [disabled]="submitting() || uploadingImage() || navigating()">
           <legend>Dades del producte</legend>
           <label for="product-name">Nom</label>
           <input id="product-name" formControlName="name" maxlength="200" required [attr.aria-invalid]="invalid('name')" aria-describedby="name-error">
-          <span id="name-error">@if (invalid('name')) { Escriu un nom (màxim 200 caràcters). }</span>
+          <span id="name-error">@if (invalid('name')) { {{ 'admin.feedback.nameInvalid' | t }} }</span>
           <label for="product-slug">Slug</label>
           <input id="product-slug" formControlName="slug" maxlength="200" required [attr.aria-invalid]="invalid('slug')" aria-describedby="slug-error">
-          <span id="slug-error">@if (invalid('slug')) { Utilitza lletres, números i guions, sense espais. }</span>
+          <span id="slug-error">@if (invalid('slug')) { {{ 'admin.feedback.slugInvalid' | t }} }</span>
           <label for="product-description">Descripció</label>
           <textarea id="product-description" formControlName="description" maxlength="10000" rows="4"></textarea>
           <label for="product-status">Estat</label>
@@ -33,18 +35,18 @@
           <label for="product-price">Preu en EUR</label>
           <input id="product-price" type="text" inputmode="decimal" formControlName="price" required
             [attr.aria-invalid]="invalid('price')" aria-describedby="price-help">
-          <span id="price-help">@if (invalid('price')) { Introdueix un import vàlid; per activar-lo ha de ser superior a zero. } @else { Exemple: 36,00. Màxim dos decimals. }</span>
+          <span id="price-help">@if (invalid('price')) { {{ 'admin.feedback.priceInvalid' | t }} } @else { Exemple: 36,00. Màxim dos decimals. }</span>
           <label for="product-currency">Moneda</label>
           <select id="product-currency" formControlName="currency"><option value="eur">EUR</option></select>
           <label for="product-image-file">{{ 'admin.product.imageFile' | t }}</label>
           <input #imageFileInput id="product-image-file" type="file" accept="image/jpeg,image/png,image/webp" (change)="selectImage($event)" aria-describedby="upload-help">
           <span id="upload-help">{{ 'admin.product.imageHelp' | t }}</span>
           @if (imagePreview(); as preview) {
-            <img class="product-image-preview" [src]="preview" [alt]="'admin.product.imagePreview' | t" width="240" height="200">
+            <img class="product-image-preview" [src]="preview" (error)="previewError()" [alt]="'admin.product.imagePreview' | t" width="240" height="200">
           }
           @if (!product()) { <span>{{ 'admin.product.imageNewHelp' | t }}</span> }
           @if (product() && imageFile()) {
-            <button type="button" data-upload-image (click)="uploadImage()" [disabled]="submitting() || uploadingImage()">{{ 'admin.product.imageUpload' | t }}</button>
+            <button type="button" data-upload-image (click)="uploadImage()" [disabled]="submitting() || uploadingImage() || navigating()">{{ 'admin.product.imageUpload' | t }}</button>
           }
           @if (uploadingImage()) { <p role="status">{{ 'admin.product.imageUploading' | t }}</p> }
           @if (imageFeedback()) { <p role="status">{{ imageFeedback() }}</p> }
@@ -58,7 +60,7 @@
           <input id="stripe-product" readonly [value]="product()?.stripeProductId ?? 'No assignat'">
           <label for="stripe-price">Stripe Price ID · només lectura</label>
           <input id="stripe-price" readonly [value]="product()?.stripePriceId ?? 'No assignat'">
-          <button #saveButton type="submit" [disabled]="submitting() || uploadingImage()">{{ submitting() ? 'Desant…' : 'Desar producte' }}</button>
+          <button #saveButton type="submit" [disabled]="submitting() || uploadingImage() || navigating()">{{ (submitting() ? 'Desant…' : 'Desar producte') | t }}</button>
         </fieldset>
         <a routerLink="/admin/products">Cancel·lar</a>
       </form>

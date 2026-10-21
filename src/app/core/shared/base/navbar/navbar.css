@@ -16,7 +16,7 @@
   align-items: start;
   gap: var(--page-gutter);
   min-height: 0;
-  padding: var(--page-gutter);
+  padding: clamp(1.5rem, 3vw, 2rem) var(--page-gutter);
   /*border: var(--navbar-border-width) solid var(--color-negro);*/
   border-radius: var(--navbar-border-radius);
   background: var(--surface-card);
@@ -62,16 +62,12 @@
     gap: var(--header-column-gap);
     min-height: var(--header-height);
     padding: var(--header-block-padding) var(--header-inline-padding);
+    padding-bottom: calc(var(--header-block-padding) + 2rem);
   }
 
   .shop {
-    position: absolute;
-    grid-row: auto;
-    justify-self: center;
-    margin-inline-start: var(--shop-button-left-inset);
-    margin-block: var(--header-column-gap);
-    right: 3.5rem;
-    bottom: -2.5rem;
+    grid-row: 2;
+    justify-self: end;
     width: min(var(--shop-button-width), 12rem);
     min-height: max(var(--control-min-size), var(--shop-button-height));
     padding: var(--pill-padding-block) var(--pill-padding-inline);
@@ -109,6 +105,10 @@
   height: auto;
 }
 
+.brand--static {
+  cursor: default;
+}
+
 @media (min-width: 48rem) {
   .brand { width: 100%; }
 }
@@ -123,23 +123,31 @@
 /* The cart and secondary logo are grouped in Header, outside this navigation. */
 
 /* Responsive adjustments */
-/* Equal side columns keep the main logo centered independently of Shop. */
+/* A single full-width logo track removes the two empty desktop column gaps. */
+/* Restore the original overlapping badge only where there is ample inline room. */
 @media (min-width: 64rem) {
-  .navigation {
-    grid-template-columns:
-      minmax(0, 1fr)
-      minmax(0, var(--main-logo-width))
-      minmax(0, 1fr);
-  }
-
   .shop {
-    grid-column: 1;
-    grid-row: 1;
+    position: absolute;
+    grid-row: auto;
+    margin-block: var(--header-column-gap);
+    right: 3.5rem;
+    bottom: -0.5rem;
   }
 
-  .brand {
-    grid-column: 2;
-    grid-row: 1;
+  /* Home's optical adjustments leave the frame height and other routes intact. */
+  .navigation--home {
+    margin-block-end: calc(var(--space-group) * -0.625);
+  }
+
+  .navigation--home .brand {
+    transform: translateY(-22px) scale(1.09);
+  }
+
+  .navigation--home .shop {
+    right: 2rem;
+    bottom: -2.75rem;
+    margin-block: 0;
+    z-index: 1;
   }
 }
 @media (prefers-reduced-motion: reduce) {

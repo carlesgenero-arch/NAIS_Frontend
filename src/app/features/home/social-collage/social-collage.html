@@ -7,9 +7,9 @@
       <figure class="social-collage__photo" [attr.data-image]="image.src" homeReveal>
         <div class="social-collage__frame">
           @if (image.href; as href) {
-            <a [href]="href"><img [src]="image.src" [alt]="image.alt | t" loading="lazy" [width]="image.width" [height]="image.height" /></a>
+            <a [href]="href"><img responsiveImage responsiveSizes="(min-width: 1500px) 240px, (min-width: 768px) 16vw, (min-width: 560px) 224px, 40vw" [src]="image.src" [alt]="image.alt | t" loading="lazy" [width]="image.width" [height]="image.height" /></a>
           } @else {
-            <img [src]="image.src" [alt]="image.alt | t" loading="lazy" [width]="image.width" [height]="image.height" />
+            <img responsiveImage responsiveSizes="(min-width: 1500px) 240px, (min-width: 768px) 16vw, (min-width: 560px) 224px, 40vw" [src]="image.src" [alt]="image.alt | t" loading="lazy" [width]="image.width" [height]="image.height" />
           }
         </div>
       </figure>

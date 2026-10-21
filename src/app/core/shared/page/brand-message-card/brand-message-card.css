@@ -9,6 +9,7 @@
   --brand-message-overlay: color-mix(in srgb, var(--color-negro) 30%, transparent);
   display: block;
   background: var(--surface-card);
+  border-radius: var(--brand-message-radius);
   min-width: 0;
   margin-bottom: var(--space-section);
 }

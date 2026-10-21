@@ -1,3 +1,4 @@
+import { ResponsiveImage } from '../../../images/responsive-image.directive';
 import { TranslationService } from '../../../../i18n/translation.service';
 import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, input, output, signal } from '@angular/core';
@@ -7,7 +8,7 @@ import { Product } from '../../../../models/product.interface';
 @Component({
   selector: 'app-product-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, RouterLink],
+  imports: [ResponsiveImage, TranslatePipe, RouterLink],
   host: {
     '[class.catalogue]': "presentation() === 'catalogue'",
     '[class.product-card--reveal]': 'revealEnabled()',

@@ -1,3 +1,4 @@
+import { ResponsiveImage } from '../../../core/images/responsive-image.directive';
 import { TranslationService } from '../../../i18n/translation.service';
 import { CA } from '../../../i18n/ca';
 import { TranslatePipe } from '../../../i18n/translate.pipe';
@@ -26,7 +27,7 @@ export const CHECKOUT_REDIRECT = new InjectionToken<(url: string) => void>('Chec
 @Component({
   selector: 'app-cart',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, RouterLink],
+  imports: [ResponsiveImage, TranslatePipe, RouterLink],
   templateUrl: './cart.html',
   styleUrl: './cart.css',
   host: {

@@ -36,20 +36,20 @@ export class AdminOrderDetail {
   protected readonly statusLabels = ORDER_STATUS_LABEL_KEYS;
   constructor() {
     afterRenderEffect(() => { if (this.saved() || this.saveError()) this.feedback()?.nativeElement.focus(); });
-    this.route.paramMap.pipe(switchMap(params => this.retry.pipe(startWith(undefined),
+    this.route.paramMap.pipe(tap(() => this.order.set(null)), switchMap(params => this.retry.pipe(startWith(undefined),
       tap(() => { this.mutation?.unsubscribe(); this.saving.set(false); this.saveError.set(''); this.saved.set('');
-        this.order.set(null); this.loading.set(true); this.notFound.set(false); this.error.set(''); }),
+        this.loading.set(true); this.notFound.set(false); this.error.set(''); }),
       switchMap(() => this.service.getOrder(params.get('id') ?? '').pipe(catchError(error => {
-        if (error instanceof HttpErrorResponse && error.status === 404) this.notFound.set(true);
-        else this.error.set(adminOrderError(error));
-        return of(null);
+        if (error instanceof HttpErrorResponse && error.status === 404) { this.notFound.set(true); return of(null); }
+        this.error.set(adminOrderError(error));
+        return of(error instanceof HttpErrorResponse && [401, 403].includes(error.status) ? null : undefined);
       }))),
-    )), takeUntilDestroyed(inject(DestroyRef))).subscribe(order => { this.order.set(order); this.loading.set(false); });
+    )), takeUntilDestroyed(inject(DestroyRef))).subscribe(order => { if (order !== undefined) this.order.set(order); this.loading.set(false); });
   }
   protected reload(): void { if (!this.loading() && !this.saving()) this.retry.next(); }
   protected setArchived(archived: boolean): void {
     const current = this.order();
-    if (!current || this.loading() || this.saving() || current.fulfillmentStatus !== 'delivered'
+    if (!current || this.error() || this.loading() || this.saving() || current.fulfillmentStatus !== 'delivered'
       || Boolean(current.archivedAt) === archived) return;
     this.saving.set(true); this.saveError.set(''); this.saved.set('');
     this.mutation = this.service.setArchived(current.id, archived).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -60,8 +60,8 @@ export class AdminOrderDetail {
   }
   protected changeFulfillment(next: FulfillmentStatus): void {
     const current = this.order();
-    if (!current || this.saving() || this.loading() || !this.nextStatuses().includes(next)) return;
-    if (next === 'cancelled' && !this.document.defaultView?.confirm('Cancel·lar la preparació d’aquesta comanda? És un estat final. Aquesta acció no reemborsa ni modifica el pagament.')) return;
+    if (!current || this.error() || this.saving() || this.loading() || !this.nextStatuses().includes(next)) return;
+    if (next === 'cancelled' && !this.document.defaultView?.confirm(this.i18n.t('admin.feedback.cancelConfirm'))) return;
     this.saving.set(true); this.saveError.set(''); this.saved.set('');
     this.mutation = this.service.updateFulfillment(current.id, next).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: order => { this.order.set(order); this.saving.set(false); this.saved.set(order.shippingEmailWarning

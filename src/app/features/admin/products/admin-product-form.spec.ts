@@ -5,6 +5,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { of } from 'rxjs';
 import { AdminProductForm } from './admin-product-form';
 import { AdminProductsService } from '../../../services/admin-products.service';
+import { ADMIN_REQUEST_TIMEOUT_MS, ADMIN_UPLOAD_TIMEOUT_MS, ADMIN_NAVIGATION_TIMEOUT_MS } from '../../../services/admin-request';
 import { centsToEuro, euroToCents } from './product-price';
 
 const product = { id: 'fixture', slug: 'fixture', name: 'Fixture product', status: 'draft' as const,
@@ -22,7 +23,7 @@ describe('admin product form', () => {
     fixture.detectChanges();
     return fixture;
   }
-  afterEach(() => { http?.verify(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+  afterEach(() => { http?.verify(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
   function fill(root: HTMLElement, selector: string, value: string) {
     const input = root.querySelector<HTMLInputElement>(selector)!;
     input.value = value; input.dispatchEvent(new Event('input'));
@@ -94,6 +95,57 @@ describe('admin product form', () => {
     selectImage(root, 'image/png', 5 * 1024 * 1024 + 1); fixture.detectChanges(); expect(root.querySelector('[data-upload-image]')).toBeNull();
     selectImage(root); fixture.detectChanges(); fixture.destroy();
     expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('blob:synthetic-preview');
+  });
+  it('retries an initial load failure without offering a misleading create form or duplicate requests', () => {
+    const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('Carregant producte');
+    http.expectOne('/api/admin/products/fixture').flush({}, {status:503,statusText:'Unavailable'}); fixture.detectChanges();
+    expect(root.querySelector('form')).toBeNull();
+    const retry = root.querySelector<HTMLButtonElement>('[data-retry-product]')!; retry.click(); retry.click();
+    http.expectOne('/api/admin/products/fixture').flush(product); fixture.detectChanges();
+    expect(root.querySelector('[role="alert"]')).toBeNull(); expect(root.querySelector('form')).not.toBeNull();
+  });
+  it('resets a timed-out save, preserves form data and explains uncertain outcome', () => {
+    vi.useFakeTimers();
+    const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    http.expectOne('/api/admin/products/fixture').flush(product); fixture.detectChanges();
+    fill(root,'#product-name','Unsaved long name'); submit(root); fixture.detectChanges();
+    const request = http.expectOne('/api/admin/products/fixture');
+    expect(root.querySelector('[role="status"]')?.textContent).toContain('Desant producte');
+    vi.advanceTimersByTime(ADMIN_REQUEST_TIMEOUT_MS); fixture.detectChanges();
+    expect(request.cancelled).toBe(true);
+    expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
+    expect(root.querySelector<HTMLInputElement>('#product-name')!.value).toBe('Unsaved long name');
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain('comprova el producte');
+  });
+  it('resets a timed-out upload without discarding the previous image or selected file', () => {
+    vi.useFakeTimers();
+    const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    http.expectOne('/api/admin/products/fixture').flush({...product,imageUrl:'images/original.png'});fixture.detectChanges();
+    selectImage(root); fixture.detectChanges(); root.querySelector<HTMLButtonElement>('[data-upload-image]')!.click();
+    const upload = http.expectOne('/api/admin/products/fixture/image');
+    vi.advanceTimersByTime(ADMIN_UPLOAD_TIMEOUT_MS); fixture.detectChanges();
+    expect(upload.cancelled).toBe(true); expect(root.querySelector<HTMLInputElement>('#product-image')!.value).toBe('images/original.png');
+    expect(root.querySelector<HTMLButtonElement>('[data-upload-image]')!.disabled).toBe(false);
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain('pujada');
+  });
+  it('releases the save lock if returning to the list never settles, without resending the save', () => {
+    vi.useFakeTimers(); const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    vi.mocked(TestBed.inject(Router).navigate).mockReturnValue(new Promise<boolean>(() => {}));
+    http.expectOne('/api/admin/products/fixture').flush(product); fixture.detectChanges();
+    submit(root);http.expectOne('/api/admin/products/fixture').flush(product); fixture.detectChanges();
+    expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(true);
+    vi.advanceTimersByTime(ADMIN_NAVIGATION_TIMEOUT_MS); fixture.detectChanges();
+    expect(root.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
+    expect(root.querySelector('#form-error')?.textContent).toContain('Producte desat.');
+    http.expectNone('/api/admin/products/fixture');
+  });
+  it('reports a broken preview without changing the saved image reference', () => {
+    const fixture = render('fixture'); const root: HTMLElement = fixture.nativeElement;
+    http.expectOne('/api/admin/products/fixture').flush({...product,imageUrl:'images/missing.png'});fixture.detectChanges();
+    root.querySelector('img')!.dispatchEvent(new Event('error'));fixture.detectChanges();
+    expect(root.querySelector('img')).toBeNull(); expect(root.querySelector('[role="alert"]')?.textContent).toContain('mostrar la imatge');
+    expect(root.querySelector<HTMLInputElement>('#product-image')!.value).toBe('images/missing.png');
   });
   it('creates with integer cents and prevents duplicate submission', () => {
     const fixture = render(); const root: HTMLElement = fixture.nativeElement;

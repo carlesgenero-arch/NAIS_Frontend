@@ -1,7 +1,7 @@
 import { MockProductService } from '../../../../testing/product-fixture';
 import { ProductService } from '../../../../services/product.service';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { NavigationStart, provideRouter, Router } from '@angular/router';
 import { Header } from './header';
 import { routes } from '../../../../app.routes';
 
@@ -35,7 +35,22 @@ describe('Header cart drawer', () => {
     return { fixture, dialog, trigger };
   }
 
-  it('uses a mobile picture source while preserving the desktop logo and accessible home link', () => {
+  it('keeps the secondary symbol decorative and non-interactive beside the cart', () => {
+    const { fixture, dialog } = setup();
+    const symbol = (fixture.nativeElement as HTMLElement).querySelector<HTMLImageElement>('img.brand-mark')!;
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl');
+    expect(symbol.getAttribute('src')).toBe('images/brand/nais logos-10.png');
+    expect(symbol.alt).toBe('');
+    expect(symbol.closest('a, button')).toBeNull();
+    expect(symbol.hasAttribute('tabindex')).toBe(false);
+    expect(getComputedStyle(symbol).cursor).toBe('default');
+    symbol.click();
+    expect(dialog.open).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('uses a mobile picture source while preserving the desktop logo and accessible home link', async () => {
+    await TestBed.inject(Router).navigateByUrl('/products');
     const { fixture } = setup();
     const brand = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>('a.brand')!;
     expect(brand.getAttribute('href')).toBe('/');
@@ -72,6 +87,48 @@ describe('Header cart drawer', () => {
     expect(document.activeElement).toBe(trigger);
     expect(router.url).toBe(url);
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it.each(['/', '/?source=demo#top'])('renders a non-interactive home logo at %s', async url => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl(url);
+    const { fixture } = setup();
+    const starts: NavigationStart[] = [];
+    const subscription = router.events.subscribe(event => {
+      if (event instanceof NavigationStart) starts.push(event);
+    });
+    const element = fixture.nativeElement as HTMLElement;
+    const brand = element.querySelector<HTMLElement>('.brand')!;
+    expect(brand.tagName).toBe('DIV');
+    expect(element.querySelector('a.brand')).toBeNull();
+    expect(brand.querySelector('img')?.alt).toBe('NAIS Drinks');
+    expect(brand.hasAttribute('href')).toBe(false);
+    expect(brand.hasAttribute('tabindex')).toBe(false);
+    const navigate = vi.spyOn(router, 'navigateByUrl');
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+    brand.dispatchEvent(click);
+    await fixture.whenStable();
+    expect(router.url).toBe(url);
+    expect(navigate).not.toHaveBeenCalled();
+    expect(starts).toHaveLength(0);
+    subscription.unsubscribe();
+  });
+
+  it('navigates from Shop to home through the accessible logo link', async () => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/products');
+    const { fixture } = setup();
+    const brand = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>('a.brand')!;
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+    brand.dispatchEvent(click);
+    await fixture.whenStable();
+    expect(click.defaultPrevented).toBe(true);
+    expect(router.url).toBe('/');
+    expect((fixture.nativeElement as HTMLElement).querySelector('a.brand')).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.brand')?.tagName).toBe('DIV');
+    await router.navigateByUrl('/products');
+    await fixture.whenStable();
+    expect((fixture.nativeElement as HTMLElement).querySelector('a.brand')?.getAttribute('href')).toBe('/');
   });
 
   it('closes on the backdrop and Escape cancellation but not clicks inside the panel', () => {

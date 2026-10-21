@@ -1,9 +1,10 @@
+import { ResponsiveImage } from '../../../images/responsive-image.directive';
 import { CA } from '../../../../i18n/ca';
 import { TranslatePipe } from '../../../../i18n/translate.pipe';
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 
 @Component({
-  imports: [TranslatePipe],
+  imports: [ResponsiveImage, TranslatePipe],
   selector: 'app-brand-message-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './brand-message-card.html',
