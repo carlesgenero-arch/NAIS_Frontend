@@ -1,3 +1,4 @@
+import { guardedStripeClient, type StripeSafetyEnvironment } from '../stripe/stripe-safety.ts';
 import type Stripe from 'stripe';
 import { createStripeClient } from '../stripe/stripe-client.ts';
 import type { EmailEnvironment } from '../email/email.types.ts';
@@ -14,7 +15,7 @@ export interface PromoDatabase {
   };
 }
 
-export interface PromoEnvironment extends EmailEnvironment, TurnstileEnvironment {
+export interface PromoEnvironment extends EmailEnvironment, TurnstileEnvironment, StripeSafetyEnvironment {
   PROMO_DB?: PromoDatabase;
   STRIPE_SECRET_KEY?: string;
   STRIPE_PROMO_COUPON_ID?: string;
@@ -26,7 +27,7 @@ export interface PromoStripeClient {
     create(params: Stripe.PromotionCodeCreateParams, options: Stripe.RequestOptions): Promise<{ id: string; code: string }>;
   };
 }
-type PromoClientFactory = (env: { STRIPE_SECRET_KEY: string }) => PromoStripeClient;
+type PromoClientFactory = (env: StripeSafetyEnvironment & { STRIPE_SECRET_KEY: string }) => PromoStripeClient;
 
 const MAX_BODY_BYTES = 4096;
 
@@ -109,7 +110,7 @@ export async function promoSignup(
     if (!env.STRIPE_SECRET_KEY?.trim() || !env.STRIPE_PROMO_COUPON_ID?.trim()) {
       return response(503, 'unavailable');
     }
-    const client = clientFactory({ STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY });
+    const client = guardedStripeClient(env, () => clientFactory({ STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY!, NAIS_ENVIRONMENT: env.NAIS_ENVIRONMENT }));
     // Durable opaque correlation/idempotency key; never send the email to Stripe.
     const requestId = crypto.randomUUID();
     // Uniqueness check and registration are one atomic write, never SELECT then INSERT.

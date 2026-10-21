@@ -603,3 +603,20 @@ test('internal migration skips historical orders, preserves snapshots and constr
   assert.equal((await send()).status, 200);
   assert.equal(db.prepare('SELECT notification_email_status s FROM orders').get().s, 'skipped');
 });
+
+for (const mode of [false, true, undefined]) test('UAT signed webhook only persists TEST events: ' + mode, async t => {
+  const { env, event, session, line, send, db } = setup(t);
+  Object.assign(env, { NAIS_ENVIRONMENT: 'uat', STRIPE_SECRET_KEY: 'sk_test_fixture' });
+  event.livemode = mode; event.data.object.livemode = mode;
+  session.livemode = false;
+  line.price.object = 'price'; line.price.livemode = false;
+  line.price.product.object = 'product'; line.price.product.livemode = false;
+  assert.equal((await send()).status, mode === false ? 200 : 400);
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM orders').get().n, mode === false ? 1 : 0);
+});
+test('UAT webhook LIVE key fails closed before order work', async t => {
+  const { env, send, db, reads } = setup(t);
+  Object.assign(env, { NAIS_ENVIRONMENT: 'uat', STRIPE_SECRET_KEY: 'sk_live_fixture' });
+  assert.equal((await send()).status, 503); assert.equal(reads(), 0);
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM orders').get().n, 0);
+});

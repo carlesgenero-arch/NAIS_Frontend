@@ -1,0 +1,12 @@
+{
+  "name": "nais-uat-migrations",
+  "compatibility_date": "2026-09-01",
+  "d1_databases": [
+    {
+      "binding": "PROMO_DB",
+      "database_name": "nais-promo-preview",
+      "database_id": "c104ce1e-606c-407e-8cb1-391820c8abef",
+      "migrations_dir": "./migrations"
+    }
+  ]
+}

@@ -339,3 +339,20 @@ test('missing email configuration preserves the generated code as failed without
   assert.equal(emails.length, 0);
   assert.equal(calls.length, 1);
 });
+
+for (const mode of [false, true, undefined]) test('UAT promo coupon mode controls code generation: ' + mode, async t => {
+  const { env, client, request, calls } = setup(t);
+  Object.assign(env, { NAIS_ENVIRONMENT: 'uat', STRIPE_SECRET_KEY: 'sk_test_fixture' });
+  client.coupons.retrieve = async () => ({ livemode: mode, valid: true, percent_off: 10 });
+  const create = client.promotionCodes.create;
+  client.promotionCodes.create = async (...args) => ({ ...await create(...args), livemode: false });
+  assert.equal((await request({ email: 'tester@example.test' })).status, mode === false ? 201 : 503);
+  assert.equal(calls.length, mode === false ? 1 : 0);
+});
+test('UAT promo LIVE key rejects before signup persistence', async t => {
+  const { env, request, db, calls } = setup(t);
+  Object.assign(env, { NAIS_ENVIRONMENT: 'uat', STRIPE_SECRET_KEY: 'sk_live_fixture' });
+  assert.equal((await request({ email: 'tester@example.test' })).status, 503);
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM promo_signups').get().n, 0);
+  assert.equal(calls.length, 0);
+});
