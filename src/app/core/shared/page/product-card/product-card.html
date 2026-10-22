@@ -16,7 +16,9 @@
       <img responsiveImage responsiveSizes="(min-width: 1024px) 512px, (min-width: 768px) 50vw, 96vw" class="image can" [src]="imageUrl" [alt]="(imageAlt()) | t" loading="lazy" />
     }
     @if (product().fruitImage; as fruitImage) {
-      <img responsiveImage responsiveSizes="(min-width: 1024px) 512px, (min-width: 768px) 50vw, 96vw" class="image fruit" [src]="fruitImage.url" [alt]="(fruitImage.alt) | t" loading="lazy" />
+      <div class="fruit-circle">
+        <img responsiveImage responsiveSizes="(min-width: 1024px) 512px, (min-width: 768px) 50vw, 96vw" class="image fruit" [src]="fruitImage.url" [alt]="(fruitImage.alt) | t" loading="lazy" />
+      </div>
     }
   </figure>
 </article>

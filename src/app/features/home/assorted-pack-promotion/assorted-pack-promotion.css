@@ -38,9 +38,11 @@
   justify-self: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   max-width: 27rem;
+  margin-inline: auto;
+  text-align: left;
   min-width: 0;
 }
 
@@ -59,7 +61,8 @@ h2, p { margin: 0; }
 
 h2 {
   max-width: 12ch;
-  font-family: var(--font-display);
+  font-family: var(--font-editorial);
+  font-weight: var(--font-editorial-weight);
   font-size: clamp(1.85rem, 4.1vw, 4.25rem);
   line-height: 1.05;
   letter-spacing: -0.035em;
@@ -110,14 +113,14 @@ h2 {
 .pack-botanicals {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: clamp(0.375rem, 1vw, 0.75rem);
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
   margin-block-start: 1.25rem;
   perspective: 500px;
-  padding: 0.25rem;
+  padding-block: 0.25rem;
 }
 
 .pack-botanicals > div {
@@ -151,6 +154,9 @@ h2 {
   font-size: clamp(1rem, 1.3vw, 1.125rem);
   line-height: 1.3;
   text-align: center;
+  font-family: var(--font-editorial);
+  font-weight: var(--font-editorial-weight);
+  letter-spacing: 0.01em;
 }
 
 @media (min-width: 48rem) {
@@ -180,6 +186,11 @@ h2 {
     transform: none;
   }
 
+}
+
+/* Match Home product-copy gutters while the two-column composition is narrow. */
+@media (min-width: 48rem) and (max-width: 63.99rem) {
+  .assorted-pack-promotion { padding-inline: var(--page-gutter); }
 }
 
 /* Each badge settles independently; hover never alters its layout footprint. */

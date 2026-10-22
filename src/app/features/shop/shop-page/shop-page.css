@@ -11,6 +11,8 @@
   margin: 0 0 var(--space-group);
   font-size: clamp(1.5rem, 3vw, 2.5rem);
   text-transform: none;
+  font-family: var(--font-editorial);
+  font-weight: var(--font-editorial-weight);
 }
 
 .cart-status {

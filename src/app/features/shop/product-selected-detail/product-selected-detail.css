@@ -95,7 +95,8 @@
 
 h1 {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-editorial);
+  font-weight: var(--font-editorial-weight);
   font-size: clamp(1.75rem, 3vw, 3.25rem);
   line-height: 1.1;
   text-transform: none;
@@ -116,7 +117,8 @@ p {
 }
 
 .selected-detail__label {
-  font-weight: 700;
+  font-weight: var(--font-editorial-weight);
+  font-family: var(--font-editorial);
 }
 
 .selected-detail__ingredient-group {
@@ -158,6 +160,9 @@ p {
 .selected-detail__add {
   align-self: flex-start;
   max-width: 100%;
+  font-family: var(--font-editorial);
+  font-weight: var(--font-editorial-weight);
+  letter-spacing: 0.01em;
 }
 
 .nutrition-table {

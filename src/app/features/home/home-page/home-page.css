@@ -41,9 +41,9 @@
   border-radius: 0.45rem;
   background-color: var(--color-fruta-1-light);
   color: var(--color-negro);
-  font-family: var(--font-display);
+  font-family: var(--font-editorial);
   font-size: clamp(1.375rem, 3vw, 2rem);
-  font-weight: 700;
+  font-weight: var(--font-editorial-weight);
   line-height: 1;
   letter-spacing: 0.02em;
   text-align: center;
@@ -52,7 +52,8 @@
 
 .info-introduction h2 {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-editorial);
+  font-weight: var(--font-editorial-weight);
   font-size: clamp(2rem, 4vw, 4.5rem);
   line-height: 1.05;
   text-transform: none;

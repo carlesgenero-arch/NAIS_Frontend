@@ -9,9 +9,9 @@
 .social-collage__statement h2 {
   max-width: 22ch;
   margin: 0 auto;
-  font-family: var(--font-display);
+  font-family: var(--font-editorial);
   font-size: clamp(2rem, 6.5vw, 5.85rem);
-  font-weight: 700;
+  font-weight: var(--font-editorial-weight);
   line-height: 1.02;
   text-wrap: balance;
   overflow-wrap: normal;

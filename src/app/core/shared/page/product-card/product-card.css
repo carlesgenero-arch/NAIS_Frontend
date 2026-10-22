@@ -103,6 +103,9 @@
   object-fit: contain;
 }
 
+/* Keep the optional catalogue presentation structurally unchanged. */
+.fruit-circle { display: contents; }
+
 .fruit {
   position: absolute;
   inset: 0;
@@ -145,17 +148,42 @@
 }
 
 .product-card:not(.catalogue) h2 {
+  font: var(--home-product-title-font);
+  text-transform: uppercase;
+  letter-spacing: 0;
   font-size: var(--card-title-size);
 }
 
 .content .button--buy {
   align-self: flex-start;
   margin-top: calc(var(--card-content-gap) / 2);
+  font-family: var(--font-editorial);
+  font-weight: var(--font-editorial-weight);
+  letter-spacing: 0.01em;
 }
 
 .product-card:not(.catalogue) .visual {
+  isolation: isolate;
   min-height: var(--card-image-height);
   border-radius: 0;
+}
+
+/* An absolute size container measures the existing media box without resizing it.
+   Both circular layers use the same width AND height, capped by available height. */
+.product-card:not(.catalogue) .fruit-circle {
+  display: block;
+  position: absolute;
+  inset: 0;
+  container-type: size;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.product-card:not(.catalogue) .fruit,
+:host(.product-card--joined) .fruit-circle::before {
+  width: min(76cqw, 100cqh);
+  height: min(76cqw, 100cqh);
+  aspect-ratio: 1 / 1;
 }
 
 .product-card:not(.catalogue) .can {
@@ -200,6 +228,9 @@
 .catalogue .button--add {
   margin-top: auto;
   align-self: center;
+  font-family: var(--font-editorial);
+  font-weight: var(--font-editorial-weight);
+  letter-spacing: 0.01em;
 }
 
 /* 5. Responsive rules */
@@ -366,15 +397,11 @@
 }
 
 /* Home can styling stays separate from catalogue cards and the section reveal. */
-:host(.product-card--joined) .visual {
-  isolation: isolate;
-}
-
-:host(.product-card--joined) .visual::before {
+:host(.product-card--joined) .fruit-circle::before {
   content: '';
   position: absolute;
-  width: min(96%, var(--card-image-height));
-  aspect-ratio: 1;
+  inset: 0;
+  margin: auto;
   border-radius: 50%;
   background: color-mix(in srgb, var(--card-panel-background) 24%, transparent);
   pointer-events: none;
@@ -382,12 +409,8 @@
   transition: opacity 220ms ease;
 }
 
-/* Cap the mobile halo independently of the viewport and can dimensions. */
+/* Keep the mobile can lift independent of the shared circle sizing. */
 @media (max-width: 47.99rem) {
-  :host(.product-card--joined) .visual::before {
-    width: min(96%, 17rem);
-  }
-
   :host(.product-card--joined) .can {
     /* Optical lift without replacing the scale/rotation or hover transform. */
     translate: 0 -0.5rem;
@@ -405,7 +428,7 @@
   transform: scale(0.96);
 }
 
-:host(.product-card--joined) .visual[tabindex]:focus-visible::before {
+:host(.product-card--joined) .visual[tabindex]:focus-visible .fruit-circle::before {
   opacity: 0;
 }
 
@@ -418,7 +441,7 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  :host(.product-card--joined) .visual[tabindex]:hover::before {
+  :host(.product-card--joined) .visual[tabindex]:hover .fruit-circle::before {
     opacity: 0;
   }
 
@@ -432,7 +455,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :host(.product-card--joined) .visual::before {
+  :host(.product-card--joined) .fruit-circle::before {
     transition: none;
   }
 }

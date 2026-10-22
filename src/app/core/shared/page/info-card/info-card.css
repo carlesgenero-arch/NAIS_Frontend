@@ -37,7 +37,8 @@
   min-height: 3.6em;
   margin: 0;
   color: var(--color-negro);
-  font-family: var(--font-body);
+  font-family: var(--font-editorial);
+  font-weight: var(--font-editorial-weight);
   font-size: 1.5rem;
   line-height: 1.2;
   text-align: center;

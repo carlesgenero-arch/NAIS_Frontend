@@ -238,7 +238,7 @@ export const ES: Record<TranslationKey, string> = {
   "ui.llaunes_de_nais_drinks_dins_dun_recipient_amb_gel": "Latas de NAIS Drinks dentro de un recipiente con hielo",
   "ui.una_persona_mostra_una_llauna_de_nais_orange_spritz": "Una persona muestra una lata de NAIS Orange Spritz",
   "ui.llaunes_de_passion_hugo_orange_spritz_i_ginger_crush_sobre_un_fons_blau": "Latas de Passion Hugo, Orange Spritz y Ginger Crush sobre fondo azul",
-  "ui.nais_drinks_cans_in_passion_hugo_orange_spritz_and_ginger_crush_designs_on_a_blu": "Latas de NAIS Drinks Passion Hugo, Orange Spritz y Ginger Crush sobre fondo azul",
+  "ui.nais_drinks_cans_in_passion_hugo_orange_spritz_and_ginger_crush_designs_on_a_blu": "Tres latas de NAIS Drinks: Ginger Crush, Passion Hugo y Orange Spritz, con fruta fresca sobre un fondo beige",
   "ui.valor_energetic": "Valor energético",
   "ui.greixos": "Grasas",
   "ui.dels_quals_saturats": "de las cuales saturadas",

@@ -71,9 +71,10 @@
 }
 
 .product-feature h2 {
-  font-family: var(--font-display);
+  font: var(--home-product-title-font);
+  text-transform: uppercase;
+  letter-spacing: 0;
   font-size: clamp(2rem, 4vw, 3.5rem);
-  line-height: 1.1;
 }
 
 .product-feature p {

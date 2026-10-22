@@ -237,7 +237,7 @@ export const CA = {
   "ui.llaunes_de_nais_drinks_dins_dun_recipient_amb_gel": "Llaunes de NAIS Drinks dins d’un recipient amb gel",
   "ui.una_persona_mostra_una_llauna_de_nais_orange_spritz": "Una persona mostra una llauna de NAIS Orange Spritz",
   "ui.llaunes_de_passion_hugo_orange_spritz_i_ginger_crush_sobre_un_fons_blau": "Llaunes de Passion Hugo, Orange Spritz i Ginger Crush sobre un fons blau",
-  "ui.nais_drinks_cans_in_passion_hugo_orange_spritz_and_ginger_crush_designs_on_a_blu": "NAIS Drinks cans in Passion Hugo, Orange Spritz and Ginger Crush designs on a blue background",
+  "ui.nais_drinks_cans_in_passion_hugo_orange_spritz_and_ginger_crush_designs_on_a_blu": "Tres llaunes de NAIS Drinks: Ginger Crush, Passion Hugo i Orange Spritz, amb fruita fresca sobre un fons beix",
   "ui.valor_energetic": "Valor energètic",
   "ui.greixos": "Greixos",
   "ui.dels_quals_saturats": "dels quals saturats",
