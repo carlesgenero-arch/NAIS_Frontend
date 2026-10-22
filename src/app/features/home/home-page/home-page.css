@@ -81,6 +81,10 @@ app-product-feature-card {
   margin-bottom: var(--space-section);
 }
 
+app-product-card + app-product-feature-card {
+  margin-block-start: clamp(1.5rem, 3.90625vw, 2.5rem);
+}
+
 /* Keep complete words readable inside the narrow mobile panel. */@media (max-width: 63.99rem) {
   .info-section {
     --info-section-gap: calc(var(--space-group) * 0.625);

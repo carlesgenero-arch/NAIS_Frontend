@@ -20,9 +20,6 @@
   } @else if (!catalogue.publicProducts.length) {
     <p role="status">{{ 'ui.no_hi_ha_productes_disponibles_ara_mateix' | t }}</p>
   }
-  @for (product of featuredProducts(); track product.id) {
-    <app-product-feature-card [product]="product" />
-  }
   @for (product of products(); track product.id; let index = $index; let first = $first; let last = $last) {
     <app-product-card
       class="product-card--joined"
@@ -32,6 +29,9 @@
       [product]="product"
       [class.product-card--image-left]="index % 2 === 1"
     />
+  }
+  @for (product of featuredProducts(); track product.id) {
+    <app-product-feature-card [product]="product" />
   }
   @if (assortedPack(); as product) {
     <app-assorted-pack-promotion [product]="product" />
