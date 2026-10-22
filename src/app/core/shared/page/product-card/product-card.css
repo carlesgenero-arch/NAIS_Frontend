@@ -168,8 +168,7 @@
   border-radius: 0;
 }
 
-/* An absolute size container measures the existing media box without resizing it.
-   Both circular layers use the same width AND height, capped by available height. */
+/* Measure the media box without changing its layout or the can animation. */
 .product-card:not(.catalogue) .fruit-circle {
   display: block;
   position: absolute;
@@ -181,8 +180,8 @@
 
 .product-card:not(.catalogue) .fruit,
 :host(.product-card--joined) .fruit-circle::before {
-  width: min(76cqw, 100cqh);
-  height: min(76cqw, 100cqh);
+  width: var(--home-circle-size, min(100cqw, var(--card-image-height)));
+  height: var(--home-circle-size, min(100cqw, var(--card-image-height)));
   aspect-ratio: 1 / 1;
 }
 
@@ -409,8 +408,20 @@
   transition: opacity 220ms ease;
 }
 
+:host(.product-card--joined) .fruit-circle::before {
+  --home-circle-size: min(96cqw, var(--card-image-height));
+}
+
 /* Keep the mobile can lift independent of the shared circle sizing. */
 @media (max-width: 47.99rem) {
+  .product-card:not(.catalogue) .fruit {
+    --home-circle-size: min(calc(100cqw - 24px), calc(100cqh - 24px), var(--card-image-height));
+  }
+
+  :host(.product-card--joined) .fruit-circle::before {
+    --home-circle-size: min(calc(100cqw - 24px), calc(100cqh - 24px), 17rem);
+  }
+
   :host(.product-card--joined) .can {
     /* Optical lift without replacing the scale/rotation or hover transform. */
     translate: 0 -0.5rem;
