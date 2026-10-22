@@ -19,6 +19,7 @@
   grid-template-columns: minmax(0, 1fr);
   gap: var(--info-section-gap);
   padding: var(--info-section-padding);
+  padding-block: min(var(--info-section-padding), calc(var(--space-group) * 1.5));
   margin-bottom: var(--space-section);
   border: var(--info-card-border-width) solid var(--color-negro);
   border-radius: var(--radius-panel);
@@ -50,16 +51,6 @@
   text-transform: uppercase;
 }
 
-.info-introduction h2 {
-  margin: 0;
-  font-family: var(--font-editorial);
-  font-weight: var(--font-editorial-weight);
-  font-size: clamp(2rem, 4vw, 4.5rem);
-  line-height: 1.05;
-  text-transform: none;
-  overflow-wrap: anywhere;
-}
-
 .info-introduction p {
   margin: 0;
   max-width: 30ch;
@@ -74,12 +65,12 @@
 .info-benefits {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: var(--info-section-gap);
 }
 
-/* Keep the three benefits together where each circle has room for its text. */
-@media (min-width: 64rem) {
+/* Give the three compact benefits balanced columns from tablet upwards. */
+@media (min-width: 48rem) {
   .info-benefits {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -98,12 +89,6 @@ app-product-feature-card {
 
   .info-introduction {
     gap: calc(var(--space-group) / 2);
-  }
-
-  .info-introduction h2 {
-    font-size: clamp(1.75rem, 6vw, 2rem);
-    overflow-wrap: normal;
-    text-wrap: balance;
   }
 }
 

@@ -1,6 +1,12 @@
 import { LEGAL_CA } from './legal.ca';
 export const CA = {
   ...LEGAL_CA,
+  "home.social.passionCanAlt": "Una llauna de Passion Hugo de NAIS sobre un fons clar",
+  "home.social.passionPourAlt": "Una mà serveix Passion Hugo de NAIS en un got amb gel",
+  "home.social.gingerDrinkAlt": "Una llauna de Ginger Crush de NAIS al costat d’un got amb gel i llimona",
+  "home.social.trioAlt": "Tres llaunes de NAIS: Orange Spritz, Passion Hugo i Ginger Crush",
+  "home.editorial.title": "REAL FRUIT MOCKTAILS",
+  "home.editorial.description": "Sabors naturals, frescos i sorprenents per compartir a qualsevol moment.",
   "admin.feedback.openingScreen": "Obrint pantalla…",
   "admin.feedback.navigationFailed": "No s’ha pogut obrir la pantalla. Torna a seleccionar una secció.",
   "admin.feedback.returningToList": "Tornant al llistat…",

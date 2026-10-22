@@ -2,6 +2,12 @@ import { LEGAL_ES } from './legal.es';
 import type { TranslationKey } from './ca';
 export const ES: Record<TranslationKey, string> = {
   ...LEGAL_ES,
+  "home.social.passionCanAlt": "Una lata de Passion Hugo de NAIS sobre un fondo claro",
+  "home.social.passionPourAlt": "Una mano sirve Passion Hugo de NAIS en un vaso con hielo",
+  "home.social.gingerDrinkAlt": "Una lata de Ginger Crush de NAIS junto a un vaso con hielo y limón",
+  "home.social.trioAlt": "Tres latas de NAIS: Orange Spritz, Passion Hugo y Ginger Crush",
+  "home.editorial.title": "REAL FRUIT MOCKTAILS",
+  "home.editorial.description": "Sabores naturales, frescos y sorprendentes para compartir en cualquier momento.",
   "admin.feedback.openingScreen": "Abriendo pantalla…",
   "admin.feedback.navigationFailed": "No se ha podido abrir la pantalla. Vuelve a seleccionar una sección.",
   "admin.feedback.returningToList": "Volviendo al listado…",
