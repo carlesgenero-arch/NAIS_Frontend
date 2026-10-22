@@ -57,6 +57,7 @@ describe('Header cart drawer', () => {
     expect(brand.getAttribute('aria-label')).toBe('NAIS Drinks, inici');
     const source = brand.querySelector('source')!;
     expect(source.getAttribute('media')).toBe('(max-width: 47.99rem)');
+    expect(brand.closest('nav')?.classList.contains('navigation--home')).toBe(false);
     expect(source.getAttribute('srcset')).toBe('images/brand/nais%20logos-03.svg');
     expect(brand.querySelector('img')?.getAttribute('src')).toBe('images/brand/nais logos-02.svg');
     expect(brand.querySelector('img')?.alt).toBe('NAIS Drinks');
@@ -100,6 +101,9 @@ describe('Header cart drawer', () => {
     const element = fixture.nativeElement as HTMLElement;
     const brand = element.querySelector<HTMLElement>('.brand')!;
     expect(brand.tagName).toBe('DIV');
+    expect(element.querySelector('nav')?.classList.contains('navigation--home')).toBe(true);
+    expect(brand.querySelector('source')?.getAttribute('media')).toBe('(width < 75rem)');
+    expect(brand.querySelector('source')?.getAttribute('srcset')).toBe('images/brand/nais%20logos-03.svg');
     expect(element.querySelector('a.brand')).toBeNull();
     expect(brand.querySelector('img')?.alt).toBe('NAIS Drinks');
     expect(brand.hasAttribute('href')).toBe(false);

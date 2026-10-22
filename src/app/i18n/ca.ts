@@ -1,6 +1,12 @@
 import { LEGAL_CA } from './legal.ca';
 export const CA = {
   ...LEGAL_CA,
+  "home.social.passionCanAlt": "Una llauna de Passion Hugo de NAIS sobre un fons clar",
+  "home.social.passionPourAlt": "Una mà serveix Passion Hugo de NAIS en un got amb gel",
+  "home.social.gingerDrinkAlt": "Una llauna de Ginger Crush de NAIS al costat d’un got amb gel i llimona",
+  "home.social.trioAlt": "Tres llaunes de NAIS: Orange Spritz, Passion Hugo i Ginger Crush",
+  "home.editorial.title": "REAL FRUIT MOCKTAILS",
+  "home.editorial.description": "Sabors naturals, frescos i sorprenents per compartir a qualsevol moment.",
   "admin.feedback.openingScreen": "Obrint pantalla…",
   "admin.feedback.navigationFailed": "No s’ha pogut obrir la pantalla. Torna a seleccionar una secció.",
   "admin.feedback.returningToList": "Tornant al llistat…",
@@ -237,7 +243,7 @@ export const CA = {
   "ui.llaunes_de_nais_drinks_dins_dun_recipient_amb_gel": "Llaunes de NAIS Drinks dins d’un recipient amb gel",
   "ui.una_persona_mostra_una_llauna_de_nais_orange_spritz": "Una persona mostra una llauna de NAIS Orange Spritz",
   "ui.llaunes_de_passion_hugo_orange_spritz_i_ginger_crush_sobre_un_fons_blau": "Llaunes de Passion Hugo, Orange Spritz i Ginger Crush sobre un fons blau",
-  "ui.nais_drinks_cans_in_passion_hugo_orange_spritz_and_ginger_crush_designs_on_a_blu": "NAIS Drinks cans in Passion Hugo, Orange Spritz and Ginger Crush designs on a blue background",
+  "ui.nais_drinks_cans_in_passion_hugo_orange_spritz_and_ginger_crush_designs_on_a_blu": "Tres llaunes de NAIS Drinks: Ginger Crush, Passion Hugo i Orange Spritz, amb fruita fresca sobre un fons beix",
   "ui.valor_energetic": "Valor energètic",
   "ui.greixos": "Greixos",
   "ui.dels_quals_saturats": "dels quals saturats",

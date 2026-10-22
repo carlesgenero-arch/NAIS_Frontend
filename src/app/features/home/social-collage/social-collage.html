@@ -2,14 +2,14 @@
   <header class="social-collage__statement" homeReveal>
     <h2>{{ 'home.brandStatement' | t }}</h2>
   </header>
-  <div class="social-collage__photos" tabindex="0" role="group" [attr.aria-label]="'ui.moments_nais_drinks' | t">
+  <div class="social-collage__photos" role="group" [attr.aria-label]="'ui.moments_nais_drinks' | t">
     @for (image of images(); track image.src) {
-      <figure class="social-collage__photo" [attr.data-image]="image.src" homeReveal>
+      <figure class="social-collage__photo" [attr.data-image]="image.src" [attr.data-layout]="image.layout" homeReveal>
         <div class="social-collage__frame">
           @if (image.href; as href) {
-            <a [href]="href"><img responsiveImage responsiveSizes="(min-width: 1500px) 240px, (min-width: 768px) 16vw, (min-width: 560px) 224px, 40vw" [src]="image.src" [alt]="image.alt | t" loading="lazy" [width]="image.width" [height]="image.height" /></a>
+            <a [href]="href"><img responsiveImage [responsiveSizes]="image.layout === 'main' ? '(min-width: 1800px) 880px, (min-width: 1024px) 48vw, (min-width: 768px) 46vw, 96vw' : '(min-width: 1800px) 580px, (min-width: 1024px) 32vw, (min-width: 768px) 46vw, 96vw'" [src]="image.src" [alt]="image.alt | t" loading="lazy" [width]="image.width" [height]="image.height" /></a>
           } @else {
-            <img responsiveImage responsiveSizes="(min-width: 1500px) 240px, (min-width: 768px) 16vw, (min-width: 560px) 224px, 40vw" [src]="image.src" [alt]="image.alt | t" loading="lazy" [width]="image.width" [height]="image.height" />
+            <img responsiveImage [responsiveSizes]="image.layout === 'main' ? '(min-width: 1800px) 880px, (min-width: 1024px) 48vw, (min-width: 768px) 46vw, 96vw' : '(min-width: 1800px) 580px, (min-width: 1024px) 32vw, (min-width: 768px) 46vw, 96vw'" [src]="image.src" [alt]="image.alt | t" loading="lazy" [width]="image.width" [height]="image.height" />
           }
         </div>
       </figure>

@@ -888,5 +888,35 @@ export const IMAGE_ASSETS: Readonly<Record<string, ImageAsset>> = {
         "bytes": 50916
       }
     ]
+  },
+  "images/hero/Trío de bebidas con frutas frescas.png": {
+    "width": 1448,
+    "height": 1086,
+    "variants": [
+      {
+        "src": "images/optimized/hero/nais-three-cans-480.webp",
+        "width": 480,
+        "height": 360,
+        "bytes": 32406
+      },
+      {
+        "src": "images/optimized/hero/nais-three-cans-800.webp",
+        "width": 800,
+        "height": 600,
+        "bytes": 77772
+      },
+      {
+        "src": "images/optimized/hero/nais-three-cans-1200.webp",
+        "width": 1200,
+        "height": 900,
+        "bytes": 146416
+      },
+      {
+        "src": "images/optimized/hero/nais-three-cans-1448.webp",
+        "width": 1448,
+        "height": 1086,
+        "bytes": 190800
+      }
+    ]
   }
 };

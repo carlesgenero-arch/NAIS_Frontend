@@ -9,6 +9,33 @@ import { TranslationService } from '../../../i18n/translation.service';
 beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('HomePage product placement', () => {
+  it('uses one translated introduction heading and preserves all three benefit bubbles', async () => {
+    await TestBed.configureTestingModule({ imports: [HomePage], providers: [provideRouter([])] }).compileComponents();
+    const fixture = TestBed.createComponent(HomePage);
+    const translations = TestBed.inject(TranslationService);
+    translations.setLanguage('ca');
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    const section = element.querySelector('.info-section')!;
+    const bubbles = Array.from(section.querySelectorAll('app-info-card'));
+    expect(bubbles.length).toBe(3);
+    const images = bubbles.map(bubble => bubble.querySelector('img')?.getAttribute('src'));
+    expect(images.every(Boolean)).toBe(true);
+    expect(section.getAttribute('aria-labelledby')).toBe('info-heading');
+    expect(section.querySelector('h1#info-heading')?.textContent).toBe(translations.t('ui.que_es_nais'));
+    expect(section.querySelectorAll('.info-introduction h1, .info-introduction h2').length).toBe(1);
+    expect(section.querySelector('.info-introduction')?.textContent).not.toContain('REAL FRUIT MOCKTAILS');
+    expect(section.querySelector('.info-introduction p')?.textContent).toBe(translations.t('ui.beguda_sense_alcohol_a_base_de_sucs_naturals_i_botanics'));
+    expect(bubbles.every(bubble => !!bubble.querySelector('h2')?.textContent?.trim())).toBe(true);
+    translations.setLanguage('es');
+    fixture.detectChanges();
+    expect(section.querySelector('h1#info-heading')?.textContent).toBe(translations.t('ui.que_es_nais'));
+    expect(section.querySelector('.info-introduction p')?.textContent).toBe(translations.t('ui.beguda_sense_alcohol_a_base_de_sucs_naturals_i_botanics'));
+    expect(Array.from(section.querySelectorAll('app-info-card img')).map(image => image.getAttribute('src'))).toEqual(images);
+    expect(bubbles.every(bubble => !!bubble.querySelector('h2')?.textContent?.trim())).toBe(true);
+    translations.setLanguage('ca');
+  });
+
   it('shows the four active regular products without the coming-soon Harvest', async () => {
     await TestBed.configureTestingModule({ imports: [HomePage], providers: [provideRouter([])] }).compileComponents();
     const fixture = TestBed.createComponent(HomePage);

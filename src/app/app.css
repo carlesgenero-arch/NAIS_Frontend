@@ -12,3 +12,11 @@
 }
 
 .prelaunch-language { display: flex; justify-content: flex-end; padding: .5rem var(--page-gutter); }
+
+/* Add 8px per outer edge, including when the centred max-width is reached. */
+@media (min-width: 64rem) {
+  :host(.public-site:not(.prelaunch)) {
+    width: calc(100% - var(--page-gutter) - var(--page-gutter) - 16px);
+    max-width: calc(var(--page-max-width) - 16px);
+  }
+}

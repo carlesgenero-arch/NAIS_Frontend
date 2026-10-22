@@ -143,13 +143,47 @@
     transform: translateY(-22px) scale(1.09);
   }
 
+  /* Reuse the original desktop sticker inset, independent of the logo variant. */
   .navigation--home .shop {
-    right: 2rem;
-    bottom: -2.75rem;
-    margin-block: 0;
     z-index: 1;
   }
 }
+/* Home keeps the original stacked SVG until the frame offers about 1000px
+   for the horizontal logo. Let the intermediate frame follow its content. */
+@media (min-width: 48rem) and (width < 75rem) {
+  .navigation--home {
+    min-height: 0;
+    gap: var(--page-gutter);
+    padding-block: var(--page-gutter);
+    margin-block-end: 0;
+  }
+
+  .navigation--home .brand {
+    width: clamp(23.6rem, 53.1vw, 37.76rem);
+    max-width: 100%;
+    transform: none;
+  }
+
+  .navigation--home .shop {
+    position: static;
+    grid-row: 2;
+    /* Keep the rotated edge and shadow inside the compact frame. */
+    margin-block: 0 calc(var(--space-group) / 2);
+  }
+}
+
+/* Preserve the horizontal wrapper height while giving the artwork 5.5% more
+   breathing room on each side of its existing logo box. */
+@media (min-width: 75rem) {
+  .navigation--home .brand {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1247 / 190;
+  }
+
+  .navigation--home .brand picture { width: 89%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .shop {
     transition: none;
@@ -164,11 +198,11 @@
 /* Compact, graphic lettering without changing the oval or its interaction. */
 .shop__label {
   display: inline-block;
-  font-family: var(--font-display);
+  font-family: var(--font-editorial);
   font-size: 106%;
-  font-weight: 900;
+  font-weight: var(--font-editorial-weight);
   line-height: 1;
-  letter-spacing: -0.06em;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
   text-shadow: 0.35px 0 currentColor, -0.35px 0 currentColor;
   transform: translate(0.02em, -0.02em) rotate(-1.5deg) scaleX(0.92);

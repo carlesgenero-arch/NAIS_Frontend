@@ -73,7 +73,8 @@
 
 .brand-message h2 {
   max-width: 28ch;
-  font-family: var(--font-display);
+  font-family: var(--font-editorial);
+  font-weight: var(--font-editorial-weight);
   font-size: var(--brand-message-heading-size);
   line-height: 1.15;
 }

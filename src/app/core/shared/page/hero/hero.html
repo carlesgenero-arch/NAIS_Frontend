@@ -1,7 +1,11 @@
-<section class="hero" aria-label="NAIS Drinks">
+<section class="hero" aria-labelledby="home-editorial-heading">
   <figure class="hero-visual">
-    <img responsiveImage responsiveSizes="(min-width: 1800px) 1792px, 96vw" src="images/hero/nais-fruit-sodas.jpeg"
+    <img responsiveImage responsiveSizes="(min-width: 1800px) 1066px, (min-width: 1024px) 58vw, (min-width: 768px) 48vw, 96vw" src="images/hero/Trío de bebidas con frutas frescas.png"
       [alt]="'ui.nais_drinks_cans_in_passion_hugo_orange_spritz_and_ginger_crush_designs_on_a_blu' | t"
-      width="1600" height="1200" fetchpriority="high" />
+      width="1448" height="1086" fetchpriority="high" />
   </figure>
+  <div class="hero-copy">
+    <h2 id="home-editorial-heading">{{ 'home.editorial.title' | t }}</h2>
+    <p>{{ 'home.editorial.description' | t }}</p>
+  </div>
 </section>
