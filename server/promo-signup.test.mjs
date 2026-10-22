@@ -309,6 +309,16 @@ test('template escapes HTML values and supplies a plain text alternative', () =>
   assert.match(message.html, /primera comanda/);
 });
 
+test('signup delivery passes configured UAT home URL into the promotional email', async t => {
+  const { env, request, emails } = setup(t);
+  env.SITE_URL = 'https://uat.naisdrinks.com';
+  assert.equal((await request({ email: 'person@example.test' })).status, 201);
+  assert.equal(emails.length, 1);
+  assert.match(emails[0].html, /href="https:\/\/uat\.naisdrinks\.com\/home"/);
+  assert.match(emails[0].text, /https:\/\/uat\.naisdrinks\.com\/home/);
+  assert.match(emails[0].html, /NAIS1/);
+});
+
 test('delivery migration preserves legacy rows, timestamps, codes and every unique constraint', t => {
   const db = new DatabaseSync(':memory:');
   t.after(() => db.close());
