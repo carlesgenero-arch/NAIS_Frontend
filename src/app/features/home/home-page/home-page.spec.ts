@@ -40,7 +40,7 @@ describe('HomePage product placement', () => {
     }
   });
 
-  it('uses one translated introduction heading and preserves all three benefit bubbles', async () => {
+  it('restores the original translated introduction and preserves all three benefit bubbles', async () => {
     await TestBed.configureTestingModule({ imports: [HomePage], providers: [provideRouter([])] }).compileComponents();
     const fixture = TestBed.createComponent(HomePage);
     const translations = TestBed.inject(TranslationService);
@@ -53,14 +53,16 @@ describe('HomePage product placement', () => {
     const images = bubbles.map(bubble => bubble.querySelector('img')?.getAttribute('src'));
     expect(images.every(Boolean)).toBe(true);
     expect(section.getAttribute('aria-labelledby')).toBe('info-heading');
-    expect(section.querySelector('h1#info-heading')?.textContent).toBe(translations.t('ui.que_es_nais'));
-    expect(section.querySelectorAll('.info-introduction h1, .info-introduction h2').length).toBe(1);
-    expect(section.querySelector('.info-introduction')?.textContent).not.toContain('REAL FRUIT MOCKTAILS');
+    expect(section.querySelector('h1')?.textContent).toBe(translations.t('ui.que_es_nais'));
+    expect(section.querySelectorAll('.info-introduction h1, .info-introduction h2').length).toBe(2);
+    expect(section.querySelector('h2#info-heading')?.textContent).toBe('REAL FRUIT MOCKTAILS');
+    expect(element.querySelectorAll('#info-heading')).toHaveLength(1);
     expect(section.querySelector('.info-introduction p')?.textContent).toBe(translations.t('ui.beguda_sense_alcohol_a_base_de_sucs_naturals_i_botanics'));
     expect(bubbles.every(bubble => !!bubble.querySelector('h2')?.textContent?.trim())).toBe(true);
     translations.setLanguage('es');
     fixture.detectChanges();
-    expect(section.querySelector('h1#info-heading')?.textContent).toBe(translations.t('ui.que_es_nais'));
+    expect(section.querySelector('h2#info-heading')?.textContent).toBe('REAL FRUIT MOCKTAILS');
+    expect(section.querySelector('h1')?.textContent).toBe(translations.t('ui.que_es_nais'));
     expect(section.querySelector('.info-introduction p')?.textContent).toBe(translations.t('ui.beguda_sense_alcohol_a_base_de_sucs_naturals_i_botanics'));
     expect(Array.from(section.querySelectorAll('app-info-card img')).map(image => image.getAttribute('src'))).toEqual(images);
     expect(bubbles.every(bubble => !!bubble.querySelector('h2')?.textContent?.trim())).toBe(true);

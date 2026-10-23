@@ -2,14 +2,18 @@
 /* InfoCard customisation */
 :host {
   --info-section-background: var(--surface-card);
+  --home-section-gap: clamp(1.5rem, 3.90625vw, 2.5rem);
+  --home-banner-margin: 0;
+  --home-social-padding-start: 0;
   --info-section-padding: var(--surface-padding);
-  --info-section-gap: var(--space-group);
+  --info-section-gap: clamp(1.25rem, calc(4.6875vw - 1rem), var(--space-group));
   --info-card-background: var(--surface-card);
   --info-card-border-width: 1px;
   --info-card-border-radius: var(--radius-card);
   --info-card-padding: var(--page-gutter);
   /* Scale headings gently while keeping mobile copy readable. */
-  --info-card-text-size: clamp(1rem, 2vw, 1.75rem);
+  --info-card-text-size: clamp(1.25rem, calc(1.125rem + 0.78125vw), 1.625rem);
+  --info-card-text-line-height: 1.25;
   display: block;
 
 }
@@ -18,9 +22,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--info-section-gap);
-  padding: var(--info-section-padding);
-  padding-block: min(var(--info-section-padding), calc(var(--space-group) * 1.5));
-  margin-bottom: var(--space-section);
+  padding-inline: clamp(1.5rem, 5vw, var(--info-section-padding));
+  padding-block: clamp(1.25rem, calc(10.9375vw - 4rem), min(var(--info-section-padding), calc(var(--space-group) * 1.5)));
   border: var(--info-card-border-width) solid var(--color-negro);
   border-radius: var(--radius-panel);
   background: var(--info-section-background);
@@ -30,7 +33,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--info-section-gap);
+  gap: clamp(1rem, calc(6.25vw - 2rem), var(--space-group));
   min-width: 0;
   text-align: center;
 }
@@ -51,11 +54,21 @@
   text-transform: uppercase;
 }
 
+.info-introduction h2 {
+  margin: 0;
+  font-family: var(--font-editorial);
+  font-weight: var(--font-editorial-weight);
+  font-size: clamp(1.75rem, 4vw, 4.5rem);
+  line-height: 1.05;
+  text-transform: none;
+  overflow-wrap: normal;
+  text-wrap: balance;
+}
 .info-introduction p {
   margin: 0;
   max-width: 30ch;
   font-family: var(--font-body);
-  font-size: clamp(1rem, 1.4vw, 1.25rem);
+  font-size: clamp(1.125rem, calc(1rem + 0.78125vw), 1.5rem);
   font-weight: 400;
   line-height: 1.5;
   text-transform: none;
@@ -77,23 +90,25 @@
 }
 
 
-app-product-feature-card {
-  margin-bottom: var(--space-section);
+/* Home owns each inter-section gap; connected product cards keep a shared edge. */
+:host > * {
+  margin-block: 0;
 }
 
-app-product-card + app-product-feature-card {
-  margin-block-start: clamp(1.5rem, 3.90625vw, 2.5rem);
+:host > * + * {
+  margin-block-start: var(--home-section-gap);
 }
 
-/* Keep complete words readable inside the narrow mobile panel. */@media (max-width: 63.99rem) {
-  .info-section {
-    --info-section-gap: calc(var(--space-group) * 0.625);
-    padding: calc(var(--space-group) * 0.625) clamp(1.5rem, 5vw, var(--info-section-padding));
-  }
+:host > app-animated-banner {
+  display: block;
+}
 
-  .info-introduction {
-    gap: calc(var(--space-group) / 2);
-  }
+:host > app-product-card + app-product-card {
+  margin-block-start: 0;
+}
+
+:host > app-assorted-pack-promotion {
+  padding-block-start: 0;
 }
 
 /* Motion is opt-in and never changes the compact layout's dimensions. */

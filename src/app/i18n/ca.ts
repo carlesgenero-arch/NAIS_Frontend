@@ -1,6 +1,8 @@
 import { LEGAL_CA } from './legal.ca';
 export const CA = {
   ...LEGAL_CA,
+  "home.marquee.pause": "Pausar l’animació del descompte",
+  "home.marquee.resume": "Reprendre l’animació del descompte",
   "home.social.passionCanAlt": "Una llauna de Passion Hugo de NAIS sobre un fons clar",
   "home.social.passionPourAlt": "Una mà serveix Passion Hugo de NAIS en un got amb gel",
   "home.social.gingerDrinkAlt": "Una llauna de Ginger Crush de NAIS al costat d’un got amb gel i llimona",

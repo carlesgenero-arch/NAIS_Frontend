@@ -5,7 +5,6 @@ import { CarouselImage } from '../../../models/carousel-image.interface';
 import { HomeReveal } from '../home-reveal.directive';
 
 export interface SocialCollageImage extends CarouselImage {
-  readonly layout?: 'main' | 'ginger' | 'passion';
   readonly width: number;
   readonly height: number;
 }

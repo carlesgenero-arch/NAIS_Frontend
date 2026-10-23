@@ -2,6 +2,8 @@ import { LEGAL_ES } from './legal.es';
 import type { TranslationKey } from './ca';
 export const ES: Record<TranslationKey, string> = {
   ...LEGAL_ES,
+  "home.marquee.pause": "Pausar la animación del descuento",
+  "home.marquee.resume": "Reanudar la animación del descuento",
   "home.social.passionCanAlt": "Una lata de Passion Hugo de NAIS sobre un fondo claro",
   "home.social.passionPourAlt": "Una mano sirve Passion Hugo de NAIS en un vaso con hielo",
   "home.social.gingerDrinkAlt": "Una lata de Ginger Crush de NAIS junto a un vaso con hielo y limón",

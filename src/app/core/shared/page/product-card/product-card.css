@@ -85,7 +85,7 @@
   border-radius: var(--radius-panel);
 }
 
-.visual:focus-visible {
+.visual:focus-within {
   outline: 3px solid var(--color-negro);
   outline-offset: 4px;
 }
@@ -118,12 +118,12 @@
   opacity: 0;
 }
 
-.visual[tabindex]:focus-visible .can {
+.visual:has(.fruit):focus-within .can {
   opacity: 0;
   transform: scale(var(--card-image-active-scale));
 }
 
-.visual[tabindex]:focus-visible .fruit {
+.visual:has(.fruit):focus-within .fruit {
   opacity: 1;
 }
 
@@ -191,7 +191,7 @@
   margin: auto;
 }
 
-.product-card:not(.catalogue) .visual:focus-visible {
+.product-card:not(.catalogue) .visual:focus-within {
   outline-offset: -6px;
 }
 
@@ -273,12 +273,12 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .visual[tabindex]:hover .can {
+  .visual:has(.fruit):hover .can {
     opacity: 0;
     transform: scale(var(--card-image-active-scale));
   }
 
-  .visual[tabindex]:hover .fruit {
+  .visual:has(.fruit):hover .fruit {
     opacity: 1;
   }
 }
@@ -289,7 +289,7 @@
     transition: none;
   }
 
-  .visual[tabindex]:is(:hover, :focus-visible) .can {
+  .visual:has(.fruit):is(:hover, :focus-within) .can {
     transform: none;
   }
 }
@@ -439,28 +439,28 @@
   transform: scale(0.96);
 }
 
-:host(.product-card--joined) .visual[tabindex]:focus-visible .fruit-circle::before {
+:host(.product-card--joined) .visual:has(.fruit):focus-within .fruit-circle::before {
   opacity: 0;
 }
 
-:host(.product-card--joined) .visual[tabindex]:focus-visible .can {
+:host(.product-card--joined) .visual:has(.fruit):focus-within .can {
   transform: translateY(1rem) rotate(-3deg) scale(1);
 }
 
-:host(.product-card--joined) .visual[tabindex]:focus-visible .fruit {
+:host(.product-card--joined) .visual:has(.fruit):focus-within .fruit {
   transform: scale(1);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  :host(.product-card--joined) .visual[tabindex]:hover .fruit-circle::before {
+  :host(.product-card--joined) .visual:has(.fruit):hover .fruit-circle::before {
     opacity: 0;
   }
 
-  :host(.product-card--joined) .visual[tabindex]:hover .can {
+  :host(.product-card--joined) .visual:has(.fruit):hover .can {
     transform: translateY(1rem) rotate(-3deg) scale(1);
   }
 
-  :host(.product-card--joined) .visual[tabindex]:hover .fruit {
+  :host(.product-card--joined) .visual:has(.fruit):hover .fruit {
     transform: scale(1);
   }
 }
@@ -469,4 +469,26 @@
   :host(.product-card--joined) .fruit-circle::before {
     transition: none;
   }
+}
+
+.product-title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.product-title-link:focus-visible {
+  outline: 3px solid var(--color-negro);
+  outline-offset: 4px;
+}
+
+.visual-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.visual-link:focus-visible {
+  outline: 3px solid var(--color-negro);
+  outline-offset: -6px;
 }
