@@ -5,7 +5,20 @@ import { AdminShell } from './admin-shell';
 import { ADMIN_NAVIGATION_TIMEOUT_MS } from '../../services/admin-request';
 
 describe('admin navigation feedback only', () => {
-  afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); });
+  beforeEach(() => {
+    // The language preference belongs to this test, never to a previous suite.
+    const values = new Map<string, string>();
+    vi.spyOn(window, 'localStorage', 'get').mockReturnValue({
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => { values.set(key, value); },
+    } as Storage);
+  });
+  afterEach(() => {
+    TestBed.resetTestingModule();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    document.documentElement.lang = 'ca';
+  });
   function setup() {
     TestBed.configureTestingModule({providers:[provideRouter([])]});
     const events = new Subject<NavigationStart | NavigationEnd | NavigationError | NavigationCancel>();

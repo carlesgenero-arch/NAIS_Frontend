@@ -9,7 +9,23 @@ import { MockProductService } from '../../testing/product-fixture';
 import { PROMOTION_PURCHASE_KEY } from '../../services/promotion-modal';
 
 describe('Purchase confirmation promo suppression', () => {
+  let showDescriptor: PropertyDescriptor | undefined;
+  let closeDescriptor: PropertyDescriptor | undefined;
   beforeEach(() => {
+    // jsdom does not implement the native dialog API used by afterNextRender.
+    showDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal');
+    closeDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close');
+    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+      configurable: true,
+      value: function(this: HTMLDialogElement) { this.setAttribute('open', ''); },
+    });
+    Object.defineProperty(HTMLDialogElement.prototype, 'close', {
+      configurable: true,
+      value: function(this: HTMLDialogElement) {
+        this.removeAttribute('open');
+        this.dispatchEvent(new Event('close'));
+      },
+    });
     for (const name of ['localStorage', 'sessionStorage'] as const) {
       const values = new Map<string, string>();
       vi.spyOn(window, name, 'get').mockReturnValue({
@@ -24,9 +40,18 @@ describe('Purchase confirmation promo suppression', () => {
     ] });
   });
   afterEach(() => {
-    TestBed.inject(HttpTestingController).verify();
-    TestBed.resetTestingModule();
-    vi.restoreAllMocks();
+    try {
+      TestBed.inject(HttpTestingController).verify();
+    } finally {
+      TestBed.resetTestingModule();
+      vi.restoreAllMocks();
+      for (const [name, descriptor] of [['showModal', showDescriptor], ['close', closeDescriptor]] as const) {
+        if (descriptor) Object.defineProperty(HTMLDialogElement.prototype, name, descriptor);
+        else Reflect.deleteProperty(HTMLDialogElement.prototype, name);
+      }
+      document.documentElement.classList.remove('nais-drawer-open');
+      document.documentElement.lang = 'ca';
+    }
   });
 
   it('does not mount the popup during confirmation and keeps it suppressed on return to the shop after paid verification', async () => {
