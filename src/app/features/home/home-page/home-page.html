@@ -1,7 +1,8 @@
   <app-hero />
   <section class="info-section" aria-labelledby="info-heading">
     <div class="info-introduction" homeReveal>
-      <h1 id="info-heading">{{ 'ui.que_es_nais' | t }}</h1>
+      <h1>{{ 'ui.que_es_nais' | t }}</h1>
+      <h2 id="info-heading">{{ 'ui.real_fruit_mocktails' | t }}</h2>
       <p>{{ 'ui.beguda_sense_alcohol_a_base_de_sucs_naturals_i_botanics' | t }}</p>
     </div>
     <div class="info-benefits">
@@ -20,9 +21,6 @@
   } @else if (!catalogue.publicProducts.length) {
     <p role="status">{{ 'ui.no_hi_ha_productes_disponibles_ara_mateix' | t }}</p>
   }
-  @for (product of featuredProducts(); track product.id) {
-    <app-product-feature-card [product]="product" />
-  }
   @for (product of products(); track product.id; let index = $index; let first = $first; let last = $last) {
     <app-product-card
       class="product-card--joined"
@@ -32,6 +30,9 @@
       [product]="product"
       [class.product-card--image-left]="index % 2 === 1"
     />
+  }
+  @for (product of featuredProducts(); track product.id) {
+    <app-product-feature-card [product]="product" />
   }
   @if (assortedPack(); as product) {
     <app-assorted-pack-promotion [product]="product" />

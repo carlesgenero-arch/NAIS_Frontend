@@ -1,5 +1,5 @@
 import { TranslatePipe } from '../../../../i18n/translate.pipe';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { PromotionModal } from '../../../../services/promotion-modal';
 
 @Component({
@@ -11,6 +11,12 @@ import { PromotionModal } from '../../../../services/promotion-modal';
 })
 export class AnimatedBanner {
   private readonly promotionModal = inject(PromotionModal);
+
+  protected readonly paused = signal(false);
+
+  protected togglePause(): void {
+    this.paused.update(value => !value);
+  }
 
   protected openPromotion():void{
     this.promotionModal.open();

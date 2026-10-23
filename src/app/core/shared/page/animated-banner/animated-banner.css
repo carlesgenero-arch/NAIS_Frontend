@@ -1,15 +1,57 @@
 .tira-animada {
+  position: relative;
   width: 100%;
   overflow: hidden;
   background:#ff4eb8;
   padding-block: 1rem;
-  margin-block: 1.5rem;
+  margin-block: var(--home-banner-margin, 1.5rem);
   border-radius: 12px;
   cursor: pointer;
 }
-.tira-animada:focus-visible {
+.tira-animada__trigger:focus-visible,
+.tira-animada__pause:focus-visible {
   outline: 3px solid #000;
   outline-offset: 3px;
+}
+
+.tira-animada__trigger {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  text-align: start;
+  cursor: pointer;
+}
+
+.tira-animada__pause {
+  position: absolute;
+  inset-inline-end: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--color-negro);
+  border-radius: 50%;
+  background: #ff4eb8;
+  color: var(--color-negro);
+  cursor: pointer;
+}
+
+.tira-animada__pause:focus-visible {
+  outline-offset: -3px;
+}
+
+.tira-animada--paused .tira-animada__inner {
+  animation-play-state: paused;
 }
 
 .tira-animada__inner {
@@ -17,13 +59,16 @@
   width: max-content;
   white-space: nowrap;
   align-items: center;
-  gap: 1.5rem;
+  gap: 0;
   animation: marquee 18s linear infinite;
   will-change: transform;
 }
 
-.tira-animada__inner span {
-  display: inline-block;
+.tira-animada__inner > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding-inline-end: 1.5rem;
   font-family: var(--font-display);
   font-size: clamp(1.2rem, 2vw, 2rem);
   font-weight: 700;
@@ -31,6 +76,14 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
   line-height: 1;
+}
+
+.tira-animada__separator {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  /* Optical alignment of the star glyph with the uppercase text. */
+  transform: translateY(-0.08em);
 }
 
 @keyframes marquee {
@@ -43,6 +96,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tira-animada__pause {
+    display: none;
+  }
+
   .tira-animada__inner {
     animation: none;
   }

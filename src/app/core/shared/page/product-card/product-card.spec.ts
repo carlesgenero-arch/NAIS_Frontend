@@ -1,5 +1,5 @@
 import { MockProductService } from '../../../../testing/product-fixture';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { Product } from '../../../../models/product.interface';
 import { ProductService } from '../../../../services/product.service';
@@ -8,6 +8,51 @@ import { ProductCard } from './product-card';
 beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('ProductCard', () => {
+  it('orders mobile keyboard stops as imagery, title and independent purchase link', async () => {
+    await TestBed.configureTestingModule({ imports: [ProductCard], providers: [provideRouter([])] }).compileComponents();
+    const fixture = TestBed.createComponent(ProductCard);
+    fixture.componentRef.setInput('product', new MockProductService().products[0]);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+    const stops = Array.from(root.querySelectorAll<HTMLAnchorElement>('a[href]'));
+    expect(stops.map(link => link.className)).toEqual(['visual-link', 'product-title-link', 'button--buy']);
+    expect(root.querySelector('article')?.firstElementChild?.classList.contains('visual')).toBe(true);
+    expect(root.querySelector('.visual')?.hasAttribute('tabindex')).toBe(false);
+    expect(root.querySelectorAll('a a, a button')).toHaveLength(0);
+    expect(Array.from(root.querySelectorAll('[tabindex]')).some(node => Number(node.getAttribute('tabindex')) > 0)).toBe(false);
+    for (const link of stops) {
+      link.focus();
+      expect(document.activeElement).toBe(link);
+    }
+  });
+
+  it('routes each editorial title and visual to its detail independently of COMPRAR', async () => {
+    await TestBed.configureTestingModule({ imports: [ProductCard], providers: [provideRouter([])] }).compileComponents();
+    const fixture = TestBed.createComponent(ProductCard);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    const received: Product[] = [];
+    fixture.componentInstance.addRequested.subscribe(product => received.push(product));
+    for (const product of new MockProductService().products.filter(product => !product.isSeasonal)) {
+      fixture.componentRef.setInput('product', product);
+      await fixture.whenStable();
+      const root = fixture.nativeElement as HTMLElement;
+      const links = ['.product-title-link', '.visual-link', '.button--buy']
+        .map(selector => root.querySelector<HTMLAnchorElement>(selector)!);
+      for (const link of links) {
+        expect(link.getAttribute('href')).toBe('/products/' + product.slug);
+        expect(link.querySelector('a, button')).toBeNull();
+        navigate.mockClear();
+        link.click();
+        expect(navigate).toHaveBeenCalledTimes(1);
+        expect(TestBed.inject(Router).serializeUrl(navigate.mock.calls[0][0] as import('@angular/router').UrlTree))
+          .toBe('/products/' + product.slug);
+      }
+      expect(links[1].getAttribute('aria-label')).toContain(product.name);
+      expect(links[2].parentElement?.classList.contains('content')).toBe(true);
+      expect(received).toEqual([]);
+    }
+  });
+
   it('emits the current product from its optional catalogue action', async () => {
     await TestBed.configureTestingModule({ imports: [ProductCard], providers: [provideRouter([])] }).compileComponents();
     const fixture = TestBed.createComponent(ProductCard);
@@ -43,18 +88,19 @@ describe('ProductCard', () => {
     for (const product of products) {
       fixture.componentRef.setInput('product', product);
       await fixture.whenStable();
-      expect(element.querySelector('h2')?.textContent).toBe(product.name);
+      expect(element.querySelector('h2')?.textContent?.trim()).toBe(product.name);
       expect(element.querySelector('.product-description')?.textContent).toBe(product.description);
       expect(element.querySelector('.product-ingredients')).toBeNull();
       expect(element.querySelector('img')?.getAttribute('src')).toBe(product.imageUrl);
       expect(element.querySelector('img')?.getAttribute('alt')).toBe(product.imageAlt);
       const preview = element.querySelector<HTMLElement>('.visual');
-      expect(preview?.hasAttribute('tabindex')).toBe(!!product.fruitImage);
+      expect(preview?.hasAttribute('tabindex')).toBe(false);
       expect(element.querySelector('.fruit')?.getAttribute('src')).toBe(product.fruitImage?.url);
       expect(element.querySelector('.fruit')?.getAttribute('alt')).toBe(product.fruitImage?.alt);
       if (product.fruitImage) {
-        preview?.focus();
-        expect(document.activeElement).toBe(preview);
+        const link = preview?.querySelector<HTMLAnchorElement>('a.visual-link');
+        link?.focus();
+        expect(document.activeElement).toBe(link);
       }
       expect(element.querySelectorAll('img').length).toBe((product.imageUrl ? 1 : 0) + (product.fruitImage ? 1 : 0));
       expect(element.querySelector('article')?.getAttribute('data-variant')).toBe(product.variant);
@@ -69,7 +115,7 @@ describe('ProductCard', () => {
     fixture.componentRef.setInput('product', firstProduct);
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('h2')?.textContent).toBe('ORANGE SPRITZ');
+    expect(element.querySelector('h2')?.textContent?.trim()).toBe('ORANGE SPRITZ');
     expect(element.querySelector('.product-description')?.textContent).toBe(firstProduct.description);
     expect(element.querySelector('.product-ingredients')).toBeNull();
     expect(element.querySelector('article')?.getAttribute('data-variant')).toBe('citrus');
@@ -83,7 +129,7 @@ describe('ProductCard', () => {
     };
     fixture.componentRef.setInput('product', nextProduct);
     await fixture.whenStable();
-    expect(element.querySelector('h2')?.textContent).toBe('Test flavour');
+    expect(element.querySelector('h2')?.textContent?.trim()).toBe('Test flavour');
     expect(element.querySelector('img')?.getAttribute('src')).toBe('images/test.png');
     expect(element.querySelector('img')?.getAttribute('alt')).toBe('Llauna de Test flavour');
     expect(element.querySelector('article')?.getAttribute('data-variant')).toBe('neutral');

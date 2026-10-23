@@ -1,16 +1,29 @@
 
 
-<section class="tira-animada" [attr.aria-label]="'ui.10_de_descompte' | t"role="button"tabindex="0"(click)="openPromotion()" (keydown.enter)="openPromotion()"(keydown.space)="openPromotion(); $event.preventDefault()">
-  <div class="tira-animada__inner">
-    <span>{{ 'ui.10_de_descompte_' | t }}</span>
-    <span>{{ 'ui.10_de_descompte_' | t }}</span>
-    <span>{{ 'ui.10_de_descompte_' | t }}</span>
-    <span>{{ 'ui.10_de_descompte_' | t }}</span>
-    <span>{{ 'ui.10_de_descompte_' | t }}</span>
-    <span aria-hidden="true">{{ 'ui.10_de_descompte__' | t }}</span>
-    <span aria-hidden="true">{{ 'ui.10_de_descompte__' | t }}</span>
-    <span aria-hidden="true">{{ 'ui.10_de_descompte__' | t }}</span>
-    <span aria-hidden="true">{{ 'ui.10_de_descompte__' | t }}</span>
-    <span aria-hidden="true">{{ 'ui.10_de_descompte__' | t }}</span>
-  </div>
+<section class="tira-animada" [class.tira-animada--paused]="paused()" [attr.aria-label]="'ui.10_de_descompte' | t">
+  <button type="button" class="tira-animada__trigger" [attr.aria-label]="'ui.10_de_descompte' | t" (click)="openPromotion()">
+  <span class="tira-animada__inner">
+    <span>{{ 'ui.10_de_descompte' | t }}<span class="tira-animada__separator" aria-hidden="true">✦</span></span>
+    <span>{{ 'ui.10_de_descompte' | t }}<span class="tira-animada__separator" aria-hidden="true">✦</span></span>
+    <span>{{ 'ui.10_de_descompte' | t }}<span class="tira-animada__separator" aria-hidden="true">✦</span></span>
+    <span>{{ 'ui.10_de_descompte' | t }}<span class="tira-animada__separator" aria-hidden="true">✦</span></span>
+    <span>{{ 'ui.10_de_descompte' | t }}<span class="tira-animada__separator" aria-hidden="true">✦</span></span>
+    <span aria-hidden="true">{{ 'ui.10_de_descompte' | t }}<span class="tira-animada__separator" aria-hidden="true">✦</span></span>
+    <span aria-hidden="true">{{ 'ui.10_de_descompte' | t }}<span class="tira-animada__separator" aria-hidden="true">✦</span></span>
+    <span aria-hidden="true">{{ 'ui.10_de_descompte' | t }}<span class="tira-animada__separator" aria-hidden="true">✦</span></span>
+    <span aria-hidden="true">{{ 'ui.10_de_descompte' | t }}<span class="tira-animada__separator" aria-hidden="true">✦</span></span>
+    <span aria-hidden="true">{{ 'ui.10_de_descompte' | t }}<span class="tira-animada__separator" aria-hidden="true">✦</span></span>
+  </span>
+  </button>
+  <button type="button" class="tira-animada__pause" (click)="togglePause()"
+    [attr.aria-label]="(paused() ? 'home.marquee.resume' : 'home.marquee.pause') | t"
+    [attr.title]="(paused() ? 'home.marquee.resume' : 'home.marquee.pause') | t">
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false" fill="currentColor">
+      @if (paused()) {
+        <path d="M5 2.5 13 8 5 13.5Z" />
+      } @else {
+        <path d="M4 2h3v12H4zM9 2h3v12H9z" />
+      }
+    </svg>
+  </button>
 </section>

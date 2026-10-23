@@ -3,7 +3,19 @@ import { TestBed } from '@angular/core/testing';
 import { PrelaunchLanding } from './prelaunch-landing';
 
 describe('PrelaunchLanding composition', () => {
-  beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter([])] }));
+  beforeEach(() => {
+    const values = new Map<string, string>();
+    vi.spyOn(window, 'localStorage', 'get').mockReturnValue({
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => { values.set(key, value); },
+    } as Storage);
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+  });
+  afterEach(() => {
+    TestBed.resetTestingModule();
+    vi.restoreAllMocks();
+    document.documentElement.lang = 'ca';
+  });
   it('renders accessible image cards with an unobstructed logo and no shop controls', async () => {
     await TestBed.configureTestingModule({ imports: [PrelaunchLanding] }).compileComponents();
     const fixture = TestBed.createComponent(PrelaunchLanding);

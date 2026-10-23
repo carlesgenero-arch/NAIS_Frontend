@@ -1,4 +1,5 @@
 import { MockProductService } from '../../../testing/product-fixture';
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -7,6 +8,7 @@ import { Header } from '../../../core/shared/base/header/header';
 import { MAX_CART_QUANTITY } from '../../../models/cart.interface';
 import { CART_STORAGE_KEY, CartService } from '../../../services/cart.service';
 import { ProductService } from '../../../services/product.service';
+import { CartDrawerService } from '../../../services/cart-drawer.service';
 
 const originalScrollIntoView = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollIntoView');
 beforeEach(() => Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: vi.fn() }));
@@ -17,7 +19,26 @@ afterEach(() => {
 beforeEach(() => TestBed.configureTestingModule({ providers: [{ provide: ProductService, useClass: MockProductService }] }));
 
 describe('Shop cart integration', () => {
+  let showDescriptor: PropertyDescriptor | undefined;
+  let closeDescriptor: PropertyDescriptor | undefined;
+
   beforeEach(() => {
+    // Cover every Header instance, including tests which do not call createDrawer().
+    showDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal');
+    closeDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close');
+    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+      configurable: true,
+      value: function(this: HTMLDialogElement) { this.setAttribute('open', ''); },
+    });
+    Object.defineProperty(HTMLDialogElement.prototype, 'close', {
+      configurable: true,
+      value: function(this: HTMLDialogElement) {
+        if (!this.open) return;
+        this.removeAttribute('open');
+        // Native close events arrive asynchronously, possibly after a reopen.
+        queueMicrotask(() => this.dispatchEvent(new Event('close')));
+      },
+    });
     // Keep integration tests isolated from the user's persisted cart.
     const values = new Map<string, string>();
     const storage: Storage = {
@@ -32,24 +53,51 @@ describe('Shop cart integration', () => {
     TestBed.configureTestingModule({ imports: [Header], providers: [provideRouter(routes)] });
   });
 
-  afterEach(() => {
-    TestBed.resetTestingModule();
-    vi.restoreAllMocks();
+  afterEach(async () => {
+    try {
+      // Let router/render callbacks finish while the native dialog mock still exists.
+      await TestBed.inject(ApplicationRef).whenStable();
+    } finally {
+      try {
+        TestBed.resetTestingModule();
+      } finally {
+        vi.restoreAllMocks();
+        for (const [name, descriptor] of [['showModal', showDescriptor], ['close', closeDescriptor]] as const) {
+          if (descriptor) Object.defineProperty(HTMLDialogElement.prototype, name, descriptor);
+          else Reflect.deleteProperty(HTMLDialogElement.prototype, name);
+        }
+        document.documentElement.classList.remove('nais-drawer-open');
+        document.documentElement.lang = 'ca';
+      }
+    }
   });
 
   function createDrawer() {
     const header = TestBed.createComponent(Header);
     header.detectChanges();
     const dialog = (header.nativeElement as HTMLElement).querySelector('dialog')!;
-    const show = vi.fn(() => dialog.setAttribute('open', ''));
-    Object.defineProperty(dialog, 'showModal', { value: show });
-    Object.defineProperty(dialog, 'close', { value: () => {
-      dialog.removeAttribute('open');
-      dialog.dispatchEvent(new Event('close'));
-    } });
+    const show = vi.spyOn(dialog, 'showModal');
     const close = () => dialog.querySelector<HTMLButtonElement>('.modal-close')!.click();
     return { header, dialog, show, close };
   }
+
+  it('keeps a reopened drawer open when the previous native close event arrives', async () => {
+    const { header, dialog, show, close } = createDrawer();
+    const drawer = TestBed.inject(CartDrawerService);
+    drawer.open();
+    expect(dialog.open).toBe(true);
+    close();
+    expect(dialog.open).toBe(false);
+    drawer.open();
+    await header.whenStable();
+    expect(show).toHaveBeenCalledTimes(2);
+    expect(dialog.open).toBe(true);
+    expect(document.documentElement.classList.contains('nais-drawer-open')).toBe(true);
+    close();
+    await header.whenStable();
+    expect(dialog.open).toBe(false);
+    expect(document.documentElement.classList.contains('nais-drawer-open')).toBe(false);
+  });
 
   it('opens the same drawer after selecting every added product, preserving totals and storage', async () => {
     const harness = await RouterTestingHarness.create('/products?from=home#catalogue');
